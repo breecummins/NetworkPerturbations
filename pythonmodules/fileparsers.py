@@ -7,17 +7,21 @@ def sort_by_list(X,Y,reverse=False):
             newlists[k].append(z)
     return newlists
 
-def parseLEMfile(threshold=0,fname='/Users/bcummins/ProjectData/malaria/wrair2015_v2_fpkm-p1_s19_40hr_highest_ranked_genes/wrair2015_v2_fpkm-p1_s19_50tfs_top25_dljtk_lem_score_table.txt'):
+# FIXME: move time series parsers here from ExtremaPO.py
+
+# FIXME: NEEDS TESTING!!!
+def parseLEMfile_pickgoodedges(usepldLap=1,threshold=0.10,fname='/Users/bcummins/ProjectData/malaria/wrair2015_v2_fpkm-p1_s19_40hr_highest_ranked_genes/wrair2015_v2_fpkm-p1_s19_50tfs_top25_dljtk_lem_score_table.txt'):
     # returns the source, target, and type of regulation sorted by decreasing LEM score (also returned)
     # file format must be:
     # 1) optional comment lines denoted by #
     # 2) optional line of column headers in which column 2 does not have the header "="
     # 3) all following lines are data that begin with TARGET_GENE = TYPE_REG(SOURCE_GENE)
     # 4) pld.lap score is the first numerical score on each data line 
+    # 5) sqrt loss / root score is in the last column of each data line 
     source=[]
     type_reg=[]
     target=[]
-    lem_score=[]
+    score=[]
     with open(fname,'r') as f:
         for l in f.readlines():
             if l[0] == '#':
@@ -25,54 +29,39 @@ def parseLEMfile(threshold=0,fname='/Users/bcummins/ProjectData/malaria/wrair201
             wordlist=l.split()
             if wordlist[1] != "=":
                 continue
-            k=3
-            while not wordlist[k][0].isdigit():
-                k+=1
-            lem = float(wordlist[k])
-            if lem>threshold:
+            if usepldLap:
+                k=3
+                while not wordlist[k][0].isdigit():
+                    k+=1
+            else:
+                k=-1
+            S = float(wordlist[k])
+            if usepldLap:
+                condition = S>=threshold
+            else:
+                condition = S<=threshold
+            if condition:
                 target.append(wordlist[0]) 
-                lem_score.append(lem)
+                score.append(S)
                 two_words=wordlist[2].split('(')
                 type_reg.append(two_words[0])
                 source.append(two_words[1][:-1])
-    [lem_score,source,target,type_reg] = sort_by_list(lem_score,[source,target,type_reg],reverse=True) # reverse=True because we want descending lem scores
-    return source,target,type_reg,lem_score
+        if usepldLap:
+            R=True
+        else:
+            R=False
+        # sort with best first
+        [score,source,target,type_reg] = sort_by_list(score,[source,target,type_reg],reverse=R) 
+    return source,target,type_reg,score
 
-def parseLEMfile_sqrtlossdroot(threshold=1,fname='/Users/bcummins/ProjectData/malaria/wrair2015_v2_fpkm-p1_s19_40hr_highest_ranked_genes/wrair2015_v2_fpkm-p1_s19_50tfs_top25_dljtk_lem_score_table.txt'):
-    # returns the source, target, and type of regulation sorted by increasing sqrt loss/root score (also returned). Smaller scores are higher ranking.
-    # file format must be:
-    # 1) optional comment lines denoted by #
-    # 2) optional line of column headers in which column 2 does not have the header "="
-    # 3) all following lines are data that begin with TARGET_GENE = TYPE_REG(SOURCE_GENE)
-    # 4) sqrt loss / root score is the last numerical score (and word) on each data line 
-    source=[]
-    type_reg=[]
-    target=[]
-    sqrtloss_root=[]
-    with open(fname,'r') as f:
-        for l in f.readlines():
-            if l[0] == '#':
-                continue
-            wordlist=l.split()
-            if wordlist[1] != "=":
-                continue
-            sqlr = float(wordlist[-1])
-            if sqlr<threshold:
-                target.append(wordlist[0]) 
-                sqrtloss_root.append(sqlr)
-                two_words=wordlist[2].split('(')
-                type_reg.append(two_words[0])
-                source.append(two_words[1][:-1])
-    [sqrtloss_root,source,target,type_reg] = sort_by_list(sqrtloss_root,[source,target,type_reg],reverse=False) 
-    return source,target,type_reg,sqrtloss_root
-
-def parseLEMfile_pickbadnetworks(usepldLap=1,threshold=0,fname='/Users/bcummins/ProjectData/malaria/wrair2015_v2_fpkm-p1_s19_40hr_highest_ranked_genes/wrair2015_v2_fpkm-p1_s19_50tfs_top25_dljtk_lem_score_table.txt'):
+def parseLEMfile_pickbadedges(usepldLap=1,threshold=0,fname='/Users/bcummins/ProjectData/malaria/wrair2015_v2_fpkm-p1_s19_40hr_highest_ranked_genes/wrair2015_v2_fpkm-p1_s19_50tfs_top25_dljtk_lem_score_table.txt'):
     # returns the source, target, and type of regulation sorted by decreasing LEM score (also returned)
     # file format must be:
     # 1) optional comment lines denoted by #
     # 2) optional line of column headers in which column 2 does not have the header "="
     # 3) all following lines are data that begin with TARGET_GENE = TYPE_REG(SOURCE_GENE)
     # 4) pld.lap score is the first numerical score on each data line 
+    # 5) sqrt loss / root score is in the last column of each data line 
     source=[]
     type_reg=[]
     target=[]
@@ -101,7 +90,12 @@ def parseLEMfile_pickbadnetworks(usepldLap=1,threshold=0,fname='/Users/bcummins/
                 two_words=wordlist[2].split('(')
                 type_reg.append(two_words[0])
                 source.append(two_words[1][:-1])
-        # don't worry about sorting -- these are all the worst edges
+        if usepldLap:
+            R=False
+        else:
+            R=True
+        # sort with worst first
+        [score,source,target,type_reg] = sort_by_list(score,[source,target,type_reg],reverse=R) 
     return source,target,type_reg,score
 
 def parseRankedGenes(fname="/Users/bcummins/ProjectData/yeast/haase-fpkm-p1_yeast_s29_DLxJTK_257TFs.txt"):
@@ -184,33 +178,6 @@ def getGraphFromNetworkFile(network_filename=None,networkstr=None):
             graph[ind].append(target)  # change inedges to outedges
     return node_list,graph,regulation,essential
 
-def makeYeastRankedGenes(ranked_genes_file="/Users/bcummins/ProjectData/yeast/haase-fpkm-p1_yeast_s29_DLxJTK_257TFs.txt",LEMfile="/Users/bcummins/ProjectData/yeast/haase-fpkm-p1_yeast_s29_top25dljtk_lem_score_table.txt",savefile="datafiles/haase-fpkm-p1_yeast_s29_DLxJTK_top25TFs.txt"):
-    allrankedgenes = parseRankedGenes(ranked_genes_file)
-    source,_,_,_ = parseLEMfile(threshold=-1,fname=LEMfile)
-    genes = list(set(source))
-    ranked_genes=[]
-    for a in allrankedgenes:
-        if a in genes:
-            ranked_genes.append(a)
-        if len(ranked_genes) == len(genes):
-            with open(savefile,'w') as sf:
-                for k,r in enumerate(ranked_genes):
-                    sf.write(r+' '+str(k+1))
-                    if k+1 < len(ranked_genes):
-                        sf.write("\n")
-    if len(ranked_genes) < len(genes):
-        raise ValueError('Some genes are unranked.')
-
-def generateMasterList(fname='/Users/bcummins/ProjectData/malaria/wrair2015_pfalcip_462TF_forLEM/cuffNorm_subTFs_stdNames.txt'):
-    # This is for all 462 TFs in the original malaria data set. May be deprecated.
-    f=open(fname,'r')
-    wordlist = f.readline().split()[22::]
-    f.close()
-    genelist = wordlist[::22]
-    timeseries=[]
-    for k in range(len(genelist)):
-        timeseries.append([float(w) for w in wordlist[22*k+1:22*(k+1)]])
-    return genelist, timeseries
 
 if __name__ == '__main__':
     # parseRankedGenes("datafiles/wrair-fpkm-p1_malaria_s19_DLxJTK_50putativeTFs.txt")

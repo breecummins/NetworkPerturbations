@@ -1,3 +1,5 @@
+#FIXME -- import dsgrn
+
 import subprocess
 
 def checkComputability(network_spec,maxparams):
