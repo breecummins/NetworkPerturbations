@@ -1,11 +1,10 @@
-#FIXME -- import dsgrn
+import DSGRN
 
-import subprocess
+# waiting on feature request from Shaun to take network spec instead of file
 
 def checkComputability(network_spec,maxparams):
     try:
-        sentence = subprocess.check_output(['dsgrn','network', network_spec,'parameter'],shell=False)
-        numparams = [int(s) for s in sentence.split() if s.isdigit()][0]
-        return (numparams <= int(maxparams))
+        paramgraph=DSGRN.ParameterGraph(DSGRN.Network(network_spec))    
+        return (paramgraph.size() <= int(maxparams))
     except:
         return False
