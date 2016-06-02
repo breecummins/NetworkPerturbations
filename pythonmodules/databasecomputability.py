@@ -1,10 +1,10 @@
 import DSGRN
 
-# waiting on feature request from Shaun to take network spec instead of file
-
 def checkComputability(network_spec,maxparams):
+    network=DSGRN.Network()
+    network.assign(network_spec)
     try:
-        paramgraph=DSGRN.ParameterGraph(DSGRN.Network(network_spec))    
+        paramgraph=DSGRN.ParameterGraph(network)    
         return (paramgraph.size() <= int(maxparams))
     except:
         return False
