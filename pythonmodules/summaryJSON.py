@@ -16,10 +16,10 @@ results_dict["Network"]=networkstr
 
 if pattern_spec_file:
     with open(pattern_spec_file,'r') as pf:
-        patstr = json.load(pf)
+        pattern = json.load(pf)
 else:
-    patstr = "None"
+    pattern = "None"
 
-results_dict["PatternSpecification"]=patstr
+results_dict["PatternSpecification"]=pattern
 
 json.dump(results_dict,open(results_file,'w'))
