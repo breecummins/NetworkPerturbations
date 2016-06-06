@@ -22,35 +22,37 @@ def isNegSelfLoop(startnode,endnode,newedgereg):
     else:
         return False
 
-def addOrChangeEdge(graph,startnode,endnode,newedgereg):
-    existing_regulation=isUnsignedEdgeInGraph(graph,startnode,endnode)
-    if not existing_regulation:
-        graph.add_edge(startnode,endnode,label=newedgereg)
-    else:
-        newedgereg='a'*(existing_regulation == 'r') + 'r'*(existing_regulation == 'a')
-        graph.change_edge_label(startnode,endnode,newedgereg)
-    return graph
+def getRandomEdge(n):
+    startnode = getRandomInt(n)
+    endnode = getRandomInt(n)
+    regbool = getRandomInt(2)
+    newedgereg = 'a'*regbool + 'r'*(not regbool)
+return startnode,endnode,newedgereg
 
 def pickRandomEdge(graph,edgelist=()):
-    n = len(graph.vertices())
-    
-    def getRandomEdge():
-        startnode = getRandomInt(n)
-        endnode = getRandomInt(n)
-        regbool = getRandomInt(2)
-        newedgereg = 'a'*regbool + 'r'*(not regbool)
-    return startnode,endnode,newedgereg
-
-    startnode,endnode,newedgereg = getRandomEdge()    
+    n = len(graph.vertices())    
+    startnode,endnode,newedgereg = getRandomEdge(n)    
     if edgelist:         
         while ( endnode == startnode and endnode in graph.adjacencies(startnode) ) or isNegSelfLoop(startnode,endnode,newedgereg) or (startnode,endnode,newedgereg) not in edgelist:
-            startnode,endnode,newedgereg = getRandomEdge()
+            startnode,endnode,newedgereg = getRandomEdge(n)
     else:
         while ( endnode == startnode and endnode in graph.adjacencies(startnode) ) or isNegSelfLoop(startnode,endnode,newedgereg):
-            startnode,endnode,newedgereg = getRandomEdge()
+            startnode,endnode,newedgereg = getRandomEdge(n)
     return startnode,endnode,newedgereg
 
-def pickOrderedEdge(graph,reg,edgelist,rank):
+def pickRandomInOrOutEdgeFromListForNewNode(graph,edgelist,isinedge=True):
+    # assume new node is last in list; index n-1
+    n = len(graph.vertices())
+    _,othernode,newedgereg = getRandomEdge(n-1) # get other node from existing graph, not new node
+    if isinedge:       
+        while (othernode,n-1,newedgereg) not in edgelist:
+            _,othernode,newedgereg = getRandomEdge(n-1)    
+    else:
+        while (n-1,othernode,newedgereg) not in edgelist:
+            _,othernode,newedgereg = getRandomEdge(n-1)    
+    return othernode,newedgereg
+
+def pickOrderedEdge(graph,edgelist,rank):
     numedges = 0
     for (sn,en,rg) in edgelist:
         if not isSignedEdgeInGraph(graph,sn,en,rg):
@@ -63,32 +65,6 @@ def pickOrderedEdge(graph,reg,edgelist,rank):
     else:
         print "Warning: Too many edges requested. Aborting network creation early."
         return False,False,False
-
-def filterEdges(node,edgenamelist,isinedge):
-    # if not isinedge, then is out-edge
-    sublist=[]
-    if isinedge:
-        for edge in edgenamelist:
-            if edge[1] == node:
-                sublist.append(edge)
-    else:
-        for edge in edgenamelist:
-            if edge[0] == node:
-                sublist.append(edge)
-    return sublist
-
-def convertEdgeListToIndices(networknodelist,edgenamelist):
-    edgelist=[]
-    for (sn,en,rg) in edgenamelist:
-        edgelist.append((networknodelist.index(sn),networknodelist.index(en),rg))
-    return edgelist
-
-def addNode(graph,newnodelabel,innode,inreg,outnode,outreg):
-    n = len(graph.vertices())
-    graph.add_vertex(n,label=newnodelabel)
-    graph.add_edge(innode,n,label=inreg)
-    graph.add_edge(n,outnode,label=outreg)
-    return graph
 
 def pickOrderedNode(networknodelist,nodelist,rank):
     numnodes = 0
@@ -114,12 +90,44 @@ def pickRandomNodeFromList(networknodelist,nodelist):
         index = getRandomInt(n)
     return nodelist[index]
 
-def addRandomEdgeOrRandomEdgeFromList(graph,reg,edgelist=()):
+def filterEdges(node,edgenamelist):
+    inedges=[]
+    outedges=[]
+    for edge in edgenamelist:
+        if edge[1] == node:
+            inedges.append(edge)
+        elif edge[0] == node:
+            outedges.append(edge)
+    return inedges,outedges
+
+def convertEdgeListToIndices(networknodelist,edgenamelist):
+    edgelist=[]
+    for (sn,en,rg) in edgenamelist:
+        edgelist.append((networknodelist.index(sn),networknodelist.index(en),rg))
+    return edgelist
+
+def addNode(graph,newnodelabel,innode,inreg,outnode,outreg):
+    n = len(graph.vertices())
+    graph.add_vertex(n,label=newnodelabel)
+    graph.add_edge(innode,n,label=inreg)
+    graph.add_edge(n,outnode,label=outreg)
+    return graph
+
+def addOrChangeEdge(graph,startnode,endnode,newedgereg):
+    existing_regulation=isUnsignedEdgeInGraph(graph,startnode,endnode)
+    if not existing_regulation:
+        graph.add_edge(startnode,endnode,label=newedgereg)
+    else:
+        newedgereg='a'*(existing_regulation == 'r') + 'r'*(existing_regulation == 'a')
+        graph.change_edge_label(startnode,endnode,newedgereg)
+    return graph
+
+def addRandomEdgeOrRandomEdgeFromList(graph,edgelist=()):
     startnode,endnode,newedgereg = pickRandomEdge(graph,edgelist)
     graph = addOrChangeEdge(graph,startnode,endnode,newedgereg)
     return graph 
 
-def addRandomNodeRandomEdgesNoLists(graph):
+def addRandomNodeRandomEdgesWithOrWithoutNodeList(graph,newnodelabel=''):
     n = len(graph.vertices())
     # the new node will have index n
     # pick an incoming edge for n from the existing network (i.e. don't pick node n)
@@ -130,25 +138,43 @@ def addRandomNodeRandomEdgesNoLists(graph):
     outnode = getRandomInt(n)
     outbool = getRandomInt(2)
     outreg = 'a'*outbool + 'r'*(not outbool)
-    graph = addNode(graph,'x'+str(n),innode,inreg,outnode,outreg)
+    if not newnodelabel:
+        newnodelabel = 'x'+str(n)
+    graph = addNode(graph,newnodelabel,innode,inreg,outnode,outreg)
     return graph
 
-def addRandomNodeFromListAndRandomEdges(graph,reg,nodelist):
+def addRandomNodeFromListAndRandomEdgesNoList(graph,nodelist):
+    n = len(graph.vertices)
+    networknodelist = [graph.vertex_label(v) for v in range(n)]
+    newnodelabel = pickRandomNodeFromList(networknodelist,nodelist)
+    graph = addRandomNodeRandomEdgesWithOrWithoutNodeList(graph,newnodelabel)
+    return graph
+
+def addRandomNodeAndEdgesFromLists(graph,nodelist,edgenamelist):
+    n = len(graph.vertices)
+    networknodelist = [graph.vertex_label(v) for v in range(n)]
+    newnodelabel = pickRandomNodeFromList(networknodelist,nodelist)
+    # FIXME -- combine filterEdges with convertEdgeListToIndices
+    inedges,outedges = filterEdges(newnodelabel,edgenamelist)
+    inedges = convertEdgeListToIndices(networknodelist+[newnodelabel],inedges)
+    outedges = convertEdgeListToIndices(networknodelist+[newnodelabel],outedges)
+    # FIXME -- filter for edges that already exist
+    # FIXME -- catch if in and out edge lists are empty
+    innode,inreg = pickRandomInOrOutEdgeFromListForNewNode(graph,inedges,isinedge=True)
+    outnode,outreg = pickRandomInOrOutEdgeFromListForNewNode(graph,outedges,isinedge=False)
+    graph = addNode(graph,newnodelabel,innode,inreg,outnode,outreg)
+    return graph
+
+def addRandomNodeOrderedEdges(graph,nodelist,edgenamelist,edgerank):
     pass
 
-def addOrderedNodeRandomEdges(graph,reg,nodelist,noderank):
-    pass
-
-def addRandomNodeAndEdgesFromLists(graph,reg,nodelist,edgenamelist,noderank,edgerank):
+def addOrderedNodeRandomEdgesNoList(graph,nodelist,noderank):
     pickOrderedNode(networknodelist,nodelist,rank)
 
-def addOrderedNodeRandomEdgesFromList(graph,reg,nodelist,edgenamelist,noderank):
+def addOrderedNodeRandomEdgesFromList(graph,nodelist,edgenamelist,noderank):
     pass
 
-def addRandomNodeOrderedEdges(graph,reg,nodelist,edgenamelist,edgerank):
-    pass
-
-def addOrderedNodeOrderedEdges(graph,reg,nodelist,edgenamelist,noderank,edgerank):
+def addOrderedNodeOrderedEdges(graph,nodelist,edgenamelist,noderank,edgerank):
     pass
     
 
