@@ -1,147 +1,146 @@
 import random
 # graph is an intervalgraph.Graph object
 
-def getRandomInt(n):
-    return random.randrange(n)
+##############################################################################
+# Low level helper functions
+##############################################################################
 
-def getNamedEdgesInGraph(graph):
+def constructNamedEdgesFromGraph(graph):
+    # transform graph into a list of edge tuples using vertex labels instead of vertex indices
     graph_named_edges = [(graph.vertex_label(v),graph.vertex_label(e),graph.edge_label(v,e)) for v in graph.vertices() for a in graph.adjacencies(v) for e in a]
     return graph_named_edges
 
-def getNetworkNodeList(graph):
+def constructNetworkNodeList(graph):
+    # get list of network labels from graph
     networknodelist = [graph.vertex_label(v) for v in graph.vertices()]
     return networknodelist
 
-def isUnsignedEdgeInGraph(graph_named_edges,startnode,endnode):
-    for edge in graph_named_edges:
-        if edge[0] == startnode and edge[1] == endnode:
-            return edge[2]
-    return False
-
-def isSignedEdgeInGraph(graph_named_edges,edge):
-    if edge in graph_named_edges:
-        return True
-    else:
-        return False        
-
 def isNegSelfLoop(edge):
+    # check for negative self-loops
     if edge[0]==edge[1] and edge[2]=='r':
         return True
     else:
         return False
 
+def generateRandomInt(n):
+    return random.randrange(n)
+
 def generateRandomEdge(networknodelist):
+    # make random edge; may or may not be in existing graph
     n = len(networknodelist)
-    startnode = getRandomInt(n)
-    endnode = getRandomInt(n)
-    regbool = getRandomInt(2)
+    startnode = generateRandomInt(n)
+    endnode = generateRandomInt(n)
+    regbool = generateRandomInt(2)
     newedgereg = 'a'*regbool + 'r'*(not regbool)
     return (networknodelist[startnode],networknodelist[endnode],newedgereg)
 
-def sanityCheckNodeList(networknodelist,nodelist):
-    # check if it is possible to choose a new node
-    # used to sanity check inputs to while loops over node list
-    if not set(nodelist).difference(networknodelist):
-        raise ValueError("Warning: No more nodes to choose. Aborting network creation early.")
+def filterEdges(nodelabel,networknodelist,edgelist):
+    # filter edgelist via nodelabel, so that only edges to and from nodelabel to the network exist
+    # nodelabel is not in networknodelist
+    # edge list is list of all allowed edges to add to network
+    inedges=[]
+    outedges=[]
+    for edge in edgelist:
+        if edge[0] in networknodelist and edge[1] == nodelabel:
+            inedges.append(edge)
+        elif edge[0] == nodelabel and edge[1] in networknodelist:
+            outedges.append(edge)
+    return inedges,outedges
 
-def sanityCheckEdgeList(edgelist,tried_edges):
-    # check if all edges have been tried
-    # used to sanity check inputs to while loops over edge list
-    if set(edgelist).issubset(tried_edges):
-        raise ValueError("Warning: All edges tested and none work. Aborting network creation early.")
+##############################################################################
+# All "get" function return nodes and/or edges, or throw an error if they can't.
+##############################################################################
 
-def getNewRandomEdge(graph_named_edges,networknodelist,networkedgelist=()):
-    # graph_named_edges (from getNamedEdgesInGraph(graph)) is a list of named adjacencies in the format of edgelist
-    # networkedgelist is list of containing edge names between nodes in networknodelist; empty means pick random edge in network
-    if len(networknodelist) < 2: # exclude trivial graphs for second while loop
-        raise ValueError("Warning: Trivial graph, cannot add edges. Aborting network creation early.")  
+def getNewRandomEdge(graph_named_edges,networknodelist,edgelist=()):
+    # get a new, not-already-existing edge to add to the graph; optionally pull it from an allowed list
+    # graph_named_edges (from constructNamedEdgesFromGraph(graph)) is a list of named adjacencies in the format of edgelist
+    # edgelist is list of allowable edges; empty means pick random edge to add to network
+    n = len(networknodelist)
+    if n < 2: # exclude trivial graphs for second while loop
+        raise ValueError("Trivial graph, cannot add edges. Aborting network creation early.")  
     edge = generateRandomEdge(networknodelist)  
     if edgelist: 
         tried_edges=set()
-        while edge in graph_named_edges or isNegSelfLoop(edge) or edge not in networkedgelist:
+        while edge in graph_named_edges or isNegSelfLoop(edge) or edge not in edgelist:
+            # check last-ditch termination condition: max # of edges = 2 signs of edge between any two nodes and self-loops allowed
+            # n choose 2 with replacement = (n-r+1)!/r!(n-1)! = n(n+1)/2 when r=2; multiply by two allowed edge signs = n(n+1)
+            # (cannot use subset test as in getRandomInOrOutEdgeFromList, because this edgelist is not filtered to just network nodes)
             tried_edges.add(edge)
-            sanityCheckEdgeList(networkedgelist,tried_edges)
+            if len(tried_edges) == n*(n+1): 
+                raise ValueError("All edges tested and none work. Aborting network creation early.")
             edge = generateRandomEdge(networknodelist)  
     else:
         while edge in graph_named_edges or isNegSelfLoop(edge):
-            # will terminate for nontrivial (n>1) graphs
+            # will terminate for nontrivial (n>1) graphs, because either there are missing edges in the graph, or there are non-loop edges where you can change the sign of an edge
             edge = generateRandomEdge(networknodelist)  
     return edge
 
 def getRandomInOrOutEdgeFromList(nodelabel,networknodelist,newnodeedgelist,isinedge=True):
     # nodelabel is not in networknodelist
     # newnodeedgelist is non-empty list of edge names between nodelabel and the nodes in networknodelist
-
-    (_,othernode,newedgereg) = getRandomEdge(networknodelist)
-
+    (_,othernode,newedgereg) = generateRandomEdge(networknodelist)
+    edge = (othernode,nodelabel,newedgereg) if isinedge else (nodelabel,othernode,newedgereg)
     tried_edges=set()
-    if isinedge:
-        inedge = (othernode,nodelabel,newedgereg)       
-        while inedge not in newnodeedgelist:
-            tried_edges.add(inedge)
-            sanityCheckEdgeList(newnodeedgelist,tried_edges)
-            (othernode,_,newedgereg) = generateRandomEdge(networknodelist)
-            inedge = (othernode,nodelabel,newedgereg)       
-    else:
-        outedge = (nodelabel,othernode,newedgereg)
-        while outedge not in newnodeedgelist:
-            tried_edges.add(outedge)
-            sanityCheckEdgeList(newnodeedgelist,tried_edges)
-            (_,othernode,newedgereg) = generateRandomEdge(networknodelist)
-            outedge = (nodelabel,othernode,newedgereg)
+    while edge not in newnodeedgelist:
+        tried_edges.add(edge)
+        if set(edgelist).issubset(tried_edges): # if all edges tried, terminate loop
+            raise ValueError("All edges tested and none work. Aborting network creation early.")
+        (_,othernode,newedgereg) = generateRandomEdge(networknodelist)
+        edge = (othernode,nodelabel,newedgereg) if isinedge else (nodelabel,othernode,newedgereg)
     return othernode,newedgereg
 
 def getOrderedEdge(graph_named_edges,edgelist,rank):
-    # graph_named_edges (from getNamedEdgesInGraph(graph)) is a list of named adjacencies in the format of edgelist
+    # graph_named_edges (from constructNamedEdgesFromGraph(graph)) is a list of named adjacencies in the format of edgelist
     # edge list is list of edges to add to network
     numedges = 0
-    for (sn,en,rg) in edgelist:
-        if not isSignedEdgeInGraph(graph_named_edges,sn,en,rg):
+    for edge in edgelist:
+        if edge not in graph_named_edges:
             numedges+=1
         if numedges==rank:
-            startnode, endnode, newedgereg = sn, en, rg
-            break
-    if "startnode" in locals():
-        return startnode,endnode,newedgereg
-    else:
-        raise ValueError("Warning: Too many edges requested. Aborting network creation early.")
+            return edge
+    raise ValueError("Too many edge ranks requested. Aborting network creation early.")
 
 def getOrderedNode(networknodelist,nodelist,rank):
     numnodes = 0
-    for n in nodelist:
-        if n not in networknodelist:
+    for node in nodelist:
+        if node not in networknodelist:
             numnodes+=1
         if numnodes==rank:
-            newnode=n
-            break
-    if "newnode" in locals():
-        return newnode
-    else:
-        raise ValueError("Warning: Too many nodes requested. Aborting network creation early.")
+            return node
+    raise ValueError("Too many node ranks requested. Aborting network creation early.")
 
 def getRandomNodeFromList(networknodelist,nodelist):
-   # sanity check while loop
-    sanityCheckNodeList(networknodelist,nodelist)
+    # check if it is possible to choose a new node (ensures while loop terminates)
+    if not set(nodelist).difference(networknodelist):
+        raise ValueError("No more nodes to choose. Aborting network creation early.")
     n = len(nodelist)
-    index = getRandomInt(n)
+    index = generateRandomInt(n)
     while nodelist[index] in networknodelist:
-        index = getRandomInt(n)
+        index = generateRandomInt(n)
     return nodelist[index]
 
-def filterEdges(graph_named_edges,nodelabel,networknodelist,edgelist):
-    # graph_named_edges (from getNamedEdgesInGraph(graph)) is a list of named adjacencies in the format of edgelist
-    # edge list is list of edges to add to network
-    inedges=[]
-    outedges=[]
-    for edge in edgelist:
-        if edge not in graph_named_edges:
-            if edge[0] in networknodelist and edge[1] == nodelabel:
-                inedges.append(edge)
-            elif edge[0] == nodelabel and edge[1] in networknodelist:
-                outedges.append(edge)
-    return inedges,outedges
+def getRandomNodeFromListAndAllowedEdges(graph_named_edges,networknodelist,nodelist,edgelist):
+    # get a random node from provided list and the potential in- and out-edges to the existing network
+    def generateCandidate():
+        newnodelabel = getRandomNodeFromList(networknodelist,nodelist)
+        inedges,outedges = filterEdges(newnodelabel,networknodelist,edgelist)
+        return newnodelabel,inedges,outedges
+    newnodelabel,inedges,outedges = generateCandidate()
+    tried_labels=set()
+    remaining_labels=set(nodelist).difference(networknodelist)
+    while not inedges or not outedges:
+        tried_labels.add(newnodelabel)
+        if tried_labels == remaining_labels: # if all new nodes have empty edge lists, abort
+            raise ValueError("No new nodes with non-empty edge lists. Aborting network creation early.")
+        newnodelabel,inedges,outedges = generateCandidate()
+    return newnodelabel,inedges,outedges
+
+##############################################################################
+# All "add" functions take a graph object and return a modified graph object.
+##############################################################################
 
 def addNode(graph,newnodelabel,innode,inreg,outnode,outreg):
+    # helper function for all "add" functions that add a node, ordered or random
     n = len(graph.vertices())
     # the new node will have index n
     graph.add_vertex(n,label=newnodelabel)
@@ -149,70 +148,71 @@ def addNode(graph,newnodelabel,innode,inreg,outnode,outreg):
     graph.add_edge(n,outnode,label=outreg)
     return graph
 
-def addOrChangeEdge(graph,graph_named_edges,startnode,endnode,newedgereg):
-    existing_regulation=isUnsignedEdgeInGraph(graph_named_edges,startnode,endnode)
-    if not existing_regulation:
-        graph.add_edge(startnode,endnode,label=newedgereg)
+def addRandomEdgeOptionalList(graph,edgelist=()):
+    networknodelist = constructNetworkNodeList(graph)
+    graph_named_edges = constructNamedEdgesFromGraph(graph)
+    newedge = getNewRandomEdge(graph_named_edges,edgelist)
+    startnode = networknodelist.index[newedge[0]]
+    endnode = networknodelist.index[newedge[1]]
+    if endnode in graph.adjacencies(startnode):
+        graph.change_edge_label(startnode,endnode,newedge[2])
     else:
-        newedgereg='a'*(existing_regulation == 'r') + 'r'*(existing_regulation == 'a')
-        graph.change_edge_label(startnode,endnode,newedgereg)
-    return graph
-
-def addRandomEdgeOrRandomEdgeFromList(graph,edgelist=()):
-    graph_named_edges = getNamedEdgesInGraph(graph)
-    startnode,endnode,newedgereg = getNewRandomEdge(graph_named_edges,edgelist)
-    graph = addOrChangeEdge(graph,graph_named_edges,startnode,endnode,newedgereg)
+        graph.add_edge(startnode,endnode,label=newedge[2])
     return graph 
 
-def addRandomEdgesToNewNode(graph,newnodelabel=''):
-    networknodelist = getNetworkNodeList(graph)
+def addNewNodeAndRandomEdgesNoList(graph,networknodelist=None,newnodelabel=None):
+    if networknodelist is None:
+        networknodelist = constructNetworkNodeList(graph)
+    if newnodelabel is None:
+        newnodelabel = 'x'+str(len(networknodelist))
     # pick outgoing and incoming edges for n from the existing network (i.e. don't pick node n)
     (innode,_,inreg) = generateRandomEdge(networknodelist)
     # pick an outgoing edge for n from the existing network
     (_,outnode,outreg) = generateRandomEdge(networknodelist)
-    if not newnodelabel:
-        newnodelabel = 'x'+str(len(networknodelist))
     graph = addNode(graph,newnodelabel,innode,inreg,outnode,outreg)
     return graph
 
 def addRandomNodeFromListAndRandomEdgesNoList(graph,nodelist):
-    networknodelist = getNetworkNodeList(graph)
-    newnodelabel = pickRandomNodeFromList(networknodelist,nodelist)
-    graph = addRandomEdgesToNewNode(graph,newnodelabel)
+    networknodelist = constructNetworkNodeList(graph)
+    newnodelabel = getRandomNodeFromList(networknodelist,nodelist)
+    graph = addNewNodeAndRandomEdgesNoList(graph,networknodelist,newnodelabel)
+    return graph
+
+def addOrderedNodeRandomEdgesNoList(graph,nodelist,noderank):
+    networknodelist = constructNetworkNodeList(graph)
+    newnodelabel = getOrderedNode(networknodelist,nodelist,noderank)
+    graph = addNewNodeAndRandomEdgesNoList(graph,networknodelist,newnodelabel)
     return graph
 
 def addRandomNodeAndEdgesFromLists(graph,nodelist,edgelist):
-    networknodelist = getNetworkNodeList(graph)
-    graph_named_edges = getNamedEdgesInGraph(graph)
-
-    def getRandomNodeAndAllowedEdges():
-        newnodelabel = getRandomNodeFromList(networknodelist,nodelist)
-        inedges,outedges = filterEdges(graph_named_edges,newnodelabel,networknodelist,edgelist)
-        return newnodelabel,inedges,outedges
-
-    newnodelabel,inedges,outedges = getRandomNodeAndAllowedEdges()
-
-    # sanity check while loop
-    tried_labels=set()
-    remaining_labels=set(nodelist).difference(networknodelist)
-    while not inedges or not outedges:
-        tried_labels.add(newnodelabel)
-        if tried_labels == remaining_labels: # if all new nodes have empty edge lists, abort
-            raise ValueError("Warning: No appropriate edges in list. Aborting network creation early.")
-        newnodelabel,inedges,outedges = getRandomNodeAndAllowedEdges()
+    networknodelist = constructNetworkNodeList(graph)
+    graph_named_edges = constructNamedEdgesFromGraph(graph)
+    newnodelabel,inedges,outedges = getRandomNodeFromListAndAllowedEdges(graph_named_edges,networknodelist,nodelist,edgelist)
     innode,inreg = getRandomInOrOutEdgeFromList(newnodelabel,networknodelist,inedges,isinedge=True)
     outnode,outreg = getRandomInOrOutEdgeFromList(newnodelabel,networknodelist,outedges,isinedge=False)
     graph = addNode(graph,newnodelabel,innode,inreg,outnode,outreg)
     return graph
 
 def addRandomNodeOrderedEdges(graph,nodelist,edgelist,edgerank):
-    pass
-
-def addOrderedNodeRandomEdgesNoList(graph,nodelist,noderank):
-    pass
+    networknodelist = constructNetworkNodeList(graph)
+    graph_named_edges = constructNamedEdgesFromGraph(graph)
+    newnodelabel,inedges,outedges = getRandomNodeFromListAndAllowedEdges(graph_named_edges,networknodelist,nodelist,edgelist)
+    inedge = getOrderedEdge(graph_named_edges,inedges,edgerank)
+    outedge = getOrderedEdge(graph_named_edges,outedges,edgerank)
+    graph = addNode(graph,newnodelabel,inedge[0],inedge[2],outedge[1],outedge[2])
+    return graph
 
 def addOrderedNodeRandomEdgesFromList(graph,nodelist,edgelist,noderank):
-    pass
+    networknodelist = constructNetworkNodeList(graph)
+    newnodelabel = getOrderedNode(networknodelist,nodelist,noderank)
+    graph_named_edges = constructNamedEdgesFromGraph(graph)
+    inedges,outedges = filterEdges(newnodelabel,networknodelist,edgelist)
+    if not inedges or not outedges:
+        raise ValueError("No appropriate edges in list. Aborting network creation early.")
+    innode,inreg = getRandomInOrOutEdgeFromList(newnodelabel,networknodelist,inedges,isinedge=True)
+    outnode,outreg = getRandomInOrOutEdgeFromList(newnodelabel,networknodelist,outedges,isinedge=False)
+    graph = addNode(graph,newnodelabel,innode,inreg,outnode,outreg)
+    return graph
 
 def addOrderedNodeOrderedEdges(graph,nodelist,edgelist,noderank,edgerank):
     pass

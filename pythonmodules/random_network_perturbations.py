@@ -2,6 +2,8 @@ import fileparsers
 from databasecomputability import checkComputability
 import random,sys
 
+# FIXME: rewrite, maybe as instance of class
+
 def getRandomInt(n):
     return random.randrange(n)
 

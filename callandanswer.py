@@ -134,6 +134,7 @@ def getinfo():
     params['dualfpqueries'] = input("\nWould you like to query for the simultaneous presence of two FPs? If so, enter a list of arguments. \nIncorrect format, state, or variable names will crash the process later. \nExample of two dual queries: ['E2F 3 3 Rb 0 0 E2F 0 0 Rb 1 1', 'Myc 0 1 E2F 2 2 E2F 0 2 Rb 1 1']. Enter [] for no queries.  ")
     # choose whether to pattern match and get associated parameters
     params['patternmatch'] = gimme_str_from_list(raw_input("\nDo you want to pattern match (y or n)?  "),['y','n'])
+    # FIXME: if networkfolder in params, ask for path to pattern files, if they exist
     if params['patternmatch'] == 'y':
         params['timeseriesfile'] = gimme_existing_file(raw_input("\nGive the path to a file containing the time series data.  "))
         params['ts_type'] = gimme_str_from_list(raw_input("\nDo the time series occur in rows ('row') or columns ('col')?  "),['row','col'])

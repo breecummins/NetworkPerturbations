@@ -50,7 +50,7 @@ done
 STABLEFCLIST="$DATABASEDIR/StableFCList$NETID.txt" # this file name should match the one in querylibrary.sh by convention
 
 # if pattern matching desired (pattern dir non-empty), then do it
-if [[ "$(ls -A $PATTERNDIR)" ]]; then
+if [[ `ls -A $PATTERNDIR` ]]; then
 	
 	# check if stable FC list calculated
 	if [ ! -f $STABLEFCLIST ]; then
@@ -58,9 +58,9 @@ if [[ "$(ls -A $PATTERNDIR)" ]]; then
 	fi
 
 	# pattern match in stable FCs
-	for PATTERNFILE in $( echo $PATTERNDIR/$NETWORKID/* | xargs ls ); do
+	for PATTERNFILE in $PATTERNDIR/$NETWORKID/*; do
 		P=`basename $PATTERNFILE`
-		NUM="$NETWORKID${P##pattern}" # get everything after "pattern" in the file name (get the scaling factor)
+		NUM="$NETWORKID${P##pattern}" # get everything after "pattern" in the file name (get the scaling factor); THIS REQUIRES STEREOTYPED NAMING CONVENTIONS
 		NUM=${NUM%%.*} # get everything before the file extension to make a unique identifier
 		MATCHFILE=$DATABASEDIR/Matches$NUM.txt
 		mpiexec --mca mpi_preconnect_mpi 1 -np $NSLOTS -x LD_LIBRARY_PATH $PATTERNMATCH $NETWORKFILE $PATTERNFILE $STABLEFCLIST $MATCHFILE > /dev/null

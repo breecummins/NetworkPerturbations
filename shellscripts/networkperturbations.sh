@@ -10,6 +10,11 @@ NETWORK_PERTURBATIONS_CMD=$2
 HELPER_SCRIPT_CMD=$3
 QUERIES=$4 # QUERIES is an associative array of elements (key, query_cmd, query_arg, summary_cmd)
 
+###################################################################
+# FIXME -- put in python script -- do not pass to shell script
+# make all directories input args (network folder and pattern folder may in particular already be calculated)
+###################################################################
+
 # make folders to hold input, intermediate, and output files
 DATETIME=`date +%Y_%m_%d_%H_%M_%S`
 NETWORKDIR=./computations$DATETIME/networks
@@ -21,6 +26,9 @@ mkdir -p $NETWORKDIR/ $PATTERNDIR/ $DATABASEDIR/ $RESULTSDIR
 
 # construct the perturbations (required) and patterns (optional)
 $NETWORK_PERTURBATIONS_CMD $NETWORKDIR $PATTERNDIR
+###################################################################
+
+
 
 # for each perturbation, start a scheduled job for analysis
 for NETWORKFILE in $( echo $INPUTDIR/* | xargs ls ); do
