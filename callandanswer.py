@@ -83,6 +83,10 @@ def gimme_existing_path_skipOK(inputstr,isfile=False):
     else:
         return gimme_existing_path(inputstr,isfile)
 
+##########################################
+# Request files and parameters from user.
+##########################################
+
 def getinfo():
     params = dict()
 
@@ -96,16 +100,16 @@ def getinfo():
     netfolder = gimme_str_from_list(raw_input("\nAre your perturbations already constructed in a separate folder (y or n)?  "),['y','n'])
     if netfolder == 'y':
         # perturbations pre-calculated
-        params['networkfolder'] = gimme_existing_path(raw_input("\nEnter the path of the network perturbations folder.  "),isfile=False)
+        params['networkfolder'] = gimme_existing_path(raw_input("\nEnter the path of the network perturbations folder (each file within must have a uniquely identifying integer in the file name).  "),isfile=False)
     elif netfolder == 'n':
         # perturbations are not pre-calculated
         params['starting_networkspec'] = gimme_existing_path(raw_input("\nGive the path to a file containing the network specification that is to be perturbed.  "),isfile=True)
         # get node and edge files
-        param['nodesfile'] = gimme_existing_path_skipOK(raw_input("\nIf you wish to perturb the network by adding node names from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only nodes acceptable in perturbations.  "),isfile=False)
-        param['edgesfile'] = gimme_existing_path_skipOK(raw_input("\nIf you wish to perturb the network by adding edges from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only edges acceptable in perturbations.  "),isfile=False)
-        if not param['edgesfile'] and not param['nodesfile']:
-            param['add_madeup_nodes'] = gimme_str_from_list(raw_input("\nWould you like to add anonymous nodes and edges to the network ('ne') or just edges ('e')?  "),['e','ne'])
-        if param['edgesfile'] and not param['nodesfile']:
+        param['nodefile'] = gimme_existing_path_skipOK(raw_input("\nIf you wish to perturb the network by adding node names from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only nodes acceptable in perturbations.  "),isfile=False)
+        param['edgefile'] = gimme_existing_path_skipOK(raw_input("\nIf you wish to perturb the network by adding edges from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only edges acceptable in perturbations.  "),isfile=False)
+        if not param['edgefile'] and not param['nodefile']:
+            param['add_madeup_nodes'] = gimme_str_from_list(raw_input("\nWould you like to add anonymous nodes and edges to the network ('y') or just edges ('n')?  "),['y','n'])
+        if param['edgefile'] and not param['nodefile']:
             print "\n\nNote: only edges will be added to the existing network (not nodes).\n"
         # how many perturbations
         params['numperturbations'] = gimme_nonneg_int(raw_input("\nHow many network perturbations do you want? Example: 1000.  " ),strictlypositive=True)
@@ -126,11 +130,11 @@ def getinfo():
             if patfolder == 'y':
                 params['patternfolder'] = gimme_existing_path(raw_input("\nEnter the path of the patterns folder.  "),isfile=False)
         # the following is if, not elif; read carefully
-        if netfolder == 'n' or (netfolder == 'y' and patfolder == 'n'):
+        if netfolder == 'n' or patfolder == 'n':
             params['timeseriesfile'] = gimme_existing_path(raw_input("\nGive the path to a file containing the time series data.  "),isfile=True)
             params['ts_type'] = gimme_str_from_list(raw_input("\nDo the time series occur in rows ('row') or columns ('col')?  "),['row','col'])
             params['ts_trunction'] = gimme_positive_or_minusone_float(raw_input("\nChoose a (positive) truncation time for the time series data, or the value -1 for no truncation.  "))
-            params['scaling_factors'] = gimme_floats_0_1(input("\nGive a list of scaling factors between 0 and 1 to construct the patterns from the data. Example: [0.0, 0.05, 0.1, 0.15].  "))
+            params['scaling_factors'] = gimme_floats_0_1(input("\nGive a list of scaling factors (noise levels) between 0 and 1 to construct the patterns from the data. Example: [0.0, 0.05, 0.1, 0.15].  "))
     return params
 
 if __name__ == '__main__':

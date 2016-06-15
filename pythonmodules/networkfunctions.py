@@ -1,5 +1,4 @@
 import random
-from functools import partial
 # graph is an intervalgraph.Graph object
 
 ##############################################################################
@@ -174,19 +173,4 @@ def addNodeAndConnectingEdges(graph,nodelist=(),edgelist=()):
     graph.add_edge(n,outnode,label=outreg)
     return graph
 
-
-##############################################################################
-# Network perturbation call. Generally the only function used externally.
-##############################################################################
-
-def perturbNetwork(graph,nodelist,edgelist):
-    keepgoing = 1
-    while keepgoing:
-        edge = getRandomInt(2)
-        if edge:
-            graph = addEdge(graph,edgelist)
-        else:
-            graph = addNodeAndConnectingEdges(graph,nodelist,edgelist)
-        keepgoing = getRandomInt(2)
-    return graph
 
