@@ -103,7 +103,7 @@ def getinfo():
         params['networkfolder'] = gimme_existing_path(raw_input("\nEnter the path of the network perturbations folder (each file within must have a uniquely identifying integer in the file name).  "),isfile=False)
     elif netfolder == 'n':
         # perturbations are not pre-calculated
-        params['starting_networkspec'] = gimme_existing_path(raw_input("\nGive the path to a file containing the network specification that is to be perturbed.  "),isfile=True)
+        params['networkfile'] = gimme_existing_path(raw_input("\nGive the path to a file containing the network specification that is to be perturbed.  "),isfile=True)
         # get node and edge files
         param['nodefile'] = gimme_existing_path_skipOK(raw_input("\nIf you wish to perturb the network by adding node names from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only nodes acceptable in perturbations.  "),isfile=False)
         param['edgefile'] = gimme_existing_path_skipOK(raw_input("\nIf you wish to perturb the network by adding edges from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only edges acceptable in perturbations.  "),isfile=False)

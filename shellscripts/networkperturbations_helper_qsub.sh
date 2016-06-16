@@ -50,7 +50,7 @@ done
 STABLEFCLIST="$DATABASEDIR/StableFCList$NETID.txt" # this file name should match the one in querylibrary.sh by convention
 
 # if pattern matching desired (pattern dir non-empty), then do it
-if [[ `ls -A $PATTERNDIR` ]]; then
+if [[ -d $PATTERNDIR ]]; then
 	
 	# check if stable FC list calculated
 	if [ ! -f $STABLEFCLIST ]; then
