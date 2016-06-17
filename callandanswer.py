@@ -1,5 +1,4 @@
 import os,sys
-from operator import xor
 
 ###########################################################
 # All "gimme" functions are input checkers for getinfo().
@@ -129,7 +128,7 @@ def getinfo():
             patfolder = gimme_str_from_list(raw_input("\nAre your patterns already constructed in a separate folder (y or n)?  "),['y','n'])
             if patfolder == 'y':
                 params['patternfolder'] = gimme_existing_path(raw_input("\nEnter the path of the patterns folder.  "),isfile=False)
-        # the following is if, not elif; read carefully
+        # the following is if, not elif
         if netfolder == 'n' or patfolder == 'n':
             params['timeseriesfile'] = gimme_existing_path(raw_input("\nGive the path to a file containing the time series data.  "),isfile=True)
             params['ts_type'] = gimme_str_from_list(raw_input("\nDo the time series occur in rows ('row') or columns ('col')?  "),['row','col'])

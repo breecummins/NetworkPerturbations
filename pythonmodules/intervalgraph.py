@@ -34,10 +34,21 @@ class Graph:
   def vertex_label(self, v):
     """ Return the label on the vertex v """
     return self.vertex_labels_[v]
+  def get_vertex_from_label(self, label):
+    """ Return the vertex v with label 'label'. Error if non-unique. """
+    vertices = [ v for v in self.vertices_ if self.vertex_label(v) == label ]
+    N = len(vertices)
+    if N == 1:
+      return vertices[0]
+    elif N==0:
+      return None
+    elif N>1:
+      raise ValueError("Non-unique vertex labels.")
   def edge_label(self, u, v):
     """ Return the label on the edge u -> v """
     return self.edge_labels_[u][v]
   def change_edge_label(self,u,v,label):
+    """ Change the label on the edge u -> v """
     self.edge_labels_[u][v] = label
     return None
   def vertices(self):

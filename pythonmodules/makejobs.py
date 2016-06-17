@@ -16,12 +16,12 @@ class Job():
         self.makedirectories()
 
         # do perturbations
-        if self.params.has_key['numperturbations']:
+        if 'numperturbations' in self.params:
             self.parsefilesforperturbation()
             self.makenetworks()
 
         # make patterns
-        if self.params.has_key['timeseriesfile']:
+        if self.PATTERNDIR is not None:
             pass
             # parse time series files
             # make patterns
@@ -31,20 +31,20 @@ class Job():
     def makedirectories(self):
         # use datetime as unique identifier to avoid overwriting
         DATETIME=subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).strip()
-        try:
+
+        if 'networkfolder' in self.params:
             self.NETWORKDIR=self.params['networkfolder']
-            try:
+            if 'patternfolder' in self.params:
                 self.PATTERNDIR=self.params['patternfolder']
-            except:
-                if self.params.has_key('timeseriesfile'):
-                    self.PATTERNDIR ="./computations"+DATETIME+"/patterns"
-                    subprocess.call(['mkdir','-p',self.PATTERNDIR],shell=True)
-        except:
+        else:
             self.NETWORKDIR ="./computations"+DATETIME+"/networks"
             subprocess.call(['mkdir','-p',self.NETWORKDIR],shell=True)
-            if self.params.has_key('timeseriesfile'):
-                self.PATTERNDIR ="./computations"+DATETIME+"/patterns"
-                subprocess.call(['mkdir','-p',self.PATTERNDIR],shell=True)
+
+        if 'timeseriesfile' in self.params:
+            self.PATTERNDIR ="./computations"+DATETIME+"/patterns"
+            subprocess.call(['mkdir','-p',self.PATTERNDIR],shell=True)
+        else:
+            self.PATTERNDIR = None
 
         self.DATABASEDIR="./computations"+DATETIME+"/databases"
         self.RESULTSDIR ="./computations"+DATETIME+"/results"
@@ -53,9 +53,6 @@ class Job():
 
     def makenetworks(self):
         self.parsefilesforperturbation()
-        maxparams = self.params['maxparams']
-        numperturbations = self.params['numperturbations']
-        add_madeup_nodes = self.params['add_madeup_nodes']
         networks = perturbNetwork(self)
         N=len(networks)
         for k,network_spec in enumerate(networks):
@@ -68,21 +65,14 @@ class Job():
     def parsefilesforperturbation(self):
             with open(self.params['networkfile'],'r') as f:
                 self.network_spec = f.read()
-            try:
-                edgefile = self.params['edgefile']
-                self.edgelist = fileparsers.parseEdgeFile(edgefile)
-            except:
-                self.edgelist = ()
-            try:
-                nodefile = self.params['nodefile']
-                self.nodelist = fileparsers.parseNodeFile(nodefile)
-            except:
-                self.nodelist = ()
-
-    def makepatterns(self):
-        pass
-
-
+            if 'edgefile' in self.params:
+                self.edgelist = fileparsers.parseEdgeFile(self.params['edgefile'])
+            else:
+                self.edgelist = None
+            if 'nodefile' in self.params:
+                self.nodelist = fileparsers.parseNodeFile(self.params['nodefile'])
+            else:
+                self.nodelist = None
 
     def makepatterns(self):
         pass
