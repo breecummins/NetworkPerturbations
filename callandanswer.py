@@ -1,4 +1,5 @@
 import os,sys
+import DSGRN
 
 ###########################################################
 # All "gimme" functions are input checkers for getinfo().
@@ -24,7 +25,7 @@ def gimme_nonneg_int(inputstr,strictlypositive=False):
 
 def gimme_positive_or_minusone_float(inputstr):
 
-    errormessage = "\nResponse not recognized. Please enter a floating point number.  "
+    errormessage = "\nResponse not recognized. Please enter a positive truncation time or -1 for no truncation.  "
    
     success = False
     while not success:
@@ -82,12 +83,35 @@ def gimme_existing_path_skipOK(inputstr,isfile=False):
     else:
         return gimme_existing_path(inputstr,isfile)
 
+def gimme_computable_network(inputstr):
+
+    errormessage = "\nProvided network is not computable. Enter another network file.  "
+
+    def computable(inputstr):
+        with open(inputstr,'r') as networkfile:
+            network_spec = networkfile.read() 
+        network=DSGRN.Network()
+        try:
+            network.assign(network_spec)
+            paramgraph=DSGRN.ParameterGraph(network) 
+            return True
+        except (AttributeError, RuntimeError):
+            return False
+
+    while not computable(inputstr):
+        inputstr = gimme_existing_path(raw_input(errormessage),isfile=True)       
+
+
 ##########################################
 # Request files and parameters from user.
 ##########################################
 
 def getinfo():
     params = dict()
+
+    print "#############################################"
+    print "\nPress Ctrl-C to exit program at any time.\n"
+    print "#############################################"
 
     # get path to DSGRN
     params['dsgrn'] = gimme_existing_path(raw_input("\nEnter the path of the DSGRN folder.  "),isfile=False)
@@ -102,7 +126,7 @@ def getinfo():
         params['networkfolder'] = gimme_existing_path(raw_input("\nEnter the path of the network perturbations folder (each file within must have a uniquely identifying integer in the file name).  "),isfile=False)
     elif netfolder == 'n':
         # perturbations are not pre-calculated
-        params['networkfile'] = gimme_existing_path(raw_input("\nGive the path to a file containing the network specification that is to be perturbed.  "),isfile=True)
+        params['networkfile'] = gimme_computable_network(gimme_existing_path(raw_input("\nGive the path to a file containing the network specification that is to be perturbed.  "),isfile=True))
         # get node and edge files
         param['nodefile'] = gimme_existing_path_skipOK(raw_input("\nIf you wish to perturb the network by adding node names from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only nodes acceptable in perturbations.  "),isfile=False)
         param['edgefile'] = gimme_existing_path_skipOK(raw_input("\nIf you wish to perturb the network by adding edges from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only edges acceptable in perturbations.  "),isfile=False)
