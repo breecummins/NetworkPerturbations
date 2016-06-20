@@ -1,7 +1,7 @@
 from callandanswer import getinfo
 import networkperturbations as perturb
 import fileparsers, intervalgraph
-import subprocess, time
+import subprocess, time, random
 
 
 class Job():
@@ -18,12 +18,14 @@ class Job():
         # get parameters and files for the perturbations
         self.params = getinfo()
 
+        for (k,v) in self.params.iteritems():
+            print k+ ' : ' + str(v)
+
         # set up folders for calculations
         self.makedirectories()
 
         # do perturbations
         if 'numperturbations' in self.params:
-            self.parsefilesforperturbation()
             self.makenetworks()
 
         # make patterns
@@ -47,27 +49,27 @@ class Job():
         else:
             uid = DATETIME
             self.NETWORKDIR ="./computations"+uid+"/networks"
-            subprocess.call(['mkdir','-p',self.NETWORKDIR],shell=True)
+            subprocess.call(['mkdir -p ' + self.NETWORKDIR],shell=True)
 
         if 'timeseriesfile' in self.params:
             self.PATTERNDIR ="./computations"+uid+"/patterns"
-            subprocess.call(['mkdir','-p',self.PATTERNDIR],shell=True)
+            subprocess.call(['mkdir -p ' + self.PATTERNDIR],shell=True)
         else:
             self.PATTERNDIR = None
 
         self.DATABASEDIR="./computations"+uid+"/databases"
         self.RESULTSDIR ="./computations"+uid+"/results"
-        subprocess.call(['mkdir','-p',self.DATABASEDIR],shell=True)
-        subprocess.call(['mkdir','-p',self.RESULTSDIR],shell=True)
+        subprocess.call(['mkdir -p ' + self.DATABASEDIR],shell=True)
+        subprocess.call(['mkdir -p ' + self.RESULTSDIR],shell=True)
 
     def makenetworks(self):
         self.parsefilesforperturbation()
-        networks = perturbNetwork(self)
-        N=len(networks)
+        networks = self.perturbNetwork()
+        N=len(str(len(networks)))
         for k,network_spec in enumerate(networks):
             # zero pad integer for unique id
             uid = str(k).zfill(N)
-            nfile = "network"+uid+".txt"
+            nfile = os.path.join(self.NETWORKDIR, "network"+uid+".txt")
             with open(nfile,'w') as nf:
                 nf.write(network_spec)
 
@@ -100,12 +102,12 @@ class Job():
         start_time = time.time()
 
         # now make perturbations
-        while (len(networks) < self.numperturbations+1) and (time.time()-start_time < self.time_to_wait): 
+        while (len(networks) < self.params['numperturbations']+1) and (time.time()-start_time < self.time_to_wait): 
             # explicitly copy so that original graph is unchanged
             graph = starting_graph.clone()
             # add nodes and edges or just add edges based on the self
             # this can fail, in which case None is returned
-            if self.nodelist or self.add_madeup_nodes == 'y':
+            if self.nodelist or (not self.edgelist and self.params['add_madeup_nodes'] == 'y'):
                 graph = perturb.perturbNetworkWithNodesAndEdges(graph,self.edgelist,self.nodelist,self.maxiterations)
             else:
                 graph = perturb.perturbNetworkWithEdgesOnly(graph,self.edgelist,self.maxiterations) 
@@ -118,7 +120,10 @@ class Job():
                 # BUT it might be more common than you'd think, since we filter given a maximum number of parameters.
 
                 # check that network spec is all of unique (in string match, not isomorphism), small enough, and computable, then add to list
-                if (network_spec not in networks) and perturb.checkComputability(network_spec,self.maxparams):
+                if (network_spec not in networks) and perturb.checkComputability(network_spec,self.params['maxparams']):
                     networks.append(network_spec)
         # Return however many networks were made
         return networks
+
+if __name__=="__main__":
+    job=Job()

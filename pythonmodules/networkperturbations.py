@@ -33,11 +33,11 @@ def perturbNetworkWithNodesAndEdges(graph,edgelist=None,nodelist=None,maxiterati
     while keepgoing and count < maxiterations:
         count += 1
         if random.randrange(2):
-            graph = networkfunctions.addEdge(graph,edgelist)
+            graph = addEdge(graph,edgelist)
             if graph is None:
                 return None
         else:
-            graph = networkfunctions.addNodeAndConnectingEdges(graph,edgelist,nodelist)
+            graph = addNodeAndConnectingEdges(graph,edgelist,nodelist)
             if graph is None:
                 return None
         keepgoing = random.randrange(2)
@@ -47,7 +47,7 @@ def perturbNetworkWithEdgesOnly(graph,edgelist=None,maxiterations=10**4):
     keepgoing = 1
     while keepgoing and count < maxiterations:
         count += 1            
-        graph = networkfunctions.addEdge(graph,edgelist)
+        graph = addEdge(graph,edgelist)
         if graph is None:
             return None
         keepgoing = random.randrange(2)
@@ -75,7 +75,7 @@ def addEdge(graph,edgelist=None):
         return None  
 
     # transform graph into a list of edge tuples using vertex labels instead of vertex indices
-    graph_named_edges = [(graph.vertex_label(v),graph.vertex_label(e),graph.edge_label(v,e)) for v in graph.vertices() for a in graph.adjacencies(v) for e in a] 
+    graph_named_edges = [(graph.vertex_label(v),graph.vertex_label(a),graph.edge_label(v,a)) for v in graph.vertices() for a in graph.adjacencies(v)] 
 
     # get a new edge
     if edgelist:
@@ -90,7 +90,7 @@ def addEdge(graph,edgelist=None):
             newedge = getRandomEdge(networknodenames)  
 
     # add the new edge to the graph
-    [startnode,endnode] = getVertexFromLabel(networknodeindices,networknodenames,newedge[:2]) 
+    [startnode,endnode] = getVertexFromLabel(graph,newedge[:2]) 
     if endnode in graph.adjacencies(startnode):
         graph.change_edge_label(startnode,endnode,newedge[2])
     else:
@@ -104,7 +104,7 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
     #   if no edgelist, choose in- and out-edges randomly without a list
     # if no nodelist, make up a name for a new node (and add random edges sans edgelist)
 
-    def makeupNode(networknodenames):
+    def makeupNode(n,networknodenames):
         # make unique node name
         newnodelabel = 'x'+str(n)
         c=1
@@ -114,16 +114,16 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
             c+=1
         return newnodelabel
 
-    def randomInAndOut(networknodenames):
-        n = len(networknodenames)
+    def randomInAndOut(n):
         return getRandomHalfEdge(n), getRandomHalfEdge(n)
 
     networknodenames = getNetworkLabels(graph)
+    n = len(networknodenames)
 
     # get the new node and connecting edges
     if nodelist is None:
-        newnodelabel = makeupNode(networknodenames)        
-        (innode,inreg),(outnode,outreg) = randomInAndOut(networknodenames)
+        newnodelabel = makeupNode(n,networknodenames)        
+        (innode,inreg),(outnode,outreg) = randomInAndOut(n)
     else:
         # filter nodelist to get only new nodes
         nodelist = filterNodeList(networknodenames,nodelist)
@@ -131,7 +131,7 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
             newnodelabel = getRandomListElement(nodelist)
             if newnodelabel is None:
                 return None
-            (innode,inreg),(outnode,outreg) = randomInAndOut(networknodenames)
+            (innode,inreg),(outnode,outreg) = randomInAndOut(n)
         else:
             # filter edgelist to get only edges to and from network
             edgelist = [e for e in edgelist if xor(e[0] in networknodenames,e[1] in networknodenames)]
@@ -140,7 +140,7 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
             if newnodelabel is None or inedge is None or outedge is None:
                 return None
             # transform from node names into node indices to add to graph
-            [innode, outnode] = getVertexFromLabel(networknodeindices,networknodenames,[inedge[0],outedge[1]]) 
+            [innode, outnode] = getVertexFromLabel(graph,[inedge[0],outedge[1]]) 
             inreg, outreg = inedge[2], outedge[2]
 
     # add to graph
@@ -161,7 +161,7 @@ def getNetworkLabels(graph):
 def filterNodeList(networknodenames,nodelist):
     return [ n for n in nodelist if n not in networknodenames ]
 
-def getVertexFromLabel(nodelabels):
+def getVertexFromLabel(graph,nodelabels):
     return [ graph.get_vertex_from_label(n) for n in nodelabels ]
 
 
