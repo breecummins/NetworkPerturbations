@@ -44,6 +44,7 @@ def perturbNetworkWithNodesAndEdges(graph,edgelist=None,nodelist=None,maxiterati
     return graph
 
 def perturbNetworkWithEdgesOnly(graph,edgelist=None,maxiterations=10**4):
+    count = 0
     keepgoing = 1
     while keepgoing and count < maxiterations:
         count += 1            

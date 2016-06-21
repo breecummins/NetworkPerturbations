@@ -100,9 +100,9 @@ class Job():
 
         # Set a timer for the while loop, which can be infinite if numperturbations is too large for maxparams
         start_time = time.time()
-
+        current_time = time.time()-start_time
         # now make perturbations
-        while (len(networks) < self.params['numperturbations']+1) and (time.time()-start_time < self.time_to_wait): 
+        while (len(networks) < self.params['numperturbations']+1) and (current_time < self.time_to_wait): 
             # explicitly copy so that original graph is unchanged
             graph = starting_graph.clone()
             # add nodes and edges or just add edges based on the self
@@ -122,8 +122,11 @@ class Job():
                 # check that network spec is all of unique (in string match, not isomorphism), small enough, and computable, then add to list
                 if (network_spec not in networks) and perturb.checkComputability(network_spec,self.params['maxparams']):
                     networks.append(network_spec)
+            current_time = time.time()-start_time
+        if current_time > self.time_to_wait:
+            print "Network perturbation timed out. Proceeding with fewer than requested perturbations."
         # Return however many networks were made
         return networks
 
 if __name__=="__main__":
-    job=Job()
+    job=Job(10)

@@ -9,14 +9,15 @@ def parseEdgeFile(fname='/Users/bcummins/ProjectData/malaria/wrair2015_v2_fpkm-p
     edgelist=[]
     with open(fname,'r') as f:
         for l in f.readlines():
-            if l[0] == '#':
-                continue
-            wordlist=l.replace(',',' ').split()
-            target=wordlist[0]
-            regsource=wordlist[2].replace('(',' ').replace(')',' ').split()
-            reg=regsource[0]
-            source=regsource[1]
-            edgelist.append((source,target,reg))
+            if l:
+                if l[0] == '#':
+                    continue
+                wordlist=l.replace(',',' ').replace('=',' ').split()
+                target=wordlist[0]
+                regsource=wordlist[1].replace('(',' ').replace(')',' ').split()
+                reg=regsource[0]
+                source=regsource[1]
+                edgelist.append((source,target,reg))
     return edgelist
 
 def parseNodeFile(fname="/Users/bcummins/ProjectData/yeast/haase-fpkm-p1_yeast_s29_DLxJTK_257TFs.txt"):
@@ -27,10 +28,11 @@ def parseNodeFile(fname="/Users/bcummins/ProjectData/yeast/haase-fpkm-p1_yeast_s
     nodelist = []
     with open(fname,'r') as f:
         for l in f.readlines():
-            if l[0] == '#':
-                continue
-            wordlist=l.replace(',',' ').split()
-            nodelist.append(wordlist[0])
+            if l:
+                if l[0] == '#':
+                    continue
+                wordlist=l.replace(',',' ').split()
+                nodelist.append(wordlist[0])
     return nodelist
 
 
