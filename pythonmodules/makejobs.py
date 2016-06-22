@@ -1,12 +1,12 @@
 from callandanswer import getinfo
 import networkperturbations as perturb
-import fileparsers, intervalgraph
-import subprocess, time, random, os
+import fileparsers, intervalgraph, ExtremaPO
+import subprocess, time, random, os, json, itertools
 
 
 class Job():
 
-    def __init__(self,time_to_wait=300):
+    def __init__(self,time_to_wait=300,qsub=True):
         # how long to compute network perturbations before giving up (in seconds)
         self.time_to_wait=time_to_wait
 
@@ -15,26 +15,36 @@ class Job():
         # purpose is to avoid the (vanishingly small) chance that a single perturbation will block the program
         self.maxiterations = 10**4
 
+        # use qsub or sbatch
+        if qsub:
+            self.scheduler = self.scheduler_qsub
+        else:
+            self.scheduler = self.scheduler_sbatch
+
+        # begin
+        self.start_job()
+
+
+    def start_job():
         # get parameters and files for the perturbations
         self.params = getinfo()
-
-        for (k,v) in self.params.iteritems():
-            print k+ ' : ' + str(v)
-
         # set up folders for calculations
         self.makedirectories()
-
-        # do perturbations
+        # do perturbations if not already done
         if 'numperturbations' in self.params:
-            self.makenetworks()
-
-        # make patterns
-        if self.PATTERNDIR is not None:
-            pass
-            # parse time series files
-            # make patterns
-
+            networks = self.makenetworks()
+        else:
+            networks = None
+        # make patterns if desired and not already done
+        if 'timeseriesfile' in self.params:
+            # must return network uid for each pattern
+            uids,patterns = self.makepatterns(networks)
+        else:
+            uids,patterns = None,None
+        # save networks and patterns, if any
+        self.savefiles(networks,patterns,uids)
         # shell call to scheduler
+        self.scheduler()
 
     def makedirectories(self):
         # use datetime as unique identifier to avoid overwriting
@@ -64,29 +74,19 @@ class Job():
 
     def makenetworks(self):
         self.parsefilesforperturbation()
-        networks = self.perturbNetwork()
-        N=len(str(len(networks)))
-        for k,network_spec in enumerate(networks):
-            # zero pad integer for unique id
-            uid = str(k).zfill(N)
-            nfile = os.path.join(self.NETWORKDIR, "network"+uid+".txt")
-            with open(nfile,'w') as nf:
-                nf.write(network_spec)
+        return self.perturbNetwork()
 
     def parsefilesforperturbation(self):
-            with open(self.params['networkfile'],'r') as f:
-                self.network_spec = f.read()
-            if 'edgefile' in self.params:
-                self.edgelist = fileparsers.parseEdgeFile(self.params['edgefile'])
-            else:
-                self.edgelist = None
-            if 'nodefile' in self.params:
-                self.nodelist = fileparsers.parseNodeFile(self.params['nodefile'])
-            else:
-                self.nodelist = None
-
-    def makepatterns(self):
-        pass
+        with open(self.params['networkfile'],'r') as f:
+            self.network_spec = f.read()
+        if 'edgefile' in self.params:
+            self.edgelist = fileparsers.parseEdgeFile(self.params['edgefile'])
+        else:
+            self.edgelist = None
+        if 'nodefile' in self.params:
+            self.nodelist = fileparsers.parseNodeFile(self.params['nodefile'])
+        else:
+            self.nodelist = None
 
     def perturbNetwork(self):
 
@@ -127,6 +127,91 @@ class Job():
             print "Network perturbation timed out. Proceeding with fewer than requested perturbations."
         # Return however many networks were made
         return networks
+
+    def makepatterns(self,networks=None):
+        if networks is None:
+            networklabels, uids = self.makenetworklabelsfromfiles()
+        else:
+            networklabels, uids = self.makenetworklabelsfromspecs(networks)
+        uniqnetlab = list(set(networklabels))
+        masterlabels, masterdata = self.parsetimeseries(set(itertools.chain.from_iterable(uniqnetlab)))
+        uniqpatterns =[]
+        for nl in uniqnetlab:
+            ts_data = [masterdata[masterlabels.index(n)] for n in nl]
+            uniqpatterns.append([ ExtremaPO.makeJSONstring(ts_data,nl,n=1,scalingFactor=scfc,step=0.01) for scfc in self.params['scaling_factors'] ])
+        patterns = [ uniqpatterns[uniqnetlab.index(nl)] for nl in networklabels ]
+        return uids, patterns
+
+    def makenetworklabelsfromspecs(self,networks):
+        networklabels = []
+        for network_spec in networks:
+            ns = network_spec.split('\n')
+            networklabels.append(tuple([n.replace(':',' ').split()[0] for n in ns]))
+        return networklabels, None
+
+    def makenetworklabelsfromfiles(self):
+        networklabels=[]
+        uids=[]
+        for fname in os.listdir(self.['networkfolder']):
+            uids.append(''.join([c for c in fname if c.isdigit()]))
+            with open(fname,'r') as f:
+                networklabels.append(tuple([l.replace(':',' ').split()[0] for l in f]))
+        return networklabels, uids
+
+    def parsetimeseries(self,desiredlabels):
+        if self.params['ts_type'] == 'col':
+            TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileCol(self.params['timeseriesfile'])
+        elif self.params['ts_type'] == 'row':
+            TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileRow(self.params['timeseriesfile'])
+        if self.params['ts_truncation'] != float(-1):
+            ind = timeStepList.index(self.params['ts_truncation'])
+        else:
+            ind = len(timeStepList)
+        labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind]) for node in TSLabels if node in desiredlabels])
+        return labels,data
+
+    def savefiles(self,networks=None,patterns=None,networkuids=None):
+
+        def savenetwork(uid,network_spec):
+            nfile = os.path.join(self.NETWORKDIR, "network"+uid+".txt")
+            with open(nfile,'w') as nf:
+                nf.write(network_spec)
+
+        def savepatterns(uid,pats):
+            subdir = os.path.join(self.PATTERNDIR,uid)
+            subprocess.call(['mkdir -p ' + subdir])
+            for (pat,scfc) in zip(pats,self.scaling_factors):
+                puid = '{:.{prec}f}'.format(scfc, prec=scfc_padding).replace('.','_')
+                pfile = os.path.join(subdir, "pattern"+puid+".txt")
+                with open(pfile,'w') as pf:
+                    json.dump(pattern,pf)
+
+        if patterns is not None:
+            scfc_padding = max([len(str(s)) for s in self.scaling_factors])-2
+            if networks is not None:
+                N=len(str(len(networks)))
+                for k,(network_spec,pats) in enumerate(zip(networks,patterns)):
+                    # zero pad integer for unique id
+                    uid = str(k).zfill(N)
+                    savenetwork(uid,network_spec)
+                    savepatterns(uid,pats)
+            elif networkuids is not None:
+                for (uid,pats) in zip(networkuids,patterns):
+                    savepatterns(uid,pats)
+            else:
+                raise RuntimeError("Should not get here. Debug.")
+        elif networks is not None:
+            N=len(str(len(networks)))
+            for k,(network_spec,pats) in enumerate(zip(networks,patterns)):
+                # zero pad integer for unique id
+                uid = str(k).zfill(N)
+                savenetwork(uid,network_spec)
+
+    def scheduler_qsub(self):
+        pass
+
+    def scheduler_sbatch(self):
+        pass
 
 if __name__=="__main__":
     job=Job(10)
