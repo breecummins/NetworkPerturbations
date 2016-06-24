@@ -1,150 +1,39 @@
-import sys
-from copy import deepcopy
-from numpy import matrix,copy
 import intervalgraph as ig
-import heapq
-import fileparsers
+import itertools
 
-
-# # Checks to see if the epsilon nbhd of value of t2 intersects the epsilon nbhd of value of t2
-# def BoolIntersect(t1,t2,ts,epsilon):
-# 	if (ts[t2] + epsilon) >= (ts[t1] - epsilon) and (ts[t2] - epsilon) <= (ts[t1] + epsilon):
-# 		return True
-
-
-# # Grows epsilon components for a given time t. It does this by simultaneiously checking both neighboring points,
-# # if they exist, and only adding them if they intersect time t and all other times in the component, as well as
-# # intersecting eachother.
-# def GrowComponent(t,ts,epsilon,compList):
-# 	index = 1
-# 	if t == 0:
-# 		while not(t+index > len(ts) - 1):
-# 			for time in compList[t]:
-# 				if not(BoolIntersect(t+index,time,ts,epsilon)):
-# 					return compList
-# 			compList[t].append(t+index)
-# 			index += 1
-# 	elif t == len(ts) - 1:
-# 		while not(t-index < 0):
-# 			for time in compList[t]:
-# 				if not(BoolIntersect(t-index,time,ts,epsilon)):
-# 					return compList
-# 			compList[t].insert(0, t-index)
-# 			index += 1
-# 	elif not(BoolIntersect(t,t-index,ts,epsilon)) and BoolIntersect(t,t+index,ts,epsilon):
-# 		while not(t+index > len(ts) - 1):
-# 			for time in compList[t]:
-# 				if not(BoolIntersect(t+index,time,ts,epsilon)):
-# 					return compList
-# 			compList[t].append(t+index)
-# 			index += 1
-# 	elif BoolIntersect(t,t-index,ts,epsilon) and not(BoolIntersect(t,t+index,ts,epsilon)):
-# 		while not(t-index < 0):
-# 			for time in compList[t]:
-# 				if not(BoolIntersect(t-index,time,ts,epsilon)):
-# 					return compList
-# 			compList[t].insert(0, t-index)
-# 			index += 1
-# 	else:
-# 		while BoolIntersect(t,t-index,ts,epsilon) and BoolIntersect(t,t+index,ts,epsilon):
-# 			if BoolIntersect(t+index,t-index,ts,epsilon):
-# 				for time in compList[t]:
-# 					if not(BoolIntersect(t-index,time,ts,epsilon) and BoolIntersect(t+index,time,ts,epsilon)):
-# 						return compList
-# 				compList[t].append(t+index)
-# 				compList[t].insert(0, t-index)
-# 				if t+index == len(ts) - 1:
-# 					index += 1
-# 					while not(t-index < 0):
-# 						for time in compList[t]:
-# 							if not(BoolIntersect(t-index,time,ts,epsilon)):
-# 								return compList
-# 						compList[t].insert(0, t-index)
-# 						index += 1
-# 					return compList
-# 				if t-index == 0:
-# 					index += 1
-# 					while not(t+index > len(ts) - 1):
-# 						for time in compList[t]:
-# 							if not(BoolIntersect(t+index,time,ts,epsilon)):
-# 								return compList
-# 						compList[t].append(t+index)
-# 						index += 1
-# 					return compList
-# 				index += 1
-# 				if not(BoolIntersect(t,t-index,ts,epsilon)) and BoolIntersect(t,t+index,ts,epsilon):
-# 					while not(t+index > len(ts) - 1):
-# 						for time in compList[t]:
-# 							if not(BoolIntersect(t+index,time,ts,epsilon)):
-# 								return compList
-# 						compList[t].append(t+index)
-# 						index += 1
-# 					return compList
-# 				if BoolIntersect(t,t-index,ts,epsilon) and not(BoolIntersect(t,t+index,ts,epsilon)):
-# 					while not(t-index < 0):
-# 						for time in compList[t]:
-# 							if not(BoolIntersect(t-index,time,ts,epsilon)):
-# 								return compList
-# 						compList[t].insert(0, t-index)
-# 						index += 1
-# 					return compList
-# 			else:
-# 				return compList
-
-# # For a given epsilon, build component list for each t
-# # Inputs: ts = time series, epsilon
-# # Outputs: compList = list of components indexed by time
-# def BuildCompList(ts,epsilon):
-# 	compList = []
-# 	for t in range(0,len(ts)):
-# 		compList.append([t])
-# 		GrowComponent(t,ts,epsilon,compList)
-# 	return compList
-
-# # Build epsilon indexed list whose entries are lists of components generated at that epsilon
-# # Inputs: ts = time series, step = user defined parameter that specifies the increase in epsilon 
-# # Outputs: eiList = epsilon indexed list
-# def BuildEIList(ts,step):
-# 	newts,minVal,maxVal = Normalize(ts)
-# 	eiList = []
-# 	epsilon = 0
-# 	while epsilon <= 0.55:
-# 		eiList.append(BuildCompList(newts,epsilon))
-# 		epsilon += step
-# 	return eiList
 
 def GrowComponent(ts,epsilon,comp):
 	# Grows epsilon components for a given time t. It does this by simultaneously checking both neighboring points,
 	# if they exist, and only adding them if they intersect time t and all other times in the component, as well as
 	# intersecting each other.
 
-	def BoolIntersect(t1,t2,ts,epsilon):
+	def BoolIntersect(t1,t2):
 		# Checks to see if the epsilon nbhd of value of t2 intersects the epsilon nbhd of value of t2
-		if abs(ts[t2] - ts[t1]) <= 2*epsilon: 
+		if ts[t2] - ts[t1] <= 2*epsilon and ts[t2] - ts[t1] >= -2*epsilon: 
 			return True
 
-	def isgoodcandidate(ts,epsilon,candidate,comp):
+	def isgoodcandidate(candidate,comp):
 		for time in comp:
-			if not BoolIntersect(candidate,time,ts,epsilon):
+			if not BoolIntersect(candidate,time):
 				return False
 		return True
 
-	def checkleft(ts,epsilon,comp):
+	def growleft(comp):
 		# Proceed to check interval overlap to the left of the component only
 		candidate = comp[0] - 1
 		while candidate > -1:
-			if not isgoodcandidate(ts,epsilon,candidate,comp): 
+			if not isgoodcandidate(candidate,comp): 
 				return comp
 			comp.insert(0, candidate)
 			candidate -= 1
 		return comp
 
-	def checkright(ts,epsilon,comp):
+	def growright(comp):
 		# Proceed to check interval overlap to the right of the component only
 		candidate = comp[-1] + 1
 		N = len(ts)
 		while candidate < N:
-			if not isgoodcandidate(ts,epsilon,candidate,comp): 
+			if not isgoodcandidate(candidate,comp): 
 				return comp
 			comp.append(candidate)
 			candidate += 1
@@ -153,27 +42,28 @@ def GrowComponent(ts,epsilon,comp):
 	t_beg = comp[0]
 	t_end = comp[-1]
 	N = len(ts)
+
 	if t_beg == 0:
-		return checkright(ts,epsilon,comp)
+		return growright(comp)
 	elif t_end == N-1:
-		return checkleft(ts,epsilon,comp)
+		return growleft(comp)
 	else:
 		candidate_beg = t_beg-1
 		candidate_end = t_end+1
 
 		while True:
-			beg_good = isgoodcandidate(ts,epsilon,candidate_beg,comp)
-			end_good = isgoodcandidate(ts,epsilon,candidate_end,comp)
+			beg_good = isgoodcandidate(candidate_beg,comp)
+			end_good = isgoodcandidate(candidate_end,comp)
 			if (not beg_good) and (not end_good):
 				return comp
 			elif beg_good and (not end_good):
 				comp.insert(0, candidate_beg)			
-				return checkleft(ts,epsilon,comp)
+				return growleft(comp)
 			elif (not beg_good) and end_good:
 				comp.append(candidate_end)
-				return checkright(ts,epsilon,comp)
+				return growright(comp)
 			else:
-				if not BoolIntersect(candidate_beg,candidate_end,ts,epsilon):
+				if not BoolIntersect(candidate_beg,candidate_end):
 					return comp
 				else:
 					comp.insert(0,candidate_beg)
@@ -182,67 +72,39 @@ def GrowComponent(ts,epsilon,comp):
 					candidate_end += 1
 					if candidate_beg == -1:
 						if candidate_end < N:
-							return checkright(ts,epsilon,comp)
+							return growright(comp)
 						else:
 							return comp
 					elif candidate_end == N:
-						return checkleft(ts,epsilon,comp)
+						return growleft(comp)
 					else:
 						continue
 
-# Build epsilon indexed list whose entries are lists of components generated at that epsilon
-# Inputs: ts = time series, step = user defined parameter that specifies the increase in epsilon 
-# Outputs: eiList = epsilon indexed list
 def BuildEIList(ts,step):
-	newts,minVal,maxVal = Normalize(ts)
-	compList=[[t] for t in range(len(ts))] # compList at epsilon=0
-	eiList = [deepcopy(compList)]
+	# Build epsilon indexed list whose entries are lists of components generated at that epsilon
+	# Inputs: ts = time series, step = user defined parameter that specifies the increase in epsilon 
+	# Outputs: eiList = epsilon indexed list
+	m,M = min(ts),max(ts)
+	nts = [ float(t - m)/(M-m) for t in ts ]
+	compList=[[t] for t in range(len(nts))] # compList at epsilon=0
+	eiList = [ [[t] for t in range(len(nts))] ] # need a deep copy of compList -- faster to reconstruct
 	epsilon = step
 	while epsilon <= 0.55:
-		compList = [ GrowComponent(newts,epsilon,comp) for comp in compList ] # grow compList from previous calculation
-		eiList.append(deepcopy(compList)) # want snapshots of compList at each epsilon
+		compList = [ GrowComponent(nts,epsilon,comp) for comp in compList ] # grow compList from previous calculation
+		eiList.append([list(comp) for comp in compList]) # want snapshots of compList at each epsilon, so copy internal lists
 		epsilon += step
 	return eiList
 
-# Normalize time series and find global min/max
-# Inputs: ts
-# Outputs: newts = normalized time series, minVal = global min, maxVal = global max
-def Normalize(ts):
-	maxVal = ts[0]
-	minVal = ts[0]
-	for value in ts:
-		if value > maxVal:
-			maxVal = value
-		if value < minVal:
-			minVal = value
-	newts = []
-	for value in ts:
-		newValue = float((value - minVal)) / (maxVal - minVal)
-		newts.append(newValue)
-	return newts,minVal,maxVal
-
-# Concatenate a list of lists
-def Concatenate(lists):
-	newList = []
-	for l in lists:
-		newList += l
-	return newList
-
-# Uniqify a list, i.e. turn it into a set
-def Uniqify(inputList):
- 	for item1 in inputList:
- 		tempList = list(inputList)
- 		tempList.remove(item1)
- 		for item2 in tempList:
- 			if item1 == item2:
- 				inputList.remove(item1)
- 	return inputList
-
-# Sorts the unique components grown into two lists, minList and maxList
-# Inputs: eiList, ts
-# Outputs: minList = list containing all components that are minima, maxList = similar
 def MinMaxLabel(eiList,ts):
-	compList = Uniqify(Concatenate(eiList))  
+	# Sorts the unique components grown into two lists, minList and maxList
+	# Inputs: eiList, ts
+	# Outputs: minList = list containing all components that are minima, maxList = similar
+
+	# flatten eiList
+	flat_ei = list(itertools.chain.from_iterable(eiList))
+	# get unique elements while preserving order on the flattened eiList 
+	# (note we throw away duplicates at the beginning of the list)
+	compList = [item for k,item in enumerate(flat_ei) if item not in flat_ei[k+1:]]
 	minList = []
 	maxList = []
 	for comp in compList:
@@ -270,7 +132,7 @@ def MinMaxLabel(eiList,ts):
 # time. This is called chainList. Then I assign each component a label, 'min'/'max'/'n/a' and record
 # this as labeledChains.
 def BuildChains(eiList,ts,step):
-	minList,maxList = MinMaxLabel(BuildEIList(ts,step),ts)
+	minList,maxList = MinMaxLabel(eiList,ts)
 	chainList = []
 	labeledChains = []
 	for i in range(0,len(eiList[0])):
@@ -462,19 +324,21 @@ def makeJSONstring(TSList,TSLabels,n=1,scalingFactor=1,step=0.01):
 	return ConvertToJSON(graph,sumList,TSLabels)
 
 def testme():
-	# import fileparsers
+	import fileparsers
 	# import matplotlib.pyplot as plt
 	TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileRow('testtimeseries.txt')
-	# desiredlabels = ['PF3D7_0100100','PF3D7_0100200','PF3D7_0100300','PF3D7_0100400','PF3D7_0100900','PF3D7_0101000']
-	desiredlabels = ['PF3D7_0100100','PF3D7_0100200','PF3D7_0100300']
+	desiredlabels = ['PF3D7_0100100','PF3D7_0100200','PF3D7_0100300','PF3D7_0100400','PF3D7_0100900','PF3D7_0101000']
+	# desiredlabels = ['PF3D7_0100100','PF3D7_0100200','PF3D7_0100300']
 	ind = timeStepList.index(42)
 	labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind+1]) for node in TSLabels if node in desiredlabels])
-	print makeJSONstring(data,labels,n=1,scalingFactor=0.05,step=0.01)
-	ts=timeStepList[:ind+1]
+	jsonstr = makeJSONstring(data,labels,n=1,scalingFactor=0.05,step=0.01)
+	print jsonstr
+	# ts=timeStepList[:ind+1]
 	# plt.figure()
 	# plt.hold('on')
 	# for d in data:
-	# 	nd,_,_ = Normalize(d)
+		# m,M = min(d),max(d)
+		# nd = [ float(t - m)/(M-m) for t in d ]
 	# 	plt.plot(ts,nd)
 	# plt.legend(desiredlabels)
 	# plt.show()
