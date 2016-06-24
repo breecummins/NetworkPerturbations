@@ -105,7 +105,7 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
     #   if no edgelist, choose in- and out-edges randomly without a list
     # if no nodelist, make up a name for a new node (and add random edges sans edgelist)
 
-    def makeupNode(n,networknodenames):
+    def makeupNode():
         # make unique node name
         newnodelabel = 'x'+str(n)
         c=1
@@ -115,7 +115,7 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
             c+=1
         return newnodelabel
 
-    def randomInAndOut(n):
+    def randomInAndOut():
         return getRandomHalfEdge(n), getRandomHalfEdge(n)
 
     networknodenames = getNetworkLabels(graph)
@@ -123,8 +123,8 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
 
     # get the new node and connecting edges
     if nodelist is None:
-        newnodelabel = makeupNode(n,networknodenames)        
-        (innode,inreg),(outnode,outreg) = randomInAndOut(n)
+        newnodelabel = makeupNode()        
+        (innode,inreg),(outnode,outreg) = randomInAndOut()
     else:
         # filter nodelist to get only new nodes
         nodelist = filterNodeList(networknodenames,nodelist)
@@ -132,7 +132,7 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
             newnodelabel = getRandomListElement(nodelist)
             if newnodelabel is None:
                 return None
-            (innode,inreg),(outnode,outreg) = randomInAndOut(n)
+            (innode,inreg),(outnode,outreg) = randomInAndOut()
         else:
             # filter edgelist to get only edges to and from network
             edgelist = [e for e in edgelist if xor(e[0] in networknodenames,e[1] in networknodenames)]
@@ -197,7 +197,7 @@ def getNodeAndConnectingEdgesFromLists(nodelist,edgelist):
     # nodelist has only NEW nodes and edgelist has only in- and out-edges to and from the EXISTING network 
     # (i.e. both lists are pre-filtered)
 
-    def generateCandidate(nodelist,edgelist):
+    def generateCandidate():
         # randomly pick new node (will return None when nodelist is empty)
         nodelabel = getRandomListElement(nodelist)
         # filter edgelist to find all incoming and outgoing edges to and from nodelabel
@@ -208,7 +208,7 @@ def getNodeAndConnectingEdgesFromLists(nodelist,edgelist):
         # pick random in and out edges provided they exist, else return None
         return nodelabel, getRandomListElement(inedges), getRandomListElement(outedges)
 
-    nodelabel,inedge,outedge = generateCandidate(nodelist,edgelist)
+    nodelabel,inedge,outedge = generateCandidate()
     while inedge is None or outedge is None:
         if nodelabel is None: 
             return None, None, None

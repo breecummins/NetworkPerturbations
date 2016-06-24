@@ -25,7 +25,7 @@ class Job():
         self.start_job()
 
 
-    def start_job():
+    def start_job(self):
         # get parameters and files for the perturbations
         self.params = getinfo()
         # set up folders for calculations
@@ -152,7 +152,7 @@ class Job():
     def makenetworklabelsfromfiles(self):
         networklabels=[]
         uids=[]
-        for fname in os.listdir(self.['networkfolder']):
+        for fname in os.listdir(self.params['networkfolder']):
             uids.append(''.join([c for c in fname if c.isdigit()]))
             with open(fname,'r') as f:
                 networklabels.append(tuple([l.replace(':',' ').split()[0] for l in f]))
@@ -202,7 +202,7 @@ class Job():
                 raise RuntimeError("Should not get here. Debug.")
         elif networks is not None:
             N=len(str(len(networks)))
-            for k,(network_spec,pats) in enumerate(zip(networks,patterns)):
+            for k,network_spec in enumerate(networks):
                 # zero pad integer for unique id
                 uid = str(k).zfill(N)
                 savenetwork(uid,network_spec)
