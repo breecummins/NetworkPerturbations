@@ -17,36 +17,33 @@ class Job():
 
         # use qsub or sbatch
         if qsub:
-            self.scheduler = self.scheduler_qsub
+            self.scheduler = self._scheduler_qsub
         else:
-            self.scheduler = self.scheduler_sbatch
+            self.scheduler = self._scheduler_sbatch
 
-        # begin
-        self.start_job()
-
-
-    def start_job(self):
+    def run(self):
         # get parameters and files for the perturbations
         self.params = getinfo()
         # set up folders for calculations
-        self.makedirectories()
+        self._makedirectories()
         # do perturbations if not already done
         if 'numperturbations' in self.params:
-            networks = self.makenetworks()
+            self._parsefilesforperturbation()
+            networks = self._perturbNetwork()
         else:
             networks = None
         # make patterns if desired and not already done
         if 'timeseriesfile' in self.params:
             # must return network uid for each pattern
-            uids,patterns = self.makepatterns(networks)
+            uids,patterns = self._makepatterns(networks)
         else:
             uids,patterns = None,None
         # save networks and patterns, if any
-        self.savefiles(networks,patterns,uids)
+        self._savefiles(networks,patterns,uids)
         # shell call to scheduler
         self.scheduler()
 
-    def makedirectories(self):
+    def _makedirectories(self):
         # use datetime as unique identifier to avoid overwriting
         DATETIME = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).strip()
 
@@ -72,13 +69,8 @@ class Job():
         subprocess.call(['mkdir -p ' + self.DATABASEDIR],shell=True)
         subprocess.call(['mkdir -p ' + self.RESULTSDIR],shell=True)
 
-    def makenetworks(self):
-        self.parsefilesforperturbation()
-        return self.perturbNetwork()
-
-    def parsefilesforperturbation(self):
-        with open(self.params['networkfile'],'r') as f:
-            self.network_spec = f.read()
+    def _parsefilesforperturbation(self):
+        self.network_spec = open(self.params['networkfile'],'r').read()
         if 'edgefile' in self.params:
             self.edgelist = fileparsers.parseEdgeFile(self.params['edgefile'])
         else:
@@ -88,7 +80,7 @@ class Job():
         else:
             self.nodelist = None
 
-    def perturbNetwork(self):
+    def _perturbNetwork(self):
 
         # reset random seed for every run
         random.seed()
@@ -128,13 +120,13 @@ class Job():
         # Return however many networks were made
         return networks
 
-    def makepatterns(self,networks=None):
+    def _makepatterns(self,networks=None):
         if networks is None:
-            networklabels, uids = self.makenetworklabelsfromfiles()
+            networklabels, uids = self._makenetworklabelsfromfiles()
         else:
-            networklabels, uids = self.makenetworklabelsfromspecs(networks)
+            networklabels, uids = self._makenetworklabelsfromspecs(networks)
         uniqnetlab = list(set(networklabels))
-        masterlabels, masterdata = self.parsetimeseries(set(itertools.chain.from_iterable(uniqnetlab)))
+        masterlabels, masterdata = self._parsetimeseries(set(itertools.chain.from_iterable(uniqnetlab)))
         uniqpatterns =[]
         for nl in uniqnetlab:
             ts_data = [masterdata[masterlabels.index(n)] for n in nl]
@@ -142,14 +134,14 @@ class Job():
         patterns = [ uniqpatterns[uniqnetlab.index(nl)] for nl in networklabels ]
         return uids, patterns
 
-    def makenetworklabelsfromspecs(self,networks):
+    def _makenetworklabelsfromspecs(self,networks):
         networklabels = []
         for network_spec in networks:
             ns = network_spec.split('\n')
             networklabels.append(tuple([n.replace(':',' ').split()[0] for n in ns]))
         return networklabels, None
 
-    def makenetworklabelsfromfiles(self):
+    def _makenetworklabelsfromfiles(self):
         networklabels=[]
         uids=[]
         for fname in os.listdir(self.params['networkfolder']):
@@ -158,7 +150,7 @@ class Job():
                 networklabels.append(tuple([l.replace(':',' ').split()[0] for l in f]))
         return networklabels, uids
 
-    def parsetimeseries(self,desiredlabels):
+    def _parsetimeseries(self,desiredlabels):
         if self.params['ts_type'] == 'col':
             TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileCol(self.params['timeseriesfile'])
         elif self.params['ts_type'] == 'row':
@@ -170,24 +162,22 @@ class Job():
         labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind]) for node in TSLabels if node in desiredlabels])
         return labels,data
 
-    def savefiles(self,networks=None,patterns=None,networkuids=None):
+    def _savefiles(self,networks=None,patterns=None,networkuids=None):
 
         def savenetwork(uid,network_spec):
             nfile = os.path.join(self.NETWORKDIR, "network"+uid+".txt")
-            with open(nfile,'w') as nf:
-                nf.write(network_spec)
+            open(nfile,'w').write(network_spec)
 
         def savepatterns(uid,pats):
             subdir = os.path.join(self.PATTERNDIR,uid)
             subprocess.call(['mkdir -p ' + subdir])
-            for (pat,scfc) in zip(pats,self.scaling_factors):
+            for (pat,scfc) in zip(pats,self.params['scaling_factors']):
                 puid = '{:.{prec}f}'.format(scfc, prec=scfc_padding).replace('.','_')
                 pfile = os.path.join(subdir, "pattern"+puid+".txt")
-                with open(pfile,'w') as pf:
-                    json.dump(pattern,pf)
+                json.dump(pattern,open(pfile,'w'))
 
         if patterns is not None:
-            scfc_padding = max([len(str(s)) for s in self.scaling_factors])-2
+            scfc_padding = max([len(str(s)) for s in self.params['scaling_factors']])-2
             if networks is not None:
                 N=len(str(len(networks)))
                 for k,(network_spec,pats) in enumerate(zip(networks,patterns)):
@@ -207,11 +197,12 @@ class Job():
                 uid = str(k).zfill(N)
                 savenetwork(uid,network_spec)
 
-    def scheduler_qsub(self):
+    def _scheduler_qsub(self):
         pass
 
-    def scheduler_sbatch(self):
+    def _scheduler_sbatch(self):
         pass
 
 if __name__=="__main__":
     job=Job(10)
+    job.run()
