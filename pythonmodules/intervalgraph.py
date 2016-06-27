@@ -185,9 +185,7 @@ def createEssentialNetworkSpecFromGraph(graph):
     # take a graph and return a network spec file
 
     # get network nodes in order
-    networknodelist = [(v,graph.vertex_label(v)) for v in graph.vertices()] 
-    networknodenames = [n[1] for n in networknodelist]
-    networknodeindices = [n[0] for n in networknodelist]
+    networknodeindices,networknodenames = zip(*[(v,graph.vertex_label(v)) for v in graph.vertices()])
     [networknodeindices,networknodenames] = sort_by_list(networknodeindices,[networknodenames],reverse=False)
 
     # get inedges

@@ -1,10 +1,63 @@
 import random
 import DSGRN
 from operator import xor
+import intervalgraph
+import time
 
-########################################################################
-# Private library for the method perturbNetworks in class makejobs.Job
-########################################################################
+#####################################################################################################################
+# Library for perturbing networks. The method perturbNetworks is expected to be the only externally called function.
+#####################################################################################################################
+
+def perturbNetwork(params):
+    # params is a dictionary with the following key,value pairs: 
+    # network_spec : DSGRN format json string
+    # edgelist : a list of ("source","target","regulation") tuples OR None OR empty list
+    # nodelist : a list of node labels (strings) acceptable to add OR None OR empty list
+    # numperturbations : integer > 0; how many perturbations to construct
+    # time_to_wait : number of seconds to wait before halting perturbation procedure (avoid infinite while loop)
+    # add_madeup_nodes :  'y' or 'n'; add anonymous nodes to network (no nodelist supplied, but want nodes added)
+    # maxparams : integer > 0; parameters per database are allowed (eventually this should be deprecated for estimated db time calculation)
+    # maxiterations : integer > 0; how many times can a single perturbation be added to a network (failures are possible, overestimate)
+
+    # reset random seed for every run
+    random.seed()
+
+    # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
+    starting_graph = intervalgraph.getGraphFromNetworkSpec(params['network_spec'])
+    network_spec = intervalgraph.createEssentialNetworkSpecFromGraph(starting_graph)
+    networks = [network_spec]
+
+    # Set a timer for the while loop, which can be infinite if numperturbations is too large for maxparams
+    start_time = time.time()
+    current_time = time.time()-start_time
+
+    # now make perturbations
+    while (len(networks) < params['numperturbations']+1) and (current_time < params['time_to_wait']): 
+        # explicitly copy so that original graph is unchanged
+        graph = starting_graph.clone()
+        # add nodes and edges or just add edges based on params
+        # this can fail, in which case None is returned
+        if params['nodelist'] or (not params['edgelist'] and params['add_madeup_nodes'] == 'y'):
+            graph = perturbNetworkWithNodesAndEdges(graph,params['edgelist'],params['nodelist'],params['maxiterations'])
+        else:
+            graph = perturbNetworkWithEdgesOnly(graph,params['edgelist'],params['maxiterations']) 
+        if graph is not None:
+            # get the perturbed network spec
+            network_spec = intervalgraph.createEssentialNetworkSpecFromGraph(graph)
+
+            # TODO: check for graph isomorphisms in added nodes (only have string matching below). 
+            # Can get nodes added in different orders with same edges. Should be rare in general, so not high priority.
+            # BUT it might be more common than you'd think, since we filter given a maximum number of parameters.
+
+            # check that network spec is all of unique (in string match, not isomorphism), small enough, and computable, then add to list
+            if (network_spec not in networks) and checkComputability(network_spec,params['maxparams']):
+                networks.append(network_spec)
+        current_time = time.time()-start_time
+    if current_time > params['time_to_wait']:
+        print "Network perturbation timed out. Proceeding with fewer than requested perturbations."
+    # Return however many networks were made
+    return networks
+
 
 ##########################################################################################
 # Check that database is both computable (logic files present) and as small as requested
@@ -20,7 +73,7 @@ def checkComputability(network_spec,maxparams):
             print "\nToo many parameters. Not using network spec: \n {}\n".format(network_spec)    
         return smallenough
     except (AttributeError, RuntimeError):
-        print "\nNetwork_spec not computable: \n{}\n".format(network_spec)
+        print "\nNetwork spec not computable: \n{}\n".format(network_spec)
         return False
 
 ##############################################################################
@@ -80,6 +133,7 @@ def addEdge(graph,edgelist=None):
 
     # get a new edge
     if edgelist:
+        # filter given edgelist to return only edges that can be added to the existing network
         edgelist = [e for e in edgelist if e[0] in networknodenames and e[1] in networknodenames and e not in graph_named_edges and not isNegSelfLoop(e)]
         newedge = getRandomListElement(edgelist)
         if newedge is None:
@@ -105,21 +159,21 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
     #   if no edgelist, choose in- and out-edges randomly without a list
     # if no nodelist, make up a name for a new node (and add random edges sans edgelist)
 
+    networknodenames = getNetworkLabels(graph)
+    N = len(networknodenames)
+
     def makeupNode():
         # make unique node name
-        newnodelabel = 'x'+str(n)
+        newnodelabel = 'x'+str(N)
         c=1
         while newnodelabel in networknodenames:
             # must terminate because networknodenames is finite
-            newnodelabel = 'x'+str(n+c)
+            newnodelabel = 'x'+str(N+c)
             c+=1
         return newnodelabel
 
     def randomInAndOut():
-        return getRandomHalfEdge(n), getRandomHalfEdge(n)
-
-    networknodenames = getNetworkLabels(graph)
-    n = len(networknodenames)
+        return getRandomHalfEdge(N), getRandomHalfEdge(N)
 
     # get the new node and connecting edges
     if nodelist is None:
@@ -127,7 +181,7 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
         (innode,inreg),(outnode,outreg) = randomInAndOut()
     else:
         # filter nodelist to get only new nodes
-        nodelist = filterNodeList(networknodenames,nodelist)
+        nodelist = [ n for n in nodelist if n not in networknodenames ]
         if edgelist is None:
             newnodelabel = getRandomListElement(nodelist)
             if newnodelabel is None:
@@ -145,9 +199,9 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
             inreg, outreg = inedge[2], outedge[2]
 
     # add to graph
-    graph.add_vertex(n,label=newnodelabel)
-    graph.add_edge(innode,n,label=inreg)
-    graph.add_edge(n,outnode,label=outreg)
+    graph.add_vertex(N,label=newnodelabel)
+    graph.add_edge(innode,N,label=inreg)
+    graph.add_edge(N,outnode,label=outreg)
     return graph
 
 ##############################################################################
@@ -158,9 +212,6 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
 def getNetworkLabels(graph):
     # need node names to choose new nodes/edges
     return [ graph.vertex_label(v) for v in graph.vertices() ]
-
-def filterNodeList(networknodenames,nodelist):
-    return [ n for n in nodelist if n not in networknodenames ]
 
 def getVertexFromLabel(graph,nodelabels):
     return [ graph.get_vertex_from_label(n) for n in nodelabels ]
@@ -213,5 +264,5 @@ def getNodeAndConnectingEdgesFromLists(nodelist,edgelist):
         if nodelabel is None: 
             return None, None, None
         nodelist.remove(nodelabel)
-        nodelabel,inedge,outedge = generateCandidate(nodelist,edgelist)
+        nodelabel,inedge,outedge = generateCandidate()
     return nodelabel,inedge,outedge

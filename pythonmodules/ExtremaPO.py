@@ -180,8 +180,19 @@ def DeepLife(minLife,maxLife,ts,n):
 	for ndx in range(0,n):
 		minimum = max(minLifeCopy)
 		maximum = max(maxLifeCopy)
-		minIndex = minLifeCopy.index(minimum)
-		maxIndex = maxLifeCopy.index(maximum)
+		if minLifeCopy.count(minimum) == 1:
+			#same stuff as before
+			minIndex = minLifeCopy.index(minimum)
+		else:
+			tmp = filter(lambda x : minLifeCopy[x] == minimum, range(len(minLifeCopy)))
+			vals = [ ts[i] for i in tmp ]
+			minIndex = tmp[vals.index(min(vals))]
+		if maxLifeCopy.count(maximum) == 1:
+			maxIndex = maxLifeCopy.index(maximum)
+		else:
+			tmp = filter(lambda x : maxLifeCopy[x] == maximum, range(len(maxLifeCopy)))
+			vals = [ ts[i] for i in tmp ]
+			maxIndex = tmp[vals.index(max(vals))]
 		deepEventList.append(minIndex)
 		deepEventList.append(maxIndex)
 		minLifeCopy[minIndex] = 0
@@ -304,11 +315,12 @@ def ConvertToJSON(graph,sumList,TSLabels):
 	output["dimension"] = len(TSLabels)
 	return output
 
-def makeJSONstring(TSList,TSLabels,n=1,scalingFactor=1,step=0.01):
+def makeJSONstring(TSList,TSLabels,n=1,scalingFactors=[1],step=0.01):
 	# TSList is a list of time series, each of which is a list of floats
 	# Each time series has a label in the corresponding index of TSLabels
 	# n = number of mins/maxes to pull
-	# scalingFactor = a scaling factor of maxEps (Must be in [0,1]), step (default to 0.01)
+	# scalingFactors = a list of scaling factors of maxEps (Must be in [0,1])
+	# step (default to 0.01)
 	if step <=0:
 		print "Changing step size to 0.01."
 		step = 0.01
@@ -316,12 +328,14 @@ def makeJSONstring(TSList,TSLabels,n=1,scalingFactor=1,step=0.01):
 	sumList = ProcessTS(TSList,n,step)
 
 	maxEps = FindMaxEps(sumList)
-	if scalingFactor >= 0 and scalingFactor < 1:
-		maxEps = int(scalingFactor*maxEps)
-	eventCompList = PullEventComps(sumList,maxEps,step,n)
-	PO = BuildPO(eventCompList,step,n)
-	graph = POToGraph(PO,TSLabels,n)
-	return ConvertToJSON(graph,sumList,TSLabels)
+	jsonstrs = []
+	for sf in scalingFactors:
+		scaledMaxEps = int(sf*maxEps)
+		eventCompList = PullEventComps(sumList,scaledMaxEps,step,n)
+		PO = BuildPO(eventCompList,step,n)
+		graph = POToGraph(PO,TSLabels,n)
+		jsonstrs.append(ConvertToJSON(graph,sumList,TSLabels))
+	return jsonstrs
 
 def testme():
 	import fileparsers
@@ -331,7 +345,7 @@ def testme():
 	# desiredlabels = ['PF3D7_0100100','PF3D7_0100200','PF3D7_0100300']
 	ind = timeStepList.index(42)
 	labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind+1]) for node in TSLabels if node in desiredlabels])
-	jsonstr = makeJSONstring(data,labels,n=1,scalingFactor=0.05,step=0.01)
+	jsonstr = makeJSONstring(data,labels,n=1,scalingFactors=[0.05],step=0.01)
 	print jsonstr
 	# ts=timeStepList[:ind+1]
 	# plt.figure()

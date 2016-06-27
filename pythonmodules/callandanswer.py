@@ -160,15 +160,15 @@ def getinfo():
         # get max size of each database
         params['maxparams'] = gimme_nonneg_int(raw_input("\nHow many parameters will you admit per perturbation? Example: 200000.  "),strictlypositive=True)
 
-    # choose database queries to perform; more can be added in a modular fashion
-    params['stableFCs'] = gimme_str_from_list(raw_input("\nDo you want to know the number of parameters exhibiting at least one stable FC (y or n)?  "),['y','n']) 
-    params['multistable']= gimme_str_from_list(raw_input("\nDo you want to know the number of parameters exhibiting more than one stable Morse set of any type (y or n)?  "),['y','n'])
-    singlefpqueries = raw_input("\nWould you like to make single FP queries? If so, enter a list of arguments. \nIncorrect format, state, or variable names will crash the process later. \nExample of two single queries: ['E2F 3 3 Rb 0 0', 'E2F 0 0 Rb 1 1']. Leave blank otherwise.  ")
-    if singlefpqueries:
-        params['singlefpqueries'] =eval(singlefpqueries)
-    dualfpqueries = raw_input("\nWould you like to query for the simultaneous presence of two FPs? If so, enter a list of arguments. \nIncorrect format, state, or variable names will crash the process later. \nExample of two dual queries: ['E2F 3 3 Rb 0 0 E2F 0 0 Rb 1 1', 'Myc 0 1 E2F 2 2 E2F 0 2 Rb 1 1']. Leave blank otherwise.  ")
-    if dualfpqueries:
-        params['dualfpqueries'] = eval(dualfpqueries)
+    # # choose database queries to perform; more can be added in a modular fashion
+    # params['stableFCs'] = gimme_str_from_list(raw_input("\nDo you want to know the number of parameters exhibiting at least one stable FC (y or n)?  "),['y','n']) 
+    # params['multistable']= gimme_str_from_list(raw_input("\nDo you want to know the number of parameters exhibiting more than one stable Morse set of any type (y or n)?  "),['y','n'])
+    # singlefpqueries = raw_input("\nWould you like to make single FP queries? If so, enter a list of arguments. \nIncorrect format, state, or variable names will crash the process later. \nExample of two single queries: ['E2F 3 3 Rb 0 0', 'E2F 0 0 Rb 1 1']. Leave blank otherwise.  ")
+    # if singlefpqueries:
+    #     params['singlefpqueries'] =eval(singlefpqueries)
+    # dualfpqueries = raw_input("\nWould you like to query for the simultaneous presence of two FPs? If so, enter a list of arguments. \nIncorrect format, state, or variable names will crash the process later. \nExample of two dual queries: ['E2F 3 3 Rb 0 0 E2F 0 0 Rb 1 1', 'Myc 0 1 E2F 2 2 E2F 0 2 Rb 1 1']. Leave blank otherwise.  ")
+    # if dualfpqueries:
+    #     params['dualfpqueries'] = eval(dualfpqueries)
 
 
     # choose whether to pattern match and get associated parameters
@@ -182,7 +182,7 @@ def getinfo():
         if netfolder == 'n' or patfolder == 'n':
             params['timeseriesfile'] = gimme_existing_path(raw_input("\nGive the path to a file containing the time series data.  "),isfile=True)
             params['ts_type'] = gimme_str_from_list(raw_input("\nDo the time series occur in rows ('row') or columns ('col')?  "),['row','col'])
-            params['ts_trunction'] = gimme_positive_or_minusone_float(raw_input("\nChoose a (positive) truncation time for the time series data, or the value -1 for no truncation.  "))
+            params['ts_truncation'] = gimme_positive_or_minusone_float(raw_input("\nChoose a (positive) truncation time for the time series data, or the value -1 for no truncation.  "))
             params['scaling_factors'] = gimme_floats_0_1(input("\nGive a list of scaling factors (noise levels) between 0 and 1 to construct the patterns from the data. Example: [0.0, 0.05, 0.1, 0.15].  "))
     return params
 

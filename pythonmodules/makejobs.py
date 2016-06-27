@@ -1,19 +1,21 @@
 from callandanswer import getinfo
 import networkperturbations as perturb
-import fileparsers, intervalgraph, ExtremaPO
-import subprocess, time, random, os, json, itertools
+import fileparsers,ExtremaPO
+import subprocess, os, json, itertools
 
 
 class Job():
 
     def __init__(self,time_to_wait=300,qsub=True):
+        self.params = dict()
+
         # how long to compute network perturbations before giving up (in seconds)
-        self.time_to_wait=time_to_wait
+        self.params['time_to_wait']=time_to_wait
 
         # how many itertations are allowed when trying to add something during a single perturbation
         # note: it's unknown how many failures there could be, number set high
         # purpose is to avoid the (vanishingly small) chance that a single perturbation will block the program
-        self.maxiterations = 10**4
+        self.params['maxiterations'] = 10**4
 
         # use qsub or sbatch
         if qsub:
@@ -23,13 +25,14 @@ class Job():
 
     def run(self):
         # get parameters and files for the perturbations
-        self.params = getinfo()
+        params = getinfo()
+        self.params.update(params)
         # set up folders for calculations
         self._makedirectories()
         # do perturbations if not already done
         if 'numperturbations' in self.params:
             self._parsefilesforperturbation()
-            networks = self._perturbNetwork()
+            networks = perturb.perturbNetwork(self.params)
         else:
             networks = None
         # make patterns if desired and not already done
@@ -70,55 +73,17 @@ class Job():
         subprocess.call(['mkdir -p ' + self.RESULTSDIR],shell=True)
 
     def _parsefilesforperturbation(self):
-        self.network_spec = open(self.params['networkfile'],'r').read()
+        network_spec = open(self.params['networkfile'],'r').read()
+        while network_spec[-1]=='\n': network_spec = network_spec[:-1]
+        self.params['network_spec'] = network_spec
         if 'edgefile' in self.params:
-            self.edgelist = fileparsers.parseEdgeFile(self.params['edgefile'])
+            self.params['edgelist'] = fileparsers.parseEdgeFile(self.params['edgefile'])
         else:
-            self.edgelist = None
+            self.params['edgelist'] = None
         if 'nodefile' in self.params:
-            self.nodelist = fileparsers.parseNodeFile(self.params['nodefile'])
+            self.params['nodelist'] = fileparsers.parseNodeFile(self.params['nodefile'])
         else:
-            self.nodelist = None
-
-    def _perturbNetwork(self):
-
-        # reset random seed for every run
-        random.seed()
-
-        # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
-        starting_graph = intervalgraph.getGraphFromNetworkSpec(self.network_spec)
-        network_spec = intervalgraph.createEssentialNetworkSpecFromGraph(starting_graph)
-        networks = [network_spec]
-
-        # Set a timer for the while loop, which can be infinite if numperturbations is too large for maxparams
-        start_time = time.time()
-        current_time = time.time()-start_time
-        # now make perturbations
-        while (len(networks) < self.params['numperturbations']+1) and (current_time < self.time_to_wait): 
-            # explicitly copy so that original graph is unchanged
-            graph = starting_graph.clone()
-            # add nodes and edges or just add edges based on the self
-            # this can fail, in which case None is returned
-            if self.nodelist or (not self.edgelist and self.params['add_madeup_nodes'] == 'y'):
-                graph = perturb.perturbNetworkWithNodesAndEdges(graph,self.edgelist,self.nodelist,self.maxiterations)
-            else:
-                graph = perturb.perturbNetworkWithEdgesOnly(graph,self.edgelist,self.maxiterations) 
-            if graph is not None:
-                # get the perturbed network spec
-                network_spec = intervalgraph.createEssentialNetworkSpecFromGraph(graph)
-
-                # TODO: check for graph isomorphisms in added nodes (only have string matching below). 
-                # Can get nodes added in different orders with same edges. Should be rare in general, so not high priority.
-                # BUT it might be more common than you'd think, since we filter given a maximum number of parameters.
-
-                # check that network spec is all of unique (in string match, not isomorphism), small enough, and computable, then add to list
-                if (network_spec not in networks) and perturb.checkComputability(network_spec,self.params['maxparams']):
-                    networks.append(network_spec)
-            current_time = time.time()-start_time
-        if current_time > self.time_to_wait:
-            print "Network perturbation timed out. Proceeding with fewer than requested perturbations."
-        # Return however many networks were made
-        return networks
+            self.params['nodelist'] = None
 
     def _makepatterns(self,networks=None):
         if networks is None:
@@ -130,24 +95,19 @@ class Job():
         uniqpatterns =[]
         for nl in uniqnetlab:
             ts_data = [masterdata[masterlabels.index(n)] for n in nl]
-            uniqpatterns.append([ ExtremaPO.makeJSONstring(ts_data,nl,n=1,scalingFactor=scfc,step=0.01) for scfc in self.params['scaling_factors'] ])
+            uniqpatterns.append( ExtremaPO.makeJSONstring(ts_data,nl,n=1,scalingFactors=self.params['scaling_factors'],step=0.01) )
         patterns = [ uniqpatterns[uniqnetlab.index(nl)] for nl in networklabels ]
         return uids, patterns
 
     def _makenetworklabelsfromspecs(self,networks):
-        networklabels = []
-        for network_spec in networks:
-            ns = network_spec.split('\n')
-            networklabels.append(tuple([n.replace(':',' ').split()[0] for n in ns]))
-        return networklabels, None
+        return [ tuple([n.replace(':',' ').split()[0] for n in network_spec.split('\n') if n]) for network_spec in networks ], None
 
     def _makenetworklabelsfromfiles(self):
         networklabels=[]
         uids=[]
         for fname in os.listdir(self.params['networkfolder']):
             uids.append(''.join([c for c in fname if c.isdigit()]))
-            with open(fname,'r') as f:
-                networklabels.append(tuple([l.replace(':',' ').split()[0] for l in f]))
+            networklabels.append(tuple([l.replace(':',' ').split()[0] for l in open(fname,'r') if l]))
         return networklabels, uids
 
     def _parsetimeseries(self,desiredlabels):
@@ -170,14 +130,14 @@ class Job():
 
         def savepatterns(uid,pats):
             subdir = os.path.join(self.PATTERNDIR,uid)
-            subprocess.call(['mkdir -p ' + subdir])
+            subprocess.call(['mkdir -p ' + subdir],shell=True)
             for (pat,scfc) in zip(pats,self.params['scaling_factors']):
                 puid = '{:.{prec}f}'.format(scfc, prec=scfc_padding).replace('.','_')
                 pfile = os.path.join(subdir, "pattern"+puid+".txt")
-                json.dump(pattern,open(pfile,'w'))
+                json.dump(pat,open(pfile,'w'))
 
         if patterns is not None:
-            scfc_padding = max([len(str(s)) for s in self.params['scaling_factors']])-2
+            scfc_padding = max(max([len(str(s)) for s in self.params['scaling_factors']])-2, 0)
             if networks is not None:
                 N=len(str(len(networks)))
                 for k,(network_spec,pats) in enumerate(zip(networks,patterns)):
