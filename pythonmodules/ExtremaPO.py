@@ -11,6 +11,8 @@ def GrowComponent(ts,epsilon,comp):
 		# Checks to see if the epsilon nbhd of value of t2 intersects the epsilon nbhd of value of t2
 		if ts[t2] - ts[t1] <= 2*epsilon and ts[t2] - ts[t1] >= -2*epsilon: 
 			return True
+		else:
+			return False
 
 	def isgoodcandidate(candidate,comp):
 		for time in comp:

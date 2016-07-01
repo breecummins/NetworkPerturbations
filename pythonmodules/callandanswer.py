@@ -137,22 +137,22 @@ def getinfo():
         sys.exit()
 
     # get network spec(s)
-    netfolder = gimme_str_from_list(raw_input("\nAre your perturbations already constructed in a separate folder (y or n)?  "),['y','n'])
+    netfolder = gimme_str_from_list(raw_input("\nAre your network perturbations already constructed (y or n)?  "),['y','n'])
     if netfolder == 'y':
         # perturbations pre-calculated
-        params['networkfolder'] = gimme_existing_path(raw_input("\nEnter the path of the network perturbations folder (each file within must have a uniquely identifying integer in the file name).  "),isfile=False)
+        params['networkfolder'] = gimme_existing_path(raw_input("\nEnter the path of the network perturbations folder (each file name must have a unique integer).  "),isfile=False)
     elif netfolder == 'n':
         # perturbations are not pre-calculated
-        params['networkfile'] = gimme_computable_network(gimme_existing_path(raw_input("\nGive the path to a file containing the network specification that is to be perturbed.  "),isfile=True))
+        params['networkfile'] = gimme_computable_network(gimme_existing_path(raw_input("\nEnter the path to a network specification file.  "),isfile=True))
         # get node and edge files
-        nodefile = gimme_existing_path_skipOK( raw_input("\nIf you wish to perturb the network by adding node names from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only nodes acceptable in perturbations.  ") , isfile=True)
+        nodefile = gimme_existing_path_skipOK( raw_input("\nEnter the path to a file with nodes to add (leave blank otherwise).  ") , isfile=True)
         if nodefile:
             params['nodefile'] = nodefile
-        edgefile = gimme_existing_path_skipOK(raw_input("\nIf you wish to perturb the network by adding edges from a file, enter the path to the file (leave blank otherwise).\nThe file should be pre-filtered to have only edges acceptable in perturbations.  "),isfile=True)
+        edgefile = gimme_existing_path_skipOK(raw_input("\nEnter the path to a file with edges to add (leave blank otherwise).  "),isfile=True)
         if edgefile:
             params['edgefile'] = edgefile
         if 'edgefile' not in params and 'nodefile' not in params:
-            params['add_madeup_nodes'] = gimme_str_from_list(raw_input("\nWould you like to add anonymous nodes and edges to the network ('y') or just edges ('n')?  "),['y','n'])
+            params['add_madeup_nodes'] = gimme_str_from_list(raw_input("\nAdd anonymous nodes to the network (y or n).  "),['y','n'])
         if 'edgefile' in params and 'nodefile' not in params:
             print "\n\nNote: only edges will be added to the existing network (not nodes).\n"
         # how many perturbations
@@ -160,22 +160,22 @@ def getinfo():
         # get max size of each database
         params['maxparams'] = gimme_nonneg_int(raw_input("\nHow many parameters will you admit per perturbation? Example: 200000.  "),strictlypositive=True)
 
-    # # choose database queries to perform; more can be added in a modular fashion
-    # params['stableFCs'] = gimme_str_from_list(raw_input("\nDo you want to know the number of parameters exhibiting at least one stable FC (y or n)?  "),['y','n']) 
-    # params['multistable']= gimme_str_from_list(raw_input("\nDo you want to know the number of parameters exhibiting more than one stable Morse set of any type (y or n)?  "),['y','n'])
-    # singlefpqueries = raw_input("\nWould you like to make single FP queries? If so, enter a list of arguments. \nIncorrect format, state, or variable names will crash the process later. \nExample of two single queries: ['E2F 3 3 Rb 0 0', 'E2F 0 0 Rb 1 1']. Leave blank otherwise.  ")
-    # if singlefpqueries:
-    #     params['singlefpqueries'] =eval(singlefpqueries)
-    # dualfpqueries = raw_input("\nWould you like to query for the simultaneous presence of two FPs? If so, enter a list of arguments. \nIncorrect format, state, or variable names will crash the process later. \nExample of two dual queries: ['E2F 3 3 Rb 0 0 E2F 0 0 Rb 1 1', 'Myc 0 1 E2F 2 2 E2F 0 2 Rb 1 1']. Leave blank otherwise.  ")
-    # if dualfpqueries:
-    #     params['dualfpqueries'] = eval(dualfpqueries)
+    # choose database queries to perform; more can be added in a modular fashion
+    params['stableFCs'] = gimme_str_from_list(raw_input("\nCount parameters exhibiting at least one stable FC (y or n).  "),['y','n']) 
+    params['multistable']= gimme_str_from_list(raw_input("\nCount parameters exhibiting more than one stable Morse set of any type (y or n).  "),['y','n'])
+    singlefpqueries = raw_input("\nEnter a list of single FP queries (or leave blank). Example of two single queries: ['E2F 3 3 Rb 0 0', 'E2F 0 0 Rb 1 1'].  ")
+    if singlefpqueries:
+        params['singlefpqueries'] =eval(singlefpqueries)
+    dualfpqueries = raw_input("\nEnter a list of double FP queries (or leave blank). Example of two double queries: ['E2F 3 3 Rb 0 0 E2F 0 0 Rb 1 1', 'Myc 0 1 E2F 2 2 E2F 0 2 Rb 1 1'].  ")
+    if dualfpqueries:
+        params['dualfpqueries'] = eval(dualfpqueries)
 
 
     # choose whether to pattern match and get associated parameters
     patternmatch = gimme_str_from_list(raw_input("\nDo you want to pattern match (y or n)?  "),['y','n'])
     if patternmatch == 'y':
         if netfolder == 'y':
-            patfolder = gimme_str_from_list(raw_input("\nAre your patterns already constructed in a separate folder (y or n)?  "),['y','n'])
+            patfolder = gimme_str_from_list(raw_input("\nAre your patterns already constructed (y or n)?  "),['y','n'])
             if patfolder == 'y':
                 params['patternfolder'] = gimme_existing_path(raw_input("\nEnter the path of the patterns folder.  "),isfile=False)
         # the following is if, not elif

@@ -12,7 +12,7 @@ RESULTSDIR=$5
 # get commands
 # note this is insecure, since these commands will be evaluated and could potentially cause damage
 HELPER_SCRIPT_CMD=$6
-QUERIES=$7 # QUERIES is an associative array of elements (key, query_cmd, query_arg, summary_cmd)
+# QUERIES=$7 # QUERIES is an associative array of elements (key, query_cmd, query_arg, summary_cmd)
 
 # for each perturbation, start a scheduled job for analysis
 for NETWORKFILE in $NETWORKDIR/*; do
@@ -21,6 +21,6 @@ for NETWORKFILE in $NETWORKDIR/*; do
 	netid=${bname%%.*}
 	NETWORKID=${netid##network} 
 	# start a scheduled job
-	$HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID $QUERIES
+	$HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID #$QUERIES
 done
 

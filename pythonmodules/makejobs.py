@@ -18,10 +18,7 @@ class Job():
         self.params['maxiterations'] = 10**4
 
         # use qsub or sbatch
-        if qsub:
-            self.scheduler = self._scheduler_qsub
-        else:
-            self.scheduler = self._scheduler_sbatch
+        self.qsub = qsub
 
     def run(self):
         # get parameters and files for the perturbations
@@ -44,7 +41,7 @@ class Job():
         # save networks and patterns, if any
         self._savefiles(networks,patterns,uids)
         # shell call to scheduler
-        self.scheduler()
+        self._runscheduler()
 
     def _makedirectories(self):
         # use datetime as unique identifier to avoid overwriting
@@ -54,21 +51,18 @@ class Job():
             self.NETWORKDIR=self.params['networkfolder']
             if 'patternfolder' in self.params:
                 self.PATTERNDIR=self.params['patternfolder']
-            folders = self.NETWORKDIR.split('/')
-            uid =  '_' + folders[-1] + '_' + DATETIME
         else:
-            uid = DATETIME
-            self.NETWORKDIR ="./computations"+uid+"/networks"
+            self.NETWORKDIR ="./computations"+DATETIME+"/networks"
             subprocess.call(['mkdir -p ' + self.NETWORKDIR],shell=True)
 
         if 'timeseriesfile' in self.params:
-            self.PATTERNDIR ="./computations"+uid+"/patterns"
+            self.PATTERNDIR ="./computations"+DATETIME+"/patterns"
             subprocess.call(['mkdir -p ' + self.PATTERNDIR],shell=True)
         else:
-            self.PATTERNDIR = None
+            self.PATTERNDIR = ""
 
-        self.DATABASEDIR="./computations"+uid+"/databases"
-        self.RESULTSDIR ="./computations"+uid+"/results"
+        self.DATABASEDIR="./computations"+DATETIME+"/databases"
+        self.RESULTSDIR ="./computations"+DATETIME+"/results"
         subprocess.call(['mkdir -p ' + self.DATABASEDIR],shell=True)
         subprocess.call(['mkdir -p ' + self.RESULTSDIR],shell=True)
 
@@ -107,7 +101,7 @@ class Job():
         uids=[]
         for fname in os.listdir(self.params['networkfolder']):
             uids.append(''.join([c for c in fname if c.isdigit()]))
-            networklabels.append(tuple([l.replace(':',' ').split()[0] for l in open(fname,'r') if l]))
+            networklabels.append(tuple([l.replace(':',' ').split()[0] for l in open(os.path.join(self.params['networkfolder'],fname),'r') if l]))
         return networklabels, uids
 
     def _parsetimeseries(self,desiredlabels):
@@ -119,6 +113,8 @@ class Job():
             ind = timeStepList.index(self.params['ts_truncation'])
         else:
             ind = len(timeStepList)
+        if not set(desiredlabels).issubset(TSLabels):
+            raise ValueError("Missing time series for some nodes. Aborting.")
         labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind]) for node in TSLabels if node in desiredlabels])
         return labels,data
 
@@ -157,12 +153,12 @@ class Job():
                 uid = str(k).zfill(N)
                 savenetwork(uid,network_spec)
 
-    def _scheduler_qsub(self):
-        pass
-
-    def _scheduler_sbatch(self):
-        pass
-
+    def _runscheduler(self):
+        shellcall = ". ../shellscripts/networkperturbations.sh " + ' '.join([self.params['dsgrn'],self.NETWORKDIR,self.PATTERNDIR, self.DATABASEDIR, self.RESULTSDIR] 
+        if qsub: shellcall += "  ../shellscripts/networkperturbations_helper_qsub.sh"
+        else: shellcall += "  ../shellscripts/networkperturbations_helper_sbatch.sh"
+        subprocess.call([ shellcall ],shell=True)
+        
 if __name__=="__main__":
     job=Job(10)
     job.run()

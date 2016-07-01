@@ -10,22 +10,23 @@ def parseTimeSeriesFileCol(fname):
     with open(fname,'r') as f:
         value = 0                                              
         for line in f:
-            if line[0] == '#':
-                continue
-            elif value == 1:
-                times = line.split()
-                timeStepList.append(float(times[0]))
-                for ndx in range(1,len(times)):
-                    TSData[ndx].append(float(times[ndx]))
-            else: # the clause below happens only once at the first non-comment line
-                value = 1
-                TSData = []
-                TSLabels = []
-                timeStepList = []
-                genes = line.split()
-                for ndx in range(1,len(genes)):
-                    TSData.append([])
-                    TSLabels.append(genes[ndx])
+            if line:
+                if line[0] == '#':
+                    continue
+                elif value == 1:
+                    times = line.split()
+                    timeStepList.append(float(times[0]))
+                    for ndx in range(1,len(times)):
+                        TSData[ndx].append(float(times[ndx]))
+                else: # the clause below happens only once at the first non-comment line
+                    value = 1
+                    TSData = []
+                    TSLabels = []
+                    timeStepList = []
+                    genes = line.split()
+                    for ndx in range(1,len(genes)):
+                        TSData.append([])
+                        TSLabels.append(genes[ndx])
     return TSData,TSLabels,timeStepList
 
 def parseTimeSeriesFileRow(fname):
@@ -41,12 +42,13 @@ def parseTimeSeriesFileRow(fname):
         TSList = []
         TSLabels = []
         for line in f:
-            if line[0] == '#':
-                continue
-            else:
-                data = line.split()
-                TSLabels.append(data[0])
-                TSList.append([float(item) for item in data[1:]])
+            if line:
+                if line[0] == '#':
+                    continue
+                else:
+                    data = line.split()
+                    TSLabels.append(data[0])
+                    TSList.append([float(item) for item in data[1:]])
     timeStepList = TSList[0]
     TSList = TSList[1:]
     TSLabels = TSLabels[1:]
