@@ -155,8 +155,10 @@ class Job():
 
     def _runscheduler(self):
         shellcall = ". ../shellscripts/networkperturbations.sh " + ' '.join([self.params['dsgrn'],self.NETWORKDIR,self.PATTERNDIR, self.DATABASEDIR, self.RESULTSDIR] 
-        if qsub: shellcall += "  ../shellscripts/networkperturbations_helper_qsub.sh"
-        else: shellcall += "  ../shellscripts/networkperturbations_helper_sbatch.sh"
+        if self.qsub: 
+            shellcall += "  ../shellscripts/networkperturbations_helper_qsub.sh"
+        else: 
+            shellcall += "  ../shellscripts/networkperturbations_helper_sbatch.sh"
         subprocess.call([ shellcall ],shell=True)
         
 if __name__=="__main__":
