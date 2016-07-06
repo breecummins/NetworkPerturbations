@@ -2,7 +2,7 @@
 
 # dependencies: dsgrn in path, DSGRN dependencies, bash 4, mpiexec, python 2.7, qsub, sqlite3
 
-. querylibrary.sh # import custom functions
+. ../shellscripts/querylibrary.sh # import custom functions
 
 #Active comments for SGE
 #$ -V
