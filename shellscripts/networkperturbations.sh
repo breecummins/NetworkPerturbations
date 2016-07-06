@@ -12,7 +12,7 @@ RESULTSDIR=$5
 # get commands
 # note this is insecure, since these commands will be evaluated and could potentially cause damage
 HELPER_SCRIPT_CMD=$6
-echo $HELPER_SCRIPT_CMD
+QSUB=$7
 # QUERIES=$7 # QUERIES is an associative array of elements (key, query_cmd, query_arg, summary_cmd)
 
 # for each perturbation, start a scheduled job for analysis
@@ -21,8 +21,11 @@ for NETWORKFILE in $NETWORKDIR/*; do
 	bname=`basename $NETWORKFILE`
 	netid=${bname%%.*}
 	NETWORKID=${netid##network} 
-	echo $NETWORKID
 	# start a scheduled job
-	. $HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID #$QUERIES
+	if [[ $QSUB == "True" ]]; then
+		qsub $HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID #$QUERIES
+	else;
+		echo "\nsbatch not implemented yet\n"
+	fi
 done
 
