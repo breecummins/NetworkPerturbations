@@ -153,11 +153,11 @@ class Job():
                 savenetwork(uid,network_spec)
 
     def _runscheduler(self):
-        shellcall = ["../shellscripts/networkperturbations.sh " + " ".join([self.params['dsgrn'],self.NETWORKDIR,self.PATTERNDIR, self.DATABASEDIR, self.RESULTSDIR])]
+        shellcall = ["shellscripts/networkperturbations.sh " + " ".join([self.params['dsgrn'],self.NETWORKDIR,self.PATTERNDIR, self.DATABASEDIR, self.RESULTSDIR])]
         if self.qsub: 
-            shellcall[0] += " ../shellscripts/networkperturbations_helper_qsub.sh True"
+            shellcall[0] += " shellscripts/networkperturbations_helper_qsub.sh True"
         else: 
-            shellcall[0] += " ../shellscripts/networkperturbations_helper_sbatch.sh False"
+            shellcall[0] += " shellscripts/networkperturbations_helper_sbatch.sh False"
         subprocess.call(shellcall,shell=True)
         
 if __name__=="__main__":

@@ -2,7 +2,7 @@
 
 # dependencies: dsgrn in path, DSGRN dependencies, bash 4, mpiexec, python 2.7, qsub, sqlite3
 
-. ../shellscripts/querylibrary.sh # import custom functions
+. shellscripts/querylibrary.sh # import custom functions
 
 #Active comments for SGE
 #$ -V
@@ -39,13 +39,14 @@ if [ ! -f $DATABASEFILE ]; then echo "Database $NETWORKID did not compute\n"; ca
 # the key is the dictionary key for the summary statistic as it will be stored in the results file
 # use associative array -- need bash 4
 NUMPARAMS=`getnumparams $NETWORKFILE`
-SUMMARY=(("ParameterCount",$NUMPARAMS))
-for Q in ${QUERIES[@]}; do
-	KEY=${Q[1]}
-	`${Q[2]} ${Q[3]}`
-	VAL=`${Q[4]}`
-	SUMMARY+=(($KEY,$VAL))
-done
+declare -A SUMMARY
+SUMMARY["ParameterCount"]=$NUMPARAMS
+# for Q in ${QUERIES[@]}; do
+# 	KEY=${Q[1]}
+# 	`${Q[2]} ${Q[3]}`
+# 	VAL=`${Q[4]}`
+# 	SUMMARY[$KEY]=$VAL
+# done
 
 STABLEFCLIST="$DATABASEDIR/StableFCList$NETID.txt" # this file name should match the one in querylibrary.sh by convention
 
