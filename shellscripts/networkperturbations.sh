@@ -15,6 +15,9 @@ HELPER_SCRIPT_CMD=$6
 QSUB=$7
 # QUERIES=$8 # QUERIES is an associative array of elements (key, query_cmd, query_arg, summary_cmd)
 
+echo QSUB
+printf "echoed QSUB"
+
 # for each perturbation, start a scheduled job for analysis
 for NETWORKFILE in $NETWORKDIR/*; do
 	# strip the uniquely identifying number off of the filename
