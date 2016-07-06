@@ -74,7 +74,7 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 
 		rm $PATTERNFILE $MATCHFILE
 	done
-else;
+else
 	RESULTSFILE=$RESULTSDIR/results$NETWORKID.txt
 	python pythonmodules/summaryJSON.py $NETWORKFILE "" $RESULTSFILE $SUMMARY ""
 fi
