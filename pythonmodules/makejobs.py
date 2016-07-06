@@ -59,7 +59,7 @@ class Job():
             self.PATTERNDIR ="./computations"+DATETIME+"/patterns"
             subprocess.call(['mkdir -p ' + self.PATTERNDIR],shell=True)
         else:
-            self.PATTERNDIR = ""
+            self.PATTERNDIR = None
 
         self.DATABASEDIR="./computations"+DATETIME+"/databases"
         self.RESULTSDIR ="./computations"+DATETIME+"/results"
