@@ -63,6 +63,8 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 		SUMMARYSTR="$SUMMARYSTR StableFCParameterCount:$(summarystableFCs)"
 	fi
 
+	echo `ls $DATABASEDIR`
+
 	# pattern match in stable FCs
 	for PATTERNFILE in $PATTERNDIR/$NETWORKID/*; do
 		P=`basename $PATTERNFILE`
