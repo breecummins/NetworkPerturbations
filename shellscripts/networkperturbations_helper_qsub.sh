@@ -56,6 +56,7 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 	# check if stable FC list calculated
 	if [ ! -f $STABLEFCLIST ]; then
 		getstableFClist
+		SUMMARY["StableFCParameterCount"]=`summarystableFCs`
 	fi
 
 	# pattern match in stable FCs
