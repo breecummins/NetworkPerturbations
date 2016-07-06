@@ -3,8 +3,11 @@ import sys,json
 network_spec_file=sys.argv[1]
 pattern_spec_file=sys.argv[2]
 results_file=sys.argv[3]
-results_dict=dict(eval(sys.argv[4]))
+print sys.argv[4]
+results_dict = dict([tuple(pair.split(':')) for pair in sys.argv[4].split() if pair])
+print results_dict
 nummatches=sys.argv[5]
+
 
 if nummatches:
 	results_dict["StableFCMatchesParameterCount"] = int(nummatches)

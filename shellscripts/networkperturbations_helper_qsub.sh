@@ -23,7 +23,7 @@ PATTERNDIR=$3
 DATABASEDIR=$4 
 RESULTSDIR=$5 
 NETWORKID=$6
-# QUERIES=$7
+# eval "declare -A QUERIES="${7#*=}
 
 DATABASEFILE="$DATABASEDIR/database$NETWORKID.db"
 
@@ -34,17 +34,17 @@ mpiexec --mca mpi_preconnect_mpi 1 -np $NSLOTS -x LD_LIBRARY_PATH $SIGNATURES $N
 if [ ! -f $DATABASEFILE ]; then echo "Database $NETWORKID did not compute\n"; cat $2; exit 1; fi 
 
 # do queries here
-# QUERIES is a list of elements (key, query_cmd, query_arg, summary_cmd)
+# QUERIES is an associative array of strings key: "query_cmd; summary_cmd"
 # the query command searches the database, and the summary command collapses the data into a statistic
 # the key is the dictionary key for the summary statistic as it will be stored in the results file
 # use associative array -- need bash 4
 NUMPARAMS=`getnumparams $NETWORKFILE`
 declare -A SUMMARY
 SUMMARY["ParameterCount"]=$NUMPARAMS
-# for Q in ${QUERIES[@]}; do
-# 	KEY=${Q[1]}
-# 	`${Q[2]} ${Q[3]}`
-# 	VAL=`${Q[4]}`
+# for KEY in ${!QUERIES[@]}; do
+#	arr=(${QUERIES[$KEY]//;/ })
+# 	`${arr[1]}`
+# 	VAL=`${arr[2]}`
 # 	SUMMARY[$KEY]=$VAL
 # done
 
@@ -68,9 +68,11 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 		MATCHES=`getcountuniquelines $MATCHFILE`
 		# note: grep -o "[0-9]*" appears to be buggy on Mac OS X, hence the more complex sed expression instead
 
-		# dump inputs and results to json -- need general file that takes a list of key, value pairs
+		# dump inputs and results to json
 		RESULTSFILE=$RESULTSDIR/results$NUM.txt
-		python pythonmodules/summaryJSON.py $NETWORKFILE $PATTERNFILE $RESULTSFILE $SUMMARY $MATCHES
+		SUMMARYSTR=""
+		for i in "${!SUMMARY[@]}"; do SUMMARYSTR="$SUMMARYSTR $i:${SUMMARY[$i]}"; done #put key:value pairs into a string for parsing
+		python pythonmodules/summaryJSON.py $NETWORKFILE $PATTERNFILE $RESULTSFILE $SUMMARYSTR $MATCHES
 
 		rm $PATTERNFILE $MATCHFILE
 	done
