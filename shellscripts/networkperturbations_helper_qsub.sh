@@ -30,7 +30,7 @@ DATABASEFILE="$DATABASEDIR/database$NETWORKID.db"
 echo $NSLOTS
 
 # make database
-mpiexec --mca mpi_preconnect_mpi 1 -np $NSLOTS -x $LD_LIBRARY_PATH $SIGNATURES $NETWORKFILE $DATABASEFILE
+mpiexec --mca mpi_preconnect_mpi 1 -np $NSLOTS -x LD_LIBRARY_PATH $SIGNATURES $NETWORKFILE $DATABASEFILE
 
 # if making the database fails, then quit
 if [ ! -f $DATABASEFILE ]; then echo "Database $NETWORKID did not compute\n"; cat $2; exit 1; fi 
