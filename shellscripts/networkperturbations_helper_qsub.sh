@@ -27,6 +27,8 @@ NETWORKID=$6
 
 DATABASEFILE="$DATABASEDIR/database$NETWORKID.db"
 
+echo $NSLOTS
+
 # make database
 mpiexec --mca mpi_preconnect_mpi 1 -np $NSLOTS -x $LD_LIBRARY_PATH $SIGNATURES $NETWORKFILE $DATABASEFILE
 
