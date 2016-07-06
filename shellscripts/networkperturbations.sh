@@ -24,7 +24,7 @@ for NETWORKFILE in $NETWORKDIR/*; do
 	# start a scheduled job
 	if [[ $QSUB == "True" ]]; then
 		qsub $HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID #$QUERIES
-	else;
+	else
 		echo "\nsbatch not implemented yet\n"
 	fi
 done
