@@ -48,7 +48,11 @@ SUMMARY["ParameterCount"]=$NUMPARAMS
 # 	SUMMARY[$KEY]=$VAL
 # done
 
-STABLEFCLIST="$DATABASEDIR/StableFCList$NETID.txt" # this file name should match the one in querylibrary.sh by convention
+SUMMARYSTR=""
+for i in "${!SUMMARY[@]}"; do SUMMARYSTR="$SUMMARYSTR $i:${SUMMARY[$i]}"; done #put key:value pairs into a string for parsing
+
+
+STABLEFCLIST="$DATABASEDIR/StableFCList$NETWORKID.txt" # this file name should match the one in querylibrary.sh by convention
 
 # if pattern matching desired (pattern dir non-empty), then do it
 if [[ `ls -A $PATTERNDIR` ]]; then
@@ -56,7 +60,7 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 	# check if stable FC list calculated
 	if [ ! -f $STABLEFCLIST ]; then
 		getstableFClist
-		SUMMARY["StableFCParameterCount"]=`summarystableFCs`
+		SUMMARYSTR="$SUMMARYSTR StableFCParameterCount:$(summarystableFCs)"
 	fi
 
 	# pattern match in stable FCs
@@ -71,15 +75,13 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 
 		# dump inputs and results to json
 		RESULTSFILE=$RESULTSDIR/results$NUM.txt
-		SUMMARYSTR=""
-		for i in "${!SUMMARY[@]}"; do SUMMARYSTR="$SUMMARYSTR $i:${SUMMARY[$i]}"; done #put key:value pairs into a string for parsing
-		python pythonmodules/summaryJSON.py $NETWORKFILE $PATTERNFILE $RESULTSFILE $SUMMARYSTR $MATCHES
+		python pythonmodules/summaryJSON.py $NETWORKFILE $PATTERNFILE $RESULTSFILE "$SUMMARYSTR" $MATCHES
 
 		rm $PATTERNFILE $MATCHFILE
 	done
 else
 	RESULTSFILE=$RESULTSDIR/results$NETWORKID.txt
-	python pythonmodules/summaryJSON.py $NETWORKFILE "" $RESULTSFILE $SUMMARY ""
+	python pythonmodules/summaryJSON.py $NETWORKFILE "" $RESULTSFILE "$SUMMARYSTR" ""
 fi
 
 # delete intermediate files; it is possible that $STABLEFCLIST does not exist
