@@ -162,9 +162,9 @@ def getinfo():
 
     # choose database queries to perform; more can be added in a modular fashion
     # QUERYFILE IS EXTREME SECURITY RISK. FIX!!!
-    params['stableFCs'] = gimme_str_from_list(raw_input("\nCount parameters exhibiting at least one stable FC (y or n).  "),['y','n']) 
-    params['multistable']= gimme_str_from_list(raw_input("\nCount parameters exhibiting more than one stable Morse set of any type (y or n).  "),['y','n'])
-    queryfile = gimme_existing_path_skipOK(raw_input("\nEnter the path to a shell script with FP queries (leave blank otherwise).  ") , isfile=True)
+    # params['stableFCs'] = gimme_str_from_list(raw_input("\nCount parameters exhibiting at least one stable FC (y or n).  "),['y','n']) 
+    # params['multistable']= gimme_str_from_list(raw_input("\nCount parameters exhibiting more than one stable Morse set of any type (y or n).  "),['y','n'])
+    queryfile = gimme_existing_path_skipOK(raw_input("\nEnter the path to a shell script with database queries (leave blank otherwise).  ") , isfile=True)
     if queryfile: params['queryfile'] = queryfile
 
     # choose whether to pattern match and get associated parameters
