@@ -146,30 +146,26 @@ def getinfo():
         params['networkfile'] = gimme_computable_network(gimme_existing_path(raw_input("\nEnter the path to a network specification file.  "),isfile=True))
         # get node and edge files
         nodefile = gimme_existing_path_skipOK( raw_input("\nEnter the path to a file with nodes to add (leave blank otherwise).  ") , isfile=True)
-        if nodefile:
-            params['nodefile'] = nodefile
+        if nodefile: params['nodefile'] = nodefile
         edgefile = gimme_existing_path_skipOK(raw_input("\nEnter the path to a file with edges to add (leave blank otherwise).  "),isfile=True)
-        if edgefile:
-            params['edgefile'] = edgefile
+        if edgefile: params['edgefile'] = edgefile
         if 'edgefile' not in params and 'nodefile' not in params:
             params['add_madeup_nodes'] = gimme_str_from_list(raw_input("\nAdd anonymous nodes to the network (y or n).  "),['y','n'])
         if 'edgefile' in params and 'nodefile' not in params:
             print "\n\nNote: only edges will be added to the existing network (not nodes).\n"
         # how many perturbations
         params['numperturbations'] = gimme_nonneg_int(raw_input("\nHow many network perturbations do you want? Example: 1000.  " ),strictlypositive=True)
-        # get max size of each database
-        params['maxparams'] = gimme_nonneg_int(raw_input("\nHow many parameters will you admit per perturbation? Example: 200000.  "),strictlypositive=True)
+        params['maxadditionspergraph'] = gimme_nonneg_int(raw_input("\nWhat is the maximum number of edge/node perturbations you will permit per graph? Example: 10. "),strictlypositive=True)
+        # limit computations
+        params['maxparams'] = gimme_nonneg_int(raw_input("\nHow many parameters will you admit per perturbation? Example: 1000000.  "),strictlypositive=True)
+        params['time_to_wait'] = gimme_nonneg_int(raw_input("\nHow many seconds will you wait for the network perturbations to complete? Example: 300. "),strictlypositive=True)
 
     # choose database queries to perform; more can be added in a modular fashion
+    # QUERYFILE IS EXTREME SECURITY RISK. FIX!!!
     params['stableFCs'] = gimme_str_from_list(raw_input("\nCount parameters exhibiting at least one stable FC (y or n).  "),['y','n']) 
     params['multistable']= gimme_str_from_list(raw_input("\nCount parameters exhibiting more than one stable Morse set of any type (y or n).  "),['y','n'])
-    singlefpqueries = raw_input("\nEnter a list of single FP queries (or leave blank). Example of two single queries: ['E2F 3 3 Rb 0 0', 'E2F 0 0 Rb 1 1'].  ")
-    if singlefpqueries:
-        params['singlefpqueries'] =eval(singlefpqueries)
-    dualfpqueries = raw_input("\nEnter a list of double FP queries (or leave blank). Example of two double queries: ['E2F 3 3 Rb 0 0 E2F 0 0 Rb 1 1', 'Myc 0 1 E2F 2 2 E2F 0 2 Rb 1 1'].  ")
-    if dualfpqueries:
-        params['dualfpqueries'] = eval(dualfpqueries)
-
+    queryfile = gimme_existing_path_skipOK(raw_input("\nEnter the path to a shell script with FP queries (leave blank otherwise).  ") , isfile=True)
+    if queryfile: params['queryfile'] = queryfile
 
     # choose whether to pattern match and get associated parameters
     patternmatch = gimme_str_from_list(raw_input("\nDo you want to pattern match (y or n)?  "),['y','n'])

@@ -1,4 +1,4 @@
-getnumparams() { dsgrn network $1 parameter | sed 's/[^0-9]*\([0-9]*\)[^0-9]*/\1/g'; }
+getnumparams() { dsgrn network $NETWORKFILE parameter | sed 's/[^0-9]*\([0-9]*\)[^0-9]*/\1/g'; } # input is network file
 getcountuniquelines() { cut -d " " -f 1 $1 | sort | uniq | wc -w; } # count unique parameters in file list (input is file path)
 getcountfromfile() { cat $1 | tr -d "\n"; } # pull count number out of file (input is file path)
 

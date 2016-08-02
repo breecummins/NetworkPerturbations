@@ -23,7 +23,7 @@ PATTERNDIR=$3
 DATABASEDIR=$4 
 RESULTSDIR=$5 
 NETWORKID=$6
-# eval "declare -A QUERIES="${7#*=}
+QUERYFILE=$7
 
 DATABASEFILE="$DATABASEDIR/database$NETWORKID.db"
 
@@ -33,24 +33,10 @@ mpiexec --mca mpi_preconnect_mpi 1 -np $NSLOTS -x LD_LIBRARY_PATH $SIGNATURES $N
 # if making the database fails, then quit
 if [ ! -f $DATABASEFILE ]; then echo "Database $NETWORKID did not compute\n"; cat $2; exit 1; fi 
 
-# do queries here
-# QUERIES is an associative array of strings key: "query_cmd; summary_cmd"
-# the query command searches the database, and the summary command collapses the data into a statistic
-# the key is the dictionary key for the summary statistic as it will be stored in the results file
-# use associative array -- need bash 4
+# do queries here (DEADLY INSECURE)
+SUMMARYSTR=`. $QUERYFILE` #queries return a string of items of the form "name:value"
 NUMPARAMS=`getnumparams $NETWORKFILE`
-declare -A SUMMARY
-SUMMARY["ParameterCount"]=$NUMPARAMS
-# for KEY in ${!QUERIES[@]}; do
-#	arr=(${QUERIES[$KEY]//;/ })
-# 	`${arr[1]}`
-# 	VAL=`${arr[2]}`
-# 	SUMMARY[$KEY]=$VAL
-# done
-
-SUMMARYSTR=""
-for i in "${!SUMMARY[@]}"; do SUMMARYSTR="$SUMMARYSTR $i:${SUMMARY[$i]}"; done #put key:value pairs into a string for parsing
-
+SUMMARYSTR="$SUMMARYSTR ParameterCount:$NUMPARAMS" #put key:value pairs into a string for parsing
 
 STABLEFCLIST="$DATABASEDIR/StableFCList$NETWORKID.txt" # this file name should match the one in querylibrary.sh by convention
 

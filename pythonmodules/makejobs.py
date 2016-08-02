@@ -6,24 +6,14 @@ import subprocess, os, json, itertools
 
 class Job():
 
-    def __init__(self,time_to_wait=300,qsub=True,maxiterations=10**4):
-        self.params = dict()
-
-        # how long to compute network perturbations before giving up (in seconds)
-        self.params['time_to_wait']=time_to_wait
-
-        # how many itertations are allowed when trying to add something during a single perturbation
-        # note: it's unknown how many failures there could be, number set high
-        # purpose is to avoid the (vanishingly small) chance that a single perturbation will block the program
-        self.params['maxiterations'] = maxiterations
-
+    def __init__(self,qsub=True):
         # use qsub or sbatch
         self.qsub = qsub
+        # collect parameters
+        self.params = getinfo()
+
 
     def run(self):
-        # get parameters and files for the perturbations
-        params = getinfo()
-        self.params.update(params)
         # set up folders for calculations
         self._makedirectories()
         # do perturbations if not already done

@@ -9,11 +9,11 @@ NETWORKDIR=$2
 PATTERNDIR=$3
 DATABASEDIR=$4
 RESULTSDIR=$5
+QSUB=$6
 # get commands
 # note this is insecure, since these commands will be evaluated and could potentially cause damage
-HELPER_SCRIPT_CMD=$6
-QSUB=$7
-# QUERIES=$8 # QUERIES is an associative array of strings "key; query_cmd; summary_cmd)
+HELPER_SCRIPT_CMD=$7
+QUERYFILE=$8 # name of a shell script that performs an FP Query and summary stats on query; returns string of items "name:value" that will be saved into a json dictionary
 
 # for each perturbation, start a scheduled job for analysis
 for NETWORKFILE in $NETWORKDIR/*; do
@@ -23,7 +23,7 @@ for NETWORKFILE in $NETWORKDIR/*; do
 	NETWORKID=${netid##network} 
 	# start a scheduled job
 	if [[ $QSUB = "True" ]]; then
-		qsub $HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID #QUERIES
+		qsub $HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID $QUERYFILE
 	else
 		printf "\nsbatch not implemented yet\n"
 	fi

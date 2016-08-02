@@ -38,9 +38,9 @@ def perturbNetwork(params):
         # add nodes and edges or just add edges based on params
         # this can fail, in which case None is returned
         if params['nodelist'] or (not params['edgelist'] and params['add_madeup_nodes'] == 'y'):
-            graph = perturbNetworkWithNodesAndEdges(graph,params['edgelist'],params['nodelist'],params['maxiterations'])
+            graph = perturbNetworkWithNodesAndEdges(graph,params['edgelist'],params['nodelist'],params['maxadditionspergraph'])
         else:
-            graph = perturbNetworkWithEdgesOnly(graph,params['edgelist'],params['maxiterations']) 
+            graph = perturbNetworkWithEdgesOnly(graph,params['edgelist'],params['maxadditionspergraph']) 
         if graph is not None:
             # get the perturbed network spec
             network_spec = intervalgraph.createEssentialNetworkSpecFromGraph(graph)
@@ -80,11 +80,10 @@ def checkComputability(network_spec,maxparams):
 # Stochastic numbers of additional edges and/or nodes to perturb the network.
 ##############################################################################
 
-def perturbNetworkWithNodesAndEdges(graph,edgelist=None,nodelist=None,maxiterations=10**4):
-    count = 0
-    keepgoing = 1
-    while keepgoing and count < maxiterations:
-        count += 1
+def perturbNetworkWithNodesAndEdges(graph,edgelist=None,nodelist=None,maxadditions=10):
+    keepgoing = random.randrange(1,maxadditions+1)
+    while keepgoing > 0:
+        keepgoing -= 1
         if random.randrange(2):
             graph = addEdge(graph,edgelist)
             if graph is None:
@@ -93,18 +92,15 @@ def perturbNetworkWithNodesAndEdges(graph,edgelist=None,nodelist=None,maxiterati
             graph = addNodeAndConnectingEdges(graph,edgelist,nodelist)
             if graph is None:
                 return None
-        keepgoing = random.randrange(2)
     return graph
 
-def perturbNetworkWithEdgesOnly(graph,edgelist=None,maxiterations=10**4):
-    count = 0
-    keepgoing = 1
-    while keepgoing and count < maxiterations:
-        count += 1            
+def perturbNetworkWithEdgesOnly(graph,edgelist=None,maxadditions=10):
+    keepgoing = random.randrange(1,maxadditions+1)
+    while keepgoing > 0:
+        keepgoing -= 1
         graph = addEdge(graph,edgelist)
         if graph is None:
             return None
-        keepgoing = random.randrange(2)
     return graph
 
 ################################################################################################
