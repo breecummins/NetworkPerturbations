@@ -9,11 +9,10 @@ NETWORKDIR=$2
 PATTERNDIR=$3
 DATABASEDIR=$4
 RESULTSDIR=$5
-QSUB=$6
-# get commands
-# note this is insecure, since these commands will be evaluated and could potentially cause damage
+# note the following commands are insecure, since they will be evaluated and could potentially cause damage
+QUERYFILE=$6 # name of a shell script that performs an FP Query and summary stats on query; returns string of items "name:value" that will be saved into a json dictionary
 HELPER_SCRIPT_CMD=$7
-QUERYFILE=$8 # name of a shell script that performs an FP Query and summary stats on query; returns string of items "name:value" that will be saved into a json dictionary
+QSUB=$8
 
 # for each perturbation, start a scheduled job for analysis
 for NETWORKFILE in $NETWORKDIR/*; do
