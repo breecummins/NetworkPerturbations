@@ -11,7 +11,7 @@ for pair in sys.argv[4].split():
     name, val = pair.split(':', 1)
     try: val = eval(val)
     except: pass
-    dict[name]=val
+    results_dict[name]=val
 
 if nummatches:
 	results_dict["StableFCMatchesParameterCount"] = int(nummatches)
