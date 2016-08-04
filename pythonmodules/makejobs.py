@@ -12,7 +12,6 @@ class Job():
         # collect parameters
         self.params = getinfo()
 
-
     def run(self):
         # set up folders for calculations
         self._makedirectories()

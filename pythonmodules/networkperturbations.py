@@ -1,4 +1,4 @@
-import random
+import random, itertools
 import DSGRN
 from operator import xor
 import intervalgraph
@@ -38,9 +38,9 @@ def perturbNetwork(params):
         # add nodes and edges or just add edges based on params
         # this can fail, in which case None is returned
         if params['nodelist'] or (not params['edgelist'] and params['add_madeup_nodes'] == 'y'):
-            graph = perturbNetworkWithNodesAndEdges(graph,params['edgelist'],params['nodelist'],params['maxadditionspergraph'])
+            graph = perturbNetworkWithNodesAndEdges(graph,params['edgelist'],params['nodelist'],params['maxadditionspergraph'],params['swap_edge_reg'])
         else:
-            graph = perturbNetworkWithEdgesOnly(graph,params['edgelist'],params['maxadditionspergraph']) 
+            graph = perturbNetworkWithEdgesOnly(graph,params['edgelist'],params['maxadditionspergraph'],params['swap_edge_reg']) 
         if graph is not None:
             # get the perturbed network spec
             network_spec = intervalgraph.createEssentialNetworkSpecFromGraph(graph)
@@ -80,27 +80,24 @@ def checkComputability(network_spec,maxparams):
 # Stochastic numbers of additional edges and/or nodes to perturb the network.
 ##############################################################################
 
-def perturbNetworkWithNodesAndEdges(graph,edgelist=None,nodelist=None,maxadditions=10):
+def perturbNetworkWithNodesAndEdges(graph,edgelist=None,nodelist=None,maxadditions=10,swap_edge_reg=True):
     keepgoing = random.randrange(1,maxadditions+1)
     while keepgoing > 0:
         keepgoing -= 1
         if random.randrange(2):
-            graph = addEdge(graph,edgelist)
-            if graph is None:
-                return None
+            graph = addEdge(graph,edgelist,swap_edge_reg)
+            if graph is None: break
         else:
             graph = addNodeAndConnectingEdges(graph,edgelist,nodelist)
-            if graph is None:
-                return None
+            if graph is None: break
     return graph
 
-def perturbNetworkWithEdgesOnly(graph,edgelist=None,maxadditions=10):
+def perturbNetworkWithEdgesOnly(graph,edgelist=None,maxadditions=10,swap_edge_reg=True):
     keepgoing = random.randrange(1,maxadditions+1)
     while keepgoing > 0:
         keepgoing -= 1
-        graph = addEdge(graph,edgelist)
-        if graph is None:
-            return None
+        graph = addEdge(graph,edgelist,swap_edge_reg)
+        if graph is None: break
     return graph
 
 ################################################################################################
@@ -108,47 +105,48 @@ def perturbNetworkWithEdgesOnly(graph,edgelist=None,maxadditions=10):
 # Basic methods of the network perturbation.
 ################################################################################################
 
-def addEdge(graph,edgelist=None):
+def addEdge(graph,edgelist=None,swap_edge_reg=True):
     # if no edgelist, then a random edge is added to the network
     # if edgelist is specified, a random choice is made from the filtered edgelist 
     # (existing edges and repressing self-loops removed)
+    # if swap_edge_reg, then existing edges in the graph may have their regulation swapped, otherwise existing edges are preserved 
 
     def isNegSelfLoop(edge):
-        if edge[0]==edge[1] and edge[2]=='r':
-            return True
-        else:
-            return False
+        if edge[0]==edge[1] and edge[2]=='r': return True
+        else: return False
 
-    # exclude trivial graphs
+    # get info from graph
     networknodenames = getNetworkLabels(graph)
-    if len(networknodenames) < 2: 
-        return None  
-
-    # transform graph into a list of edge tuples using vertex labels instead of vertex indices
-    graph_named_edges = [(graph.vertex_label(v),graph.vertex_label(a),graph.edge_label(v,a)) for v in graph.vertices() for a in graph.adjacencies(v)] 
-
-    # get a new edge
-    if edgelist:
-        # filter given edgelist to return only edges that can be added to the existing network
-        edgelist = [e for e in edgelist if e[0] in networknodenames and e[1] in networknodenames and e not in graph_named_edges and not isNegSelfLoop(e)]
+    N = len(networknodenames)
+    graph_edges = [(v,a,graph.edge_label(v,a)) for v in graph.vertices() for a in graph.adjacencies(v)]    
+    
+    # make a new edge and add it to the graph
+    # exclude trivial graphs because no edges can be added or swapped
+    if N < 2: newedge = None
+    # exclude complete graphs if we can't swap edge regulation because no edges can be added
+    elif not swap_edge_reg and all( set(graph.adjacencies(v)) == set(graph.vertices()) for v in graph.vertices() ): newedge = None   
+    # choose newedge from filtered edgelist (note that all edges could be filtered out, so that newedge=None is possible)
+    elif edgelist:
+        edgelist = [ tuple(getVertexFromLabel(graph,e[:2]).append(e[2])) for e in edgelist if set(e[:2]).issubset(networknodenames) and not isNegSelfLoop(e) ]
+        if swap_edge_reg: edgelist = list(set(edgelist).difference(graph_edges))
+        else: edgelist = [ e for e in edgelist if e[1] not in graph.adjacencies(e[0]) ]
         newedge = getRandomListElement(edgelist)
-        if newedge is None:
-            return None
+        if newedge is None: graph=None
+        else: graph.add_edge(*newedge) 
+    # otherwise produce random edge (removing trivial and complete graphs ensures this will succeed)
     else:
-        newedge = getRandomEdge(networknodenames)  
-        while newedge in graph_named_edges or isNegSelfLoop(newedge):
-            # will terminate for nontrivial (n>1) graphs, because not all possible edges can exist simultaneously in a nontrivial network
-            newedge = getRandomEdge(networknodenames)  
-
-    # add the new edge to the graph
-    [startnode,endnode] = getVertexFromLabel(graph,newedge[:2]) 
-    if endnode in graph.adjacencies(startnode):
-        graph.change_edge_label(startnode,endnode,newedge[2])
-    else:
-        graph.add_edge(startnode,endnode,label=newedge[2])
+        if swap_edge_reg:
+            newedge = getRandomEdge(N)
+            while newedge in graph_edges or isNegSelfLoop(newedge): newedge = getRandomEdge(N) 
+            graph.add_edge(*newedge) 
+        else: 
+            graph_edges = [ e[:2] for e in graph_edges ]
+            nodes = (getRandomNode(N), getRandomNode(N))
+            while nodes in graph_edges: nodes = (getRandomNode(N), getRandomNode(N))
+            graph.add_edge( nodes[0], nodes[1], getRandomReg() if nodes[0] != nodes[1] else 'a' ) 
     return graph 
 
-def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
+def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None,swap_edge_reg=True):
     # choose new node and connecting edges
     # if nodelist, choose random node from a (filtered) list
     #   if edgelist, choose random in- and out-edges from a (filtered) list
@@ -169,7 +167,7 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
         return newnodelabel
 
     def randomInAndOut():
-        return getRandomHalfEdge(N), getRandomHalfEdge(N)
+        return (getRandomNode(N),getRandomReg()), (getRandomNode(N),getRandomReg())
 
     # get the new node and connecting edges
     if nodelist is None:
@@ -180,30 +178,31 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None):
         nodelist = [ n for n in nodelist if n not in networknodenames ]
         if edgelist is None:
             newnodelabel = getRandomListElement(nodelist)
-            if newnodelabel is None:
-                return None
-            (innode,inreg),(outnode,outreg) = randomInAndOut()
+            if newnodelabel is None: graph = None
+            else: (innode,inreg),(outnode,outreg) = randomInAndOut()
         else:
             # filter edgelist to get only edges to and from network
             edgelist = [e for e in edgelist if xor(e[0] in networknodenames,e[1] in networknodenames)]
             # with the filtered lists, get a new node and edge
             newnodelabel,inedge,outedge = getNodeAndConnectingEdgesFromLists(nodelist,edgelist)
-            if newnodelabel is None or inedge is None or outedge is None:
-                return None
-            # transform from node names into node indices to add to graph
-            [innode, outnode] = getVertexFromLabel(graph,[inedge[0],outedge[1]]) 
-            inreg, outreg = inedge[2], outedge[2]
+            if newnodelabel is None: 
+                graph = None
+            else:
+                # transform from node names into node indices to add to graph
+                [innode, outnode] = getVertexFromLabel(graph,[inedge[0],outedge[1]]) 
+                inreg, outreg = inedge[2], outedge[2]
 
     # add to graph
-    graph.add_vertex(N,label=newnodelabel)
-    graph.add_edge(innode,N,label=inreg)
-    graph.add_edge(N,outnode,label=outreg)
+    if graph is not None:
+        graph.add_vertex(N,label=newnodelabel)
+        graph.add_edge(innode,N,label=inreg)
+        graph.add_edge(N,outnode,label=outreg)
     return graph
 
-##############################################################################
-# Low level functions for managing network nodes.
+##################################################################################################
+# All "get" functions return nodes and/or edges meeting criteria, or throw an error if they can't.
 # Helpers for "add" functions.
-##############################################################################
+##################################################################################################
 
 def getNetworkLabels(graph):
     # need node names to choose new nodes/edges
@@ -212,33 +211,23 @@ def getNetworkLabels(graph):
 def getVertexFromLabel(graph,nodelabels):
     return [ graph.get_vertex_from_label(n) for n in nodelabels ]
 
-
-##################################################################################################
-# All "get" functions return nodes and/or edges meeting criteria, or throw an error if they can't.
-# Helpers for "add" functions.
-##################################################################################################
-
-def getRandomHalfEdge(n):
-    # pick incoming or outgoing index plus regulation
-    node = random.randrange(n)
+def getRandomReg():
+    # pick regulation
     regbool = random.randrange(2)
-    reg = 'a'*regbool + 'r'*(not regbool)
-    return node,reg
+    return 'a'*regbool + 'r'*(not regbool)
 
-def getRandomEdge(networknodenames):
-    # make random named edge; may or may not be in existing graph
-    n = len(networknodenames)
-    startnode, reg = getRandomHalfEdge(n)
-    endnode = random.randrange(n)
-    return (networknodenames[startnode],networknodenames[endnode],reg)
+def getRandomNode(n):
+    # pick node
+    return random.randrange(n)
+
+def getRandomEdge(n):
+    # pick random edge
+    return (getRandomNode(n),getRandomNode(n),getRandomReg())
 
 def getRandomListElement(masterlist):
-    # masterlist = (filtered) nodelist or edgelist (e.g. get rid of existing network objects, restrict to subset of nodes, ignore negative self-loops)
     # pick randomly from list
-    if not masterlist:
-        return None
-    else:
-        return masterlist[random.randrange(len(masterlist))]
+    if not masterlist: return None
+    else: return masterlist[random.randrange(len(masterlist))]
 
 def getNodeAndConnectingEdgesFromLists(nodelist,edgelist):
     # nodelist has only NEW nodes and edgelist has only in- and out-edges to and from the EXISTING network 
@@ -257,8 +246,7 @@ def getNodeAndConnectingEdgesFromLists(nodelist,edgelist):
 
     nodelabel,inedge,outedge = generateCandidate()
     while inedge is None or outedge is None:
-        if nodelabel is None: 
-            return None, None, None
+        if nodelabel is None: break
         nodelist.remove(nodelabel)
         nodelabel,inedge,outedge = generateCandidate()
     return nodelabel,inedge,outedge

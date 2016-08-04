@@ -47,10 +47,6 @@ class Graph:
   def edge_label(self, u, v):
     """ Return the label on the edge u -> v """
     return self.edge_labels_[u][v]
-  def change_edge_label(self,u,v,label):
-    """ Change the label on the edge u -> v """
-    self.edge_labels_[u][v] = label
-    return None
   def vertices(self):
     """ Return the set of vertices in the graph """
     return self.vertices_
