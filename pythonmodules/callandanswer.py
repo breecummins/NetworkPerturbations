@@ -154,11 +154,11 @@ def getinfo():
         if 'edgefile' in params and 'nodefile' not in params:
             print "\n\nNote: only edges will be added to the existing network (not nodes).\n"
         # allow changes in regulation for the edges in the original network
-        swapreg = gimme_str_from_list(raw_input("\nPreserve activating or repressing regulation on edges in the initial network specification (y or n). "),['y','n'])
-        if swapreg == 'y':
-            params['swap_edge_reg'] = True
-        else:
+        preservereg = gimme_str_from_list(raw_input("\nPreserve activating or repressing regulation on edges in the initial network specification (y or n). "),['y','n'])
+        if preservereg == 'y':
             params['swap_edge_reg'] = False
+        else:
+            params['swap_edge_reg'] = True
         # how many perturbations
         params['numperturbations'] = gimme_nonneg_int(raw_input("\nHow many network perturbations do you want? Example: 1000.  " ),strictlypositive=True)
         params['maxadditionspergraph'] = gimme_nonneg_int(raw_input("\nWhat is the maximum number of edge/node perturbations you will permit per graph? Example: 10. "),strictlypositive=True)
