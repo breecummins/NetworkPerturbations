@@ -1,4 +1,4 @@
 from pythonmodules.makejobs import Job 
 
-job=Job(qsub=True)
+job=Job(qsub=False)
 job.run()	
