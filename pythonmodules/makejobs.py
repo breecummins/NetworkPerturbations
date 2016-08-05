@@ -9,6 +9,10 @@ class Job():
     def __init__(self,qsub=True):
         # use qsub or sbatch
         self.qsub = qsub
+        if qsub:
+            self.maindir = "."
+        else:
+            self.maindir = "/scratch/bc567" # eventually this needs to be in callandanswer.py
         # collect parameters
         self.params = getinfo()
 
@@ -35,22 +39,23 @@ class Job():
     def _makedirectories(self):
         # use datetime as unique identifier to avoid overwriting
         DATETIME = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).strip()
+        path = os.path.join(self.maindir,"/computations"+DATETIME)
 
         if 'networkfolder' in self.params:
             self.NETWORKDIR=self.params['networkfolder']
             if 'patternfolder' in self.params:
                 self.PATTERNDIR=self.params['patternfolder']
             else:
-                self.PATTERNDIR ="./computations"+DATETIME+"/patterns"
+                self.PATTERNDIR = path +"/patterns"
                 subprocess.call(['mkdir -p ' + self.PATTERNDIR],shell=True)
         else:
-            self.NETWORKDIR ="./computations"+DATETIME+"/networks"
+            self.NETWORKDIR =path +"/networks"
             subprocess.call(['mkdir -p ' + self.NETWORKDIR],shell=True)
-            self.PATTERNDIR ="./computations"+DATETIME+"/patterns"
+            self.PATTERNDIR =path +"/patterns"
             subprocess.call(['mkdir -p ' + self.PATTERNDIR],shell=True)
 
-        self.DATABASEDIR="./computations"+DATETIME+"/databases"
-        self.RESULTSDIR ="./computations"+DATETIME+"/results"
+        self.DATABASEDIR=path + "/databases"
+        self.RESULTSDIR =path +"/results"
         subprocess.call(['mkdir -p ' + self.DATABASEDIR],shell=True)
         subprocess.call(['mkdir -p ' + self.RESULTSDIR],shell=True)
 
