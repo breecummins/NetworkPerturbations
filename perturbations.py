@@ -6,4 +6,5 @@ if sys.argv[1] not in ['0','1']:
     sys.exit()
 else:
     job=Job(int(sys.argv[1]))
+    job.prep()
     job.run()	

@@ -5,10 +5,12 @@ network:
     ;
 
 statement:
-    ident ':' expr;
+    ident ':' expr
+    | ident ':' expr ': E'
+    ;
 
-expr
-    : term
+expr: 
+    term
     | '(' expr ')' term
     | term '(' expr ')'
     | '(' expr ')' '(' expr ')'
@@ -20,7 +22,7 @@ ident:
     ;
 
 CHAR
-    :[a-zA-Z0-9]
+    :[a-zA-Z0-9_]
     ;
 
 term: '~'? ident;

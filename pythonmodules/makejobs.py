@@ -16,7 +16,7 @@ class Job():
         # collect parameters
         self.params = getinfo()
 
-    def run(self):
+    def prep(self):
         # set up folders for calculations
         self._makedirectories()
         # do perturbations if not already done
@@ -33,6 +33,8 @@ class Job():
             uids,patterns = None,None
         # save networks and patterns, if any
         self._savefiles(networks,patterns,uids)
+
+    def run(self):
         # shell call to scheduler
         self._runscheduler()
 
