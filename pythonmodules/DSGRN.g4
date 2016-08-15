@@ -1,5 +1,9 @@
 grammar DSGRN;
 
+options {
+    language = Python2;
+}
+
 network:
     statement ('\n' statement )*
     ;
