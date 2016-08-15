@@ -72,7 +72,10 @@ fi
 
 # delete intermediate files; it is possible that $STABLEFCLIST does not exist
 rm $NETWORKFILE $DATABASEFILE 
-rm $STABLEFCLIST
+if [ -f $STABLEFCLIST ]; then
+	rm $STABLEFCLIST
+fi
+
 
 
 
