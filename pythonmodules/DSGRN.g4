@@ -47,22 +47,18 @@ essential:
     ;
 
 expr:
-    ( term | enclosed_term ) 
+    term 
     | (sum | enclosed_sum)   
     | (mult | enclosed_mult)
     ;
 
 term: 
     (NOT)? IDENT
-    ;
-
-enclosed_term: 
-    '(' term ')'
-    | '(' enclosed_term ')' 
+    | '(' term ')'
     ;
 
 sum:
-    ( term | enclosed_term ) ('+' ( term | enclosed_term ))+    /* at least two terms */
+    term ('+' term)+    /* at least two terms */
     ;
 
 enclosed_sum:
@@ -71,7 +67,7 @@ enclosed_sum:
     ;
 
 mult:
-    ( term | enclosed_term )
+    term
     | enclosed_sum
     | mult (MULT_WS)+ mult     /* active white space parsed first */
     | mult ('*')? mult         /* have to split ('*')? into 4 cases otherwise left recursion fails */
