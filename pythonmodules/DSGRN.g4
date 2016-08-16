@@ -4,59 +4,84 @@ grammar DSGRN;
     language = Python2; 
 } */
 
-network:
-    (statement)+ EOF
-    ;
 
-statement:
-    ident ':' expr (essential)? ('\n')+
-    ;
+/* Lexer rules */
 
-expr: 
-    sum
-    | mult_of_sums
-    | term '*'? mult_of_sums
-    ;
+@lexer::members {
+    boolean ignore=true;
+}
 
-mult_of_sums:
-    ('(' sum ')' ('*'? term|'*'? term '*'|'*')? )+
-    ;
-
-sum:
-    (term|'(' term ')') ('+' (term|'(' term ')'))*
-    ;
-
-mult:
-    term ((WSINLINE)+|'*'). term // white space is sometimes active
-    | '(' term ')' '*'? term
-    | term '*'? '(' term ')'
-    | '(' term ')' '*'? '(' term ')'
-    ;
-
-term: 
-    (NOT)? ident
-    ;
-
-ident:
-    (CHAR)+
-    ;
-
-essential:
-    ':' 'E'
-    ;
+/* White space is active for multiplication, otherwise ignored */
+MULT_WS : [ \t] { ignore = false; } [\n\r] { ignore = true; } WS { ignore = true; };
 
 NOT:
     '~'
+    ;
+
+IDENT:
+    (CHAR)+
     ;
 
 CHAR: 
     [a-zA-Z0-9_]
     ;
 
-WSINLINE:
-    [ \t]
+WS: 
+    [ \t\n\r] + { if(ignore) skip(); } 
     ;
 
-WS: 
-    [ \t\n\r] + -> skip
+
+
+/* Parser rules */
+
+network:
+    statement (('\n')+ statement)* ('\n')* EOF  /* EOF needed to parse everything */
     ;
+
+statement:
+    IDENT ':' expr (essential)?
+    ;
+
+essential:
+    ':' 'E'  /* parser rule instead of lexer rule so that white space is ignored and is node on parser tree */
+    ;
+
+expr:
+    ( term | enclosed_term ) 
+    | (sum | enclosed_sum)   
+    | (mult | enclosed_mult)
+    ;
+
+term: 
+    (NOT)? IDENT
+    ;
+
+enclosed_term: 
+    '(' term ')'
+    | '(' enclosed_term ')' 
+    ;
+
+sum:
+    ( term | enclosed_term ) ('+' ( term | enclosed_term ))*    /* one or more terms */
+    ;
+
+enclosed_sum:
+    '(' sum ')'
+    | '(' enclosed_sum ')' 
+    ;
+
+mult:
+    ( term | enclosed_term )
+    | enclosed_sum
+    | mult (MULT_WS)+ mult     /* active white space parsed first */
+    | mult ('*')? mult         /* have to split ('*')? into 4 cases otherwise left recursion fails */
+    | mult ('*')? enclosed_mult
+    | enclosed_mult ('*')? mult 
+    | enclosed_mult ('*')? enclosed_mult 
+    ;
+
+enclosed_mult:
+    '(' mult ')'
+    | '(' enclosed_mult ')'
+    ;
+
