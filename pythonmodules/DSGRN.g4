@@ -62,7 +62,7 @@ enclosed_term:
     ;
 
 sum:
-    ( term | enclosed_term ) ('+' ( term | enclosed_term ))*    /* one or more terms */
+    ( term | enclosed_term ) ('+' ( term | enclosed_term ))+    /* at least two terms */
     ;
 
 enclosed_sum:
