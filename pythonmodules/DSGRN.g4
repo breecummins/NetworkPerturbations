@@ -12,6 +12,7 @@ grammar DSGRN;
 }
 
 /* White space is active for multiplication, otherwise ignored */
+/* NOTE: Active white space parser is extremely easy to break by making changes to other parts of the grammar. Not robust. */
 MULT_WS : [ \t] { ignore = false; } [\n\r] { ignore = true; } WS { ignore = true; };
 
 NOT:
