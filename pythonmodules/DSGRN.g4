@@ -5,6 +5,7 @@ grammar DSGRN;
 } */
 
 
+
 /* Lexer rules */
 
 @lexer::members {
@@ -14,21 +15,10 @@ grammar DSGRN;
 /* White space is active for multiplication, otherwise ignored */
 MULT_WS : [ \t] { ignore = false; } [\n\r] { ignore = true; } WS { ignore = true; };
 
-NOT:
-    '~'
-    ;
+CHAR: [a-zA-Z0-9_];
 
-IDENT:
-    (CHAR)+
-    ;
+WS: [ \t\n\r] + { if(ignore) skip(); } ;
 
-CHAR: 
-    [a-zA-Z0-9_]
-    ;
-
-WS: 
-    [ \t\n\r] + { if(ignore) skip(); } 
-    ;
 
 
 
@@ -39,45 +29,49 @@ network:
     ;
 
 statement:
-    IDENT ':' expr (essential)?
+    ident ':' expr (essential)?
     ;
 
-essential:
-    ':' 'E'  /* parser rule instead of lexer rule so that white space is ignored and is node on parser tree */
+ident:    /* could be lexer rule but want on parse tree */
+    (CHAR)+
     ;
 
-expr:
+essential:    /* could be lexer rule (with white space modification) but want on parse tree */
+    ':' 'E'  
+    ;
+
+expr:       /* another option is "expr: sum | mult;" but that leads to a longer parse tree */
     term 
-    | (sum | enclosed_sum)   
-    | (mult | enclosed_mult)
+    | enclosed_term
+    | sum 
+    | enclosed_sum
+    | mult
     ;
 
 term: 
-    (NOT)? IDENT
-    | '(' term ')'
+    ('~')? ident
+    ;
+
+enclosed_term:      /* can have parentheses/nested parentheses */
+    '(' term ')'
+    | '(' enclosed_term ')'
     ;
 
 sum:
-    term ('+' term)+    /* at least two terms */
+    ( term | enclosed_term) ('+' ( term | enclosed_term))*    /* at least one term */
     ;
 
-enclosed_sum:
+enclosed_sum:     /* parentheses/nested parentheses are required for mult, but optional for expr */
     '(' sum ')'
     | '(' enclosed_sum ')' 
     ;
 
 mult:
-    term
+    term ((MULT_WS)+ term)*   /* active white space parsed first */
     | enclosed_sum
+/*    | (term | enclosed_sum) ('*')? enclosed_sum  */
+/*    | enclosed_sum ('*')? term  */
     | mult (MULT_WS)+ mult     /* active white space parsed first */
-    | mult ('*')? mult         /* have to split ('*')? into 4 cases otherwise left recursion fails */
-    | mult ('*')? enclosed_mult
-    | enclosed_mult ('*')? mult 
-    | enclosed_mult ('*')? enclosed_mult 
+    | mult ('*')? mult         /* explicit or missing mult sign parsed second */
+    | '(' mult ')'             /* can have parentheses/nested parentheses */
     ;
-
-enclosed_mult:
-    '(' mult ')'
-    | '(' enclosed_mult ')'
-    ;
-
