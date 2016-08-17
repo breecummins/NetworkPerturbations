@@ -8,17 +8,12 @@ grammar D2;
 /* Lexer rules */
 
 IDENT:
-    (CHAR)+
-    ;
-
-CHAR: 
-    [a-zA-Z0-9_]
+    ([a-zA-Z0-9_])+
     ;
 
 WS: 
     [ \t\n\r] + -> skip 
     ;
-
 
 
 /* Parser rules */
