@@ -156,6 +156,3 @@ class Job():
             shellcall[0] += " shellscripts/networkperturbations_helper_sbatch.sh False"
         subprocess.call(shellcall,shell=True)
         
-if __name__=="__main__":
-    job=Job(10)
-    job.run()

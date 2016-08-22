@@ -1,6 +1,5 @@
 import random, itertools
 import DSGRN
-from operator import xor
 import intervalgraph
 import time
 
@@ -126,14 +125,16 @@ def addEdge(graph,edgelist=None,swap_edge_reg=True):
     # exclude complete graphs if we can't swap edge regulation because no edges can be added
     elif not swap_edge_reg and all( set(graph.adjacencies(v)) == set(graph.vertices()) for v in graph.vertices() ): newedge = None   
     # choose newedge from filtered edgelist (note that all edges could be filtered out, so that newedge=None is possible)
+    # buyer beware -- negative self-loops not removed
     elif edgelist:
-        edgelist = [ tuple(getVertexFromLabel(graph,e[:2]).append(e[2])) for e in edgelist if set(e[:2]).issubset(networknodenames) and not isNegSelfLoop(e) ]
+        edgelist = [ tuple(getVertexFromLabel(graph,e[:2]).append(e[2])) for e in edgelist if set(e[:2]).issubset(networknodenames) ]
         if swap_edge_reg: edgelist = list(set(edgelist).difference(graph_edges))
         else: edgelist = [ e for e in edgelist if e[1] not in graph.adjacencies(e[0]) ]
         newedge = getRandomListElement(edgelist)
         if newedge is None: graph=None
         else: graph.add_edge(*newedge) 
     # otherwise produce random edge (removing trivial and complete graphs ensures this will succeed)
+    # negative self-loops are not added
     else:
         if swap_edge_reg:
             newedge = getRandomEdge(N)
@@ -167,7 +168,9 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None,swap_edge_reg=Tr
         return newnodelabel
 
     def randomInAndOut():
-        return (getRandomNode(N),getRandomReg()), (getRandomNode(N),getRandomReg())
+        # get random in and out edges
+        # in-edge is allowed to be a self-edge -- imitates drivers in gene networks
+        return (getRandomNode(N+1),getRandomReg()), (getRandomNode(N),getRandomReg())
 
     # get the new node and connecting edges
     if nodelist is None:
@@ -181,8 +184,9 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None,swap_edge_reg=Tr
             if newnodelabel is None: graph = None
             else: (innode,inreg),(outnode,outreg) = randomInAndOut()
         else:
-            # filter edgelist to get only edges to and from network
-            edgelist = [e for e in edgelist if xor(e[0] in networknodenames,e[1] in networknodenames)]
+            # filter edgelist to get edges to and from network (or self-edges)
+            # buyer beware -- negative self-edges not removed
+            edgelist = [e for e in edgelist if e[0] in networknodenames or e[1] in networknodenames]
             # with the filtered lists, get a new node and edge
             newnodelabel,inedge,outedge = getNodeAndConnectingEdgesFromLists(nodelist,edgelist)
             if newnodelabel is None: 
