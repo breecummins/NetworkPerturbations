@@ -55,36 +55,20 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15(fname='/Users/b
     # makeHistogram(bigpercents,45,extrapoints,xlabel,title,axislims)
     print bestones
 
-    def posinedgefromSWI5(mygene):
-        if '~SWI5' in mygene:
+    def posinedge(ingene,eqn):
+        if '~'+ingene in eqn:
             return False
-        elif 'SWI5' in mygene:
+        elif ingene in eqn:
             return True
-        elif 'x' in mygene:
-            inds = [i for i in xrange(len(mygene)) if mygene.find('x', i) == i]
+        elif 'x' in eqn:
+            inds = [i for i in xrange(len(eqn)) if eqn.find('x', i) == i]
             for i in inds:
-                extragene = mygene[i:i+2]
+                extragene = eqn[i:i+2]
                 for g in xgenes:
-                    if g[0] == extragene and 'SWI5' in g[1]:
-                        if ( mygene[i-1] == '~' and '~SWI5' in g[1] ) or ( mygene[i-1] != '~' and '~SWI5' not in g[1] ):
+                    if g[0] == extragene and ingene in g[1]:
+                        if ( eqn[i-1] == '~' and '~'+ingene in g[1] ) or ( eqn[i-1] != '~' and '~'+ingene not in g[1] ):
                             return True
         return False
-
-    def posinedgefromNDD1(mygene):
-        if '~NDD1' in mygene:
-            return True
-        elif 'NDD1' in mygene:
-            return False
-        elif 'x' in mygene:
-            inds = [i for i in xrange(len(mygene)) if mygene.find('x', i) == i]
-            for i in inds:
-                extragene = mygene[i:i+2]
-                for g in xgenes:
-                    if g[0] == extragene and 'NDD1' in g[1]:
-                        if ( mygene[i-1] == '~' and '~NDD1' in g[1] ) or ( mygene[i-1] != '~' and '~NDD1' not in g[1] ):
-                            return True
-        return False
-
 
     bestnetworks = [ d['Network'] for (p,d) in zip(percents,notzeros) if p > 10 ]
     bestpercents = [ p for p in percents if p > 10 ]
@@ -98,14 +82,14 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15(fname='/Users/b
     N2Yedge=0
     netswithN2Y=[]
     for p,n in zip(bestpercents,bestnetworks):
-        genes = [[l.replace(' ','') for l in g.split(':')[:2]] for g in n.split('\n') if g]
+        genes = [[l.replace(' ','') for l in g.split(':')[:2]] for g in filter(bool,n.split('\n'))]
         YOX1 = genes[4][1]
         NDD1 = genes[2][1]
         xgenes = genes[5:]
         if len(xgenes) >0:
             addednodes+=1
-        Y= posinedgefromSWI5(YOX1)
-        N= posinedgefromSWI5(NDD1)
+        Y= posinedge('SWI5',YOX1)
+        N= posinedge('SWI5',NDD1)
         if Y and N:
             bothedges += 1
             netswithboth.append((p,n))
@@ -115,7 +99,7 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15(fname='/Users/b
         elif N:
             S2Nedge += 1
             netswithS2N.append((p,n))
-        if posinedgefromNDD1(YOX1):
+        if posinedge('NDD1',YOX1):
             N2Yedge+=1
             netswithN2Y.append((p,n))
     print len(bestnetworks)
