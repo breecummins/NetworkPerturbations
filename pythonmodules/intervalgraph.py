@@ -203,16 +203,15 @@ def createEssentialNetworkSpecFromGraph(graph):
 
 def getGraphFromNetworkSpec(network_spec):
     # take a network spec and return an intervalgraph.Graph
-    eqns = network_spec.split("\n")
+    eqns = filter(bool,network_spec.split("\n"))
     nodelist = []
     inedges = []
     for l in eqns:
-        if l:
-            words = l.replace('(',' ').replace(')',' ').replace('+',' ').split()
-            if words[-2:] == [':', 'E']:
-                words = words[:-2]
-            nodelist.append(words[0])
-            inedges.append(words[2:]) # get rid of ':' at index 1
+        words = l.replace('(',' ').replace(')',' ').replace('+',' ').split()
+        if words[-2:] == [':', 'E']:
+            words = words[:-2]
+        nodelist.append(words[0])
+        inedges.append(words[2:]) # get rid of ':' at index 1
     graph = Graph()
     for k,node in enumerate(nodelist): # need the index as node name to preserve original network order in perturbed networks
         graph.add_vertex(k,label=node)
