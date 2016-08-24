@@ -169,8 +169,11 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None,swap_edge_reg=Tr
 
     def randomInAndOut():
         # get random in and out edges
-        # in-edge is allowed to be a self-edge -- imitates drivers in gene networks
-        return (getRandomNode(N+1),getRandomReg()), (getRandomNode(N),getRandomReg())
+        # in-edge is allowed to be an activating self-edge -- imitates drivers in gene networks
+        innode = getRandomNode(N+1)
+        if innode == N: inreg = 'a'
+        else: inreg = getRandomReg()
+        return (innode,inreg), (getRandomNode(N),getRandomReg())
 
     # get the new node and connecting edges
     if nodelist is None:
