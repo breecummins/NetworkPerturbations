@@ -6,15 +6,18 @@ import subprocess, os, json, itertools
 
 class Job():
 
-    def __init__(self,qsub=True):
+    def __init__(self,qsub=True,params={}):
         # use qsub or sbatch
         self.qsub = qsub
         if qsub:
             self.maindir = ""
         else:
             self.maindir = "/scratch/bc567" # eventually this needs to be in callandanswer.py
-        # collect parameters
-        self.params = getinfo()
+        if not params:
+            # collect parameters
+            self.params = getinfo()
+        else:
+            self.params = params
 
     def prep(self):
         # set up folders for calculations

@@ -205,25 +205,25 @@ def getGraphFromNetworkSpec(network_spec):
     # take a network spec and return an intervalgraph.Graph
     eqns = filter(bool,network_spec.split("\n"))
     nodelist = []
-    inedges = []
+    innodes = []
     for l in eqns:
-        words = l.replace('(',' ').replace(')',' ').replace('+',' ').split()
+        words = l.replace('(',' ').replace(')',' ').replace('+',' ').replace('*',' ').split()
         if words[-2:] == [':', 'E']:
             words = words[:-2]
         nodelist.append(words[0])
-        inedges.append(words[2:]) # get rid of ':' at index 1
+        innodes.append(words[2:]) # get rid of ':' at index 1
     graph = Graph()
     for k,node in enumerate(nodelist): # need the index as node name to preserve original network order in perturbed networks
         graph.add_vertex(k,label=node)
-    for outedge,ies in enumerate(inedges):
+    for outnode,ies in enumerate(innodes):
         for ie in ies:
             if ie[0] == '~':
                 ie = ie[1:]
                 reg = 'r'
             else:
                 reg = 'a'
-            inedge = nodelist.index(ie)
-            graph.add_edge(inedge,outedge,label=reg)
+            innode = nodelist.index(ie)
+            graph.add_edge(innode,outnode,label=reg)
     return graph
 
 # ##############
