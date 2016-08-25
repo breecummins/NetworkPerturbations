@@ -33,7 +33,7 @@ if [ ! -f $DATABASEFILE ]; then echo "Database $NETWORKID did not compute\n"; ca
 # do queries here (DEADLY INSECURE)
 SUMMARYSTR=`. $QUERYFILE` #queries return a string of items of the form "name:value"
 NUMPARAMS=`getnumparams $NETWORKFILE`
-SUMMARYSTR="$SUMMARYSTR ParameterCount:$NUMPARAMS" #put key:value pairs into a string for parsing
+SUMMARYSTR="$SUMMARYSTR ** ParameterCount:$NUMPARAMS" #put key:value pairs into a string for parsing, separate entries by **
 
 STABLEFCLIST="$DATABASEDIR/StableFCList$NETWORKID.txt" # this file name should match the one in querylibrary.sh by convention
 
@@ -43,7 +43,7 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 	# check if stable FC list calculated
 	if [ ! -f $STABLEFCLIST ]; then
 		getstableFClist
-		SUMMARYSTR="$SUMMARYSTR StableFCParameterCount:$(summarystableFCs)"
+		SUMMARYSTR="$SUMMARYSTR ** StableFCParameterCount:$(summarystableFCs)"
 	fi
 
 	# pattern match in stable FCs
@@ -69,7 +69,10 @@ fi
 
 # delete intermediate files; it is possible that $STABLEFCLIST does not exist
 rm $NETWORKFILE $DATABASEFILE 
-rm $STABLEFCLIST
+if [ -f $STABLEFCLIST ]; then
+	rm $STABLEFCLIST
+fi
+
 
 
 

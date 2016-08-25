@@ -4,13 +4,13 @@ import sys
 try:
     comp = sys.argv[1]
 except IndexError:
-    print "Input argument must be 1 (run on conley3) or 0 (run on hpc)."
+    print "Input argument must be 'qsub' (run on conley3), 'sbatch' (run on hpcc/fen2), or 'local' (run serially locally)."
     sys.exit()
 
-if comp not in ['0','1']:
-    print "Input argument must be 1 (run on conley3) or 0 (run on hpc)."
+if comp not in ['qsub','sbatch','local']:
+    print "Input argument must be 'qsub' (run on conley3), 'sbatch' (run on hpcc/fen2), or 'local' (run serially locally)."
     sys.exit()
 else:
-    job=Job(int(sys.argv[1]))
+    job=Job(sys.argv[1])
     job.prep()
     job.run()	

@@ -43,6 +43,41 @@ def _condenseEdges(path,terminals,oldnodes,graph):
             _condenseEdges(path+[c],terminals,oldnodes,graph)
     return terminals
 
+def countSuggestedEdges(ref_graph,suggestiongraphs):
+    N = len(ref_graph.vertices())
+    edges=[]
+    counts=[]
+    for graph in suggestiongraphs:
+        for u in graph.vertices():
+            for v in graph.adjacencies(u):
+                reg = graph.edge_label(u,v)
+                if u >= N: w = N
+                else: w = u
+                if reg != 'b' and (w,v,reg) not in edges:
+                    edges.append((w,v,reg))
+                    counts.append(1)
+                elif reg != 'b':
+                    counts[edges.index((w,v,reg))]+=1
+                else:
+                    if (w,v,'a') not in edges:
+                        edges.append((w,v,'a'))
+                        counts.append(1)
+                    elif (w,v,'a') in edges:
+                        counts[edges.index((w,v,'a'))]+=1
+                    if (w,v,'r') not in edges:
+                        edges.append((w,v,'r'))
+                        counts.append(1)
+                    elif (w,v,'r') in edges:
+                        counts[edges.index((w,v,'r'))]+=1
+    counts, edges = _sort_by_list(counts,edges,reverse=True)
+    return counts,edges
 
+def _sort_by_list(X,Y,reverse=True):
+    # sort Y by the sorted order of X
+    newX, newY = [], []
+    for (x,y) in sorted(zip(X,Y),reverse=reverse):
+        newX.append(x)
+        newY.append(y)
+    return newX,newY
 
 

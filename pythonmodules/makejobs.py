@@ -6,12 +6,12 @@ import subprocess, os, json, itertools
 
 class Job():
 
-    def __init__(self,qsub=True,params={}):
-        # use qsub or sbatch
-        self.qsub = qsub
-        if qsub:
+    def __init__(self,run_type="qsub",params={}):
+        # use qsub (conley3) or sbatch (hpcc/fen2) or local (mac os x, my install) as run_type
+        self.run_type = run_type
+        if run_type=="qsub" or "local":
             self.maindir = ""
-        else:
+        elif run_type=="sbatch":
             self.maindir = "/scratch/bc567" # eventually this needs to be in callandanswer.py
         if not params:
             # collect parameters
@@ -38,8 +38,9 @@ class Job():
         self._savefiles(networks,patterns,uids)
 
     def run(self):
-        # shell call to scheduler
-        self._runscheduler()
+        # shell call to scheduler (or serial if "local")
+        shellcall = ["shellscripts/networkperturbations.sh " + " ".join([self.params['dsgrn'],self.NETWORKDIR,self.PATTERNDIR, self.DATABASEDIR, self.RESULTSDIR, self.params['queryfile'],"shellscripts/networkperturbations_helper_"+self.run_type+".sh",self.run_type])]
+        subprocess.call(shellcall,shell=True)
 
     def _makedirectories(self):
         # use datetime as unique identifier to avoid overwriting
@@ -150,12 +151,5 @@ class Job():
                 # zero pad integer for unique id
                 uid = str(k).zfill(N)
                 savenetwork(uid,network_spec)
-
-    def _runscheduler(self):
-        shellcall = ["shellscripts/networkperturbations.sh " + " ".join([self.params['dsgrn'],self.NETWORKDIR,self.PATTERNDIR, self.DATABASEDIR, self.RESULTSDIR, self.params['queryfile']])]
-        if self.qsub: 
-            shellcall[0] += " shellscripts/networkperturbations_helper_qsub.sh True"
-        else: 
-            shellcall[0] += " shellscripts/networkperturbations_helper_sbatch.sh False"
-        subprocess.call(shellcall,shell=True)
+       
         

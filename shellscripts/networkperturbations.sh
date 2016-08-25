@@ -12,7 +12,7 @@ RESULTSDIR=$5
 # note the following commands are insecure, since they will be evaluated and could potentially cause damage
 QUERYFILE=$6 # name of a shell script that performs an FP Query and summary stats on query; returns string of items "name:value" that will be saved into a json dictionary
 HELPER_SCRIPT_CMD=$7
-QSUB=$8
+RUN_TYPE=$8
 
 # for each perturbation, start a scheduled job for analysis
 for NETWORKFILE in $NETWORKDIR/*; do
@@ -21,10 +21,12 @@ for NETWORKFILE in $NETWORKDIR/*; do
 	netid=${bname%%.*}
 	NETWORKID=${netid##network} 
 	# start a scheduled job
-	if [[ $QSUB = "True" ]]; then
+	if [[ $RUN_TYPE = "qsub" ]]; then
 		qsub $HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID $QUERYFILE
-	else
+	elif [[ $RUN_TYPE = "sbatch" ]]; then
 		sbatch $HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID $QUERYFILE
+	elif [[ $RUN_TYPE = "local" ]]; then
+		. $HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID $QUERYFILE
 	fi
 done
 

@@ -17,11 +17,11 @@ if pattern_spec_file:
         pattern = json.load(pf)
     results_dict["PatternSpecification"]=pattern
 
-for pair in summary_str.split():
+for pair in summary_str.split("**"):
     name, val = pair.split(':', 1)
     try: val = eval(val)
-    except: pass
-    results_dict[name]=val
+    except: val = val.strip()
+    results_dict[name.strip()]=val
 
 if nummatches:
 	results_dict["StableFCMatchesParameterCount"] = int(nummatches)

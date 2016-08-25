@@ -21,7 +21,7 @@ def makeSelfEdgePerturbations():
     job._savefiles(selfedgenets)
 
 def makeYaoGraphs():
-    fname = '3D_2016_08_24_Yaostarter.txt'
+    fname = '4D_2016_08_24_Yaostarter.txt'
     with open(fname,'w') as f:
         f.write('S : S : E\nMD : S : E\nRp : : E\nEE : : E')
     params = {}

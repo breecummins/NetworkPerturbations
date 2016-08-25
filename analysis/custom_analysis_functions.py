@@ -14,8 +14,9 @@ def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims):
         colors = [ mpl.cm.jet(x) for x in cm_subsection ]    
     else:
         colors = ['b']
-    for c,pair in zip(colors,extrapoints):
-        plt.plot(pair[0],pair[1],marker='*',markersize=24,color=c)
+    if N:
+        for c,pair in zip(colors,extrapoints):
+            plt.plot(pair[0],pair[1],marker='*',markersize=24,color=c)
     plt.xlabel(xlabel)
     plt.ylabel('# networks')
     plt.title(title)
@@ -114,14 +115,6 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15(fname='/Users/b
         print p
         print n
 
-def sort_by_list(X,Y,reverse=False):
-    # sort Y by the sorted order of X
-    newX, newY = [], []
-    for (x,y) in sorted(zip(X,Y),reverse=reverse):
-        newX.append(x)
-        newY.append(y)
-    return newX,newY
-
 def wavepool_network1_Dukediscussion_perturbations_suggestiongraphs(network_spec_file='/Users/bcummins/GIT/DSGRN/networks/5D_2016_08_02_wavepool_network1_Dukediscussion.txt', fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json'):
     with open(network_spec_file,'r') as f:
         network_spec = f.read()
@@ -132,48 +125,42 @@ def wavepool_network1_Dukediscussion_perturbations_suggestiongraphs(network_spec
         list_of_networks = list_of_networks[1:]
     print len(list_of_networks)
     ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
-    M = len(list_of_networks)
-    N = len(ref_graph.vertices())
-    edges=[]
-    counts=[]
     print list_of_networks[66]
     print suggestiongraphs[66].graphviz()
     print list_of_networks[99]
     print suggestiongraphs[99].graphviz()
-    for graph in suggestiongraphs:
-        for u in graph.vertices():
-            for v in graph.adjacencies(u):
-                reg = graph.edge_label(u,v)
-                if u >= N: w = N
-                else: w = u
-                if reg != 'b' and (w,v,reg) not in edges:
-                    edges.append((w,v,reg))
-                    counts.append(1)
-                elif reg != 'b':
-                    counts[edges.index((w,v,reg))]+=1
-                else:
-                    if (w,v,'a') not in edges:
-                        edges.append((w,v,'a'))
-                        counts.append(1)
-                    elif (w,v,'a') in edges:
-                        counts[edges.index((w,v,'a'))]+=1
-                    if (w,v,'r') not in edges:
-                        edges.append((w,v,'r'))
-                        counts.append(1)
-                    elif (w,v,'r') in edges:
-                        counts[edges.index((w,v,'r'))]+=1
-    scounts,sedges = sort_by_list(counts,edges,reverse=True)
-    for c,e in zip(scounts,sedges):
+    counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
+    for c,e in zip(counts,edges):
         print str(e) + ': ' + str(c)
 
-
-
+def YaoNetworks():
+    fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'
+    with open(fname,'r') as f:
+        lod = json.load(f)
+    percents=[ float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount'])*100 for d in lod ]
+    xlabel = "DoubleFPQuery: " + d['DoubleFPQuery']
+    title = "% parameters with double FP over {} networks".format(len(lod))
+    axislims = [0,100,0,25]
+    # makeHistogram(percents,20,[],xlabel,title,axislims)
+    list_of_networks = [ d["Network"] for d in lod  if float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount']) > 0.90 ]
+    fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt'
+    with open(fname,'r') as f:
+        network_spec = f.read()
+    ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
+    print list_of_networks[8]
+    print suggestiongraphs[8].graphviz()
+    print list_of_networks[19]
+    print suggestiongraphs[19].graphviz()
+    counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
+    for c,e in zip(counts,edges):
+        print str(e) + ': ' + str(c)
 
 
 
 if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15('/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json')
-    wavepool_network1_Dukediscussion_perturbations_suggestiongraphs()
+    # wavepool_network1_Dukediscussion_perturbations_suggestiongraphs()
+    YaoNetworks()
 
 
 
