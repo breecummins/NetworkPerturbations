@@ -127,7 +127,7 @@ def addEdge(graph,edgelist=None,swap_edge_reg=True):
     # choose newedge from filtered edgelist (note that all edges could be filtered out, so that newedge=None is possible)
     # buyer beware -- negative self-loops not removed
     elif edgelist:
-        edgelist = [ tuple(getVertexFromLabel(graph,e[:2]).append(e[2])) for e in edgelist if set(e[:2]).issubset(networknodenames) ]
+        edgelist = [ tuple(getVertexFromLabel(graph,e[:2])+[e[2]]) for e in edgelist if set(e[:2]).issubset(networknodenames) ]
         if swap_edge_reg: edgelist = list(set(edgelist).difference(graph_edges))
         else: edgelist = [ e for e in edgelist if e[1] not in graph.adjacencies(e[0]) ]
         newedge = getRandomListElement(edgelist)
