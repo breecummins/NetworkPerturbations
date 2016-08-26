@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['font.size'] = 24
 import suggestiongraphs as SG
+import DSGRN
 
 
 def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims):
@@ -133,8 +134,7 @@ def wavepool_network1_Dukediscussion_perturbations_suggestiongraphs(network_spec
     for c,e in zip(counts,edges):
         print str(e) + ': ' + str(c)
 
-def YaoNetworks():
-    fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'
+def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
     with open(fname,'r') as f:
         lod = json.load(f)
     percents=[ float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount'])*100 for d in lod ]
@@ -142,20 +142,38 @@ def YaoNetworks():
     title = "% parameters with double FP over {} networks".format(len(lod))
     axislims = [0,100,0,25]
     # makeHistogram(percents,20,[],xlabel,title,axislims)
-    list_of_networks = [ d["Network"] for d in lod  if float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount']) > 0.90 ]
+    list_of_networks = [ d["Network"] for d in lod  if float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount']) == 1.0 ]
     fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt'
     with open(fname,'r') as f:
         network_spec = f.read()
     ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
-    print list_of_networks[8]
-    print suggestiongraphs[8].graphviz()
-    print list_of_networks[19]
-    print suggestiongraphs[19].graphviz()
+    # print list_of_networks[8]
+    # print suggestiongraphs[8].graphviz()
+    # print list_of_networks[19]
+    # print suggestiongraphs[19].graphviz()
     counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
     for c,e in zip(counts,edges):
         print str(e) + ': ' + str(c)
 
+    def bestFPresults(fpfile):
+        with open(fpfile,'r') as f:
+            results = eval(f.read())
+        percents = sorted([(float(r[0])/int(r[1])*100,r[2]) for r in results],reverse=True)
+        count = 0
+        for p in percents:
+            ess = p[1].replace('\n',': E\n',1) 
+            if p[0] >= 30 and ess in list_of_networks:
+                print p
+                count+=1
+        print count
+        # for n in list_of_networks: print n
 
+    lowFP = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_lowFPresults.txt'
+    print 'Low S'
+    bestFPresults(lowFP)
+    highFP = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_highFPresults.txt'
+    print 'High S'
+    bestFPresults(highFP)
 
 if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15('/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json')

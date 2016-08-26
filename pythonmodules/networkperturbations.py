@@ -53,7 +53,7 @@ def perturbNetwork(params):
                 networks.append(network_spec)
         current_time = time.time()-start_time
     if current_time > params['time_to_wait']:
-        print "Network perturbation timed out. Proceeding with fewer than requested perturbations."
+        print "Network perturbation timed out. Proceeding with {} perturbations.".format(len(networks))
     # Return however many networks were made
     return networks
 
