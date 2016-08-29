@@ -116,21 +116,51 @@ def compareYaoParamsNonEssential(network_spec):
         if p not in lowparams:
             print p
 
+def E2F_low(param,numparams,count):
+    if param.logic()[0].hex() == '0': # if L, U of source S are lowest
+        numparams += 1
+        ann = getAnnotations(param)
+        if len(ann) == 1 and ann[0][:2] == 'FP':
+            digits = [int(i) for i in ann[0] if i.isdigit()]
+            if digits[-2] == 0 and digits[-1] == 1: # E2F low and E2F_Rb high (opposite of Yao)
+                count += 1
+    return numparams,count
+
+def E2F_high(param,numparams,count):
+    if param.logic()[0].hex() == 'F': # if L, U of source S are highest
+        numparams += 1
+        ann = getAnnotations(param)
+        if len(ann) == 1 and ann[0][:2] == 'FP':
+            digits = [int(i) for i in ann[0] if i.isdigit()]
+            if digits[-2] >= 1 and digits[-1] == 0: # E2F high and E2F_Rb low (opposite of Yao) 
+                count += 1
+    return numparams,count
+
 def runE2F6DNonEssential(fname = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork1_nonessential.txt'
 ,savefile = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork1_nonessential_FPresults.txt'):
     network = DSGRN.Network(fname)
     parametergraph = DSGRN.ParameterGraph(network)
-    numparamslow,countlow,numparamshigh,counthigh = 0,0,0,0
+    paramslow,countlow,totlow,paramshigh,counthigh,tothigh = [],0,0,[],0,0
     for p in range(parametergraph.size()):
         param = parametergraph.parameter(p)
-        numparamslow,countlow= Yao_low(param,numparamslow,countlow)
-        numparamshigh,counthigh= Yao_high(param,numparamshigh,counthigh)
-    results = (countlow,numparamslow,counthigh,numparamshigh)
+        totlow,nc= E2F_low(param,totlow,0)
+        if nc:
+            countlow+=1
+            paramslow.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]])) #[1:] means cut off S param 
+        else:
+            tothigh,nc= E2F_high(param,tothigh,0)
+            if nc:
+                counthigh+=1
+                paramshigh.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]]))
+    both = set(paramslow).intersection(paramshigh)
+    results = (countlow,totlow,counthigh,tothigh,len(both))
     print results
     with open(savefile,'w') as sf:
         sf.write(open(fname).read())
-        sf.write('\n\nCount EE low params out of total S low params, Count EE high params out of total S high params:\n')
+        sf.write('\n\nCount E2F low params out of total S low params, Count E2F high params out of total S high params, Count params in both:\n')
         sf.write(str(results))
+        sf.write('\n\nParams in both:\n')
+        sf.write(str(both))
 
 if __name__ == '__main__':
     # makeSelfEdgePerturbations()
@@ -138,4 +168,6 @@ if __name__ == '__main__':
     # runYaoNonEssential(Yao_high,'/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_highFPresults.txt')
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD) : E\nEE : (MD + EE)(~Rp) : E\n')
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD)(~EE) : E\nEE : (MD)(~Rp) : E\n')
-    runE2F6DNonEssential()
+    networknum = '3'
+    runE2F6DNonEssential(fname = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential.txt'
+,savefile = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential_FPresults.txt')
