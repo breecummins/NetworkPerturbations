@@ -93,8 +93,49 @@ def runYaoNonEssential(paramfunc=Yao_low,savefile = '/Users/bcummins/ProjectSimu
     with open(savefile,'w') as sf:
         sf.write(str(results))
 
+def compareYaoParamsNonEssential(network_spec):
+    network = DSGRN.Network()
+    network.assign(network_spec)
+    parametergraph = DSGRN.ParameterGraph(network)
+    lowparams,highparams=[],[]
+    for p in range(parametergraph.size()):
+        param = parametergraph.parameter(p)
+        np,nc= Yao_low(param,0,0)
+        if nc:
+            lowparams.append(eval(param.stringify())[1:])
+        elif not np:
+            np,nc= Yao_high(param,0,0)
+            if nc:
+                highparams.append(eval(param.stringify())[1:])
+    print "In low, not high:"
+    for p in lowparams:
+        if p not in highparams:
+            print p
+    print "In high, not low:"
+    for p in highparams:
+        if p not in lowparams:
+            print p
+
+def runE2F6DNonEssential(fname = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork1_nonessential.txt'
+,savefile = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork1_nonessential_FPresults.txt'):
+    network = DSGRN.Network(fname)
+    parametergraph = DSGRN.ParameterGraph(network)
+    numparamslow,countlow,numparamshigh,counthigh = 0,0,0,0
+    for p in range(parametergraph.size()):
+        param = parametergraph.parameter(p)
+        numparamslow,countlow= Yao_low(param,numparamslow,countlow)
+        numparamshigh,counthigh= Yao_high(param,numparamshigh,counthigh)
+    results = (countlow,numparamslow,counthigh,numparamshigh)
+    print results
+    with open(savefile,'w') as sf:
+        sf.write(open(fname).read())
+        sf.write('\n\nCount EE low params out of total S low params, Count EE high params out of total S high params:\n')
+        sf.write(str(results))
+
 if __name__ == '__main__':
     # makeSelfEdgePerturbations()
     # makeYaoGraphs()
-    runYaoNonEssential(Yao_high,'/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_highFPresults.txt')
-
+    # runYaoNonEssential(Yao_high,'/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_highFPresults.txt')
+    # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD) : E\nEE : (MD + EE)(~Rp) : E\n')
+    # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD)(~EE) : E\nEE : (MD)(~Rp) : E\n')
+    runE2F6DNonEssential()

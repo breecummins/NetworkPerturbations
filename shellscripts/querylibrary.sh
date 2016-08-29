@@ -1,6 +1,6 @@
 getnumparams() { dsgrn network $NETWORKFILE parameter | sed 's/[^0-9]*\([0-9]*\)[^0-9]*/\1/g'; } # input is network file
 getcountuniquelines() { cut -d "|" -f 1 $1 | sort | uniq | wc -w; } # count unique parameters in file list where format is param|morse_set (input is file path)
-getcountfromfile() { cat $1 | tr -d "\n"; } # pull count number out of file (input is file path)
+getcountfromfile() { cat $1 | tr -d "\n"; } # pull line count number out of file (input is file path)
 
 getstableFClist() { sqlite3 -separator " " $DATABASEFILE 'select ParameterIndex, Vertex from Signatures natural join (select MorseGraphIndex,Vertex from (select MorseGraphIndex,Vertex from MorseGraphAnnotations where Label="FC" except select MorseGraphIndex,Source from MorseGraphEdges));' > $DATABASEDIR/StableFCList$NETWORKID.txt; } # dbname, outputfile
 

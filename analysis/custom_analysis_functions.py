@@ -158,11 +158,11 @@ def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2
     def bestFPresults(fpfile):
         with open(fpfile,'r') as f:
             results = eval(f.read())
-        percents = sorted([(float(r[0])/int(r[1])*100,r[2]) for r in results],reverse=True)
+        percents = sorted([(float(r[0])/int(r[1])*100,r[2],r[0],r[1]) for r in results],reverse=True)
         count = 0
         for p in percents:
             ess = p[1].replace('\n',': E\n',1) 
-            if p[0] >= 30 and ess in list_of_networks:
+            if p[0] >= 70 and ess in list_of_networks:
                 print p
                 count+=1
         print count
