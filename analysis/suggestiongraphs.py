@@ -6,12 +6,14 @@ import itertools,sys
 
 def getAllSuggestionGraphs(network_spec,list_of_networks):
     ref_graph = ig.getGraphFromNetworkSpec(network_spec)
+    first = str(ref_graph.graphviz())
     oldnodes = sorted(list(ref_graph.vertices())) # graph.vertices() is a set of integers from 0 to N
     suggestion_graphs = []
     for n in list_of_networks:
         new_graph = ig.getGraphFromNetworkSpec(n) 
         for v in oldnodes: 
-            for c in ref_graph.adjacencies(v): new_graph.remove_edge(v,c)  # (*) variable order dependence
+            for c in ref_graph.adjacencies(v): 
+                new_graph.remove_edge(v,c)  # (*) variable order dependence
         # pick out new nodes that have only a self-loop as an in-edge
         newnodesselfedges = [v for v in new_graph.vertices() if v not in oldnodes and set([v]) == new_graph.transpose().adjacencies(v)] # (*) variable order dependence
         for u in newnodesselfedges: new_graph.remove_edge(u,u) # this avoids some infinite loops in the recursion, increases computation speed, and does not affect the edges we seek
@@ -80,4 +82,18 @@ def _sort_by_list(X,Y,reverse=True):
         newY.append(y)
     return newX,newY
 
+if __name__=='__main__':
+    network_spec = "SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : SBF : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : NDD1 : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : CdH1 : E"
 
+    newnet = "SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF)(~SWI5) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (YOX1 + CdH1) : E"
+
+    othernets = ['SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1 + x6) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (CdH1 + x7) : E\nx6 : (CdH1) : E\nx7 : (~x6) : E\n', 'SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (CdH1 + x6) : E\nx6 : (~CdH1) : E\n', 'SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF)(~SWI5) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (CdH1)(~HCM1) : E\n', 'SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1)(~x6) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (SWI5 + CdH1) : E\nx6 : (HCM1) : E\n', 'SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1 + x6) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (YOX1 + CdH1) : E\nx6 : (~HCM1) : E\n','SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (CdH1)(~x6) : E\nx6 : (CdH1) : E\n']
+    ref_graph, suggestiongraphs = getAllSuggestionGraphs(network_spec,[newnet]+othernets)
+    print ref_graph.graphviz()
+    counts,edges = countSuggestedEdges(ref_graph,suggestiongraphs)
+    for (s,n) in zip(suggestiongraphs,[newnet]+othernets):
+        print n
+        print s.graphviz()
+
+    print counts
+    print edges

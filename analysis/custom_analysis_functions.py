@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['font.size'] = 24
 import suggestiongraphs as SG
-import DSGRN
+import DSGRN, subprocess
 
 
 def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims):
@@ -122,9 +122,11 @@ def wavepool_network1_Dukediscussion_perturbations_suggestiongraphs(network_spec
     with open(fname,'r') as f:
         lod = json.load(f)
     list_of_networks = [ d["Network"] for d in lod  if float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount']) > 0.00 ]
+    getSuggestedEdges(network_spec,list_of_networks)
+
+def getSuggestedEdges(network_spec,list_of_networks):
     if list_of_networks[0] == network_spec:
-        list_of_networks = list_of_networks[1:]
-    print len(list_of_networks)
+        list_of_networks = list_of_networks[1:] # FIXME: Actually need graph isomorphism here
     ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
     print list_of_networks[66]
     print suggestiongraphs[66].graphviz()
@@ -133,6 +135,27 @@ def wavepool_network1_Dukediscussion_perturbations_suggestiongraphs(network_spec
     counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
     for c,e in zip(counts,edges):
         print str(e) + ': ' + str(c)
+
+def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02(network_spec_file='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/6D_2016_08_02_wavepool_network2_Dukediscussion.txt',fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/6D_2016_08_02_wavepool_network2_Dukediscussion_results.json'):
+    # with open(network_spec_file,'r') as f:
+    #     network_spec = f.read()
+    with open(fname,'r') as f:
+        lod = json.load(f)
+    # # They are the same
+    # print network_spec
+    # print lod[0]["Network"]
+    N = len(lod)
+    percents=[ float(d['StableFCParameterCount'])/int(d['ParameterCount'])*100 for d in lod ]
+    list_of_networks = [ d["Network"] for (p,d) in zip(percents,lod)  if p > 0.00 ]
+    nonzeros = [p for p in percents if p > 1]
+    bestones=[ d for p,d in zip(nonzeros,list_of_networks) if p > 50 ]
+    extrapoints = [(float(lod[0]['StableFCParameterCount'])/int(lod[0]['ParameterCount']),50)]
+    xlabel = "Stable FC Parameter Count"
+    title = "% parameters with at least 1 stable FC over {} networks with >1%".format(len(nonzeros))
+    axislims = [0,100,0,100]
+    makeHistogram(nonzeros,45,extrapoints,xlabel,title,axislims)
+    for b in bestones: print b
+    getSuggestedEdges(lod[0]["Network"],list_of_networks[1:])
 
 def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
     with open(fname,'r') as f:
@@ -175,11 +198,61 @@ def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2
     print 'High S'
     bestFPresults(highFP)
 
+    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_FPresults.txt','r') as f:
+        results=eval(f.readline())
+        params=eval(f.readline())
+    pairs = sorted([ ( float(r[0])/int(r[1]), float(r[2])/int(r[3]), float(r[4])/int(r[3]),p[0],r ) for (r,p) in zip(results,params)], reverse=True)
+    for p in pairs:
+        ess = p[3].replace('\n',': E\n',1) 
+        if ess in list_of_networks:
+            print p
+
+
+def E2Fbistability(func=1,networknum='2'):
+    def bicount():
+        N = parametergraph.size()
+        n = subprocess.check_output('cat '+bistablefname+' | wc -l', shell=True)
+        print "Percentage bistability:"
+        print float(n)/N
+
+    def checkall3():
+        with open(bistablefname,'r') as f:
+            params = []
+            bistablecount = 0
+            for p in f:
+                param = parametergraph.parameter(int(p))
+                params.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]])) #[1:] means cut off S param 
+                bistablecount+=1
+        with open('/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential_FPresults.txt','r') as f:
+            getnext=0
+            for l in f.readlines():
+                if l == 'Params in both:\n':
+                    getnext=1
+                elif getnext:
+                    lowandhigh = eval(l)
+                    break
+        allparams = set(params).intersection(lowandhigh)
+        print "Count of params with all three properties:"
+        print len(allparams)
+        print "Percentage bistability:"
+        print float(bistablecount)/N
+
+    network = DSGRN.Network('/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'.txt')
+    parametergraph = DSGRN.ParameterGraph(network)
+    bistablefname = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/bistabilityquerynet'+networknum+'.txt'        
+    if func == 1:
+        bicount()
+    else:
+        checkall3()
+
+    
+
+
 if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15('/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json')
     # wavepool_network1_Dukediscussion_perturbations_suggestiongraphs()
-    YaoNetworks()
-
-
+    # YaoNetworks()
+    # E2Fbistability(1,'4')
+    wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
 
 
