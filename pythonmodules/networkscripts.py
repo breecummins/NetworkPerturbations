@@ -147,6 +147,7 @@ def E2F_FPs(param,numparams,count,low=True):
     return numparams,count
 
 def truncateSfromE2Fparam(param):
+    #cut off S param
     p = param.stringify()
     return p[0]+p[p.index('[',18):]
 
@@ -161,10 +162,10 @@ def runE2F6DNonEssential(networknum='2'):
     bistablenetwork.assign(bistablenetworkspec)
     bistableparametergraph = DSGRN.ParameterGraph(bistablenetwork)
     with open(bistablefname,'r') as f:
-        bistableparams = []
+        bistableparams = set([])
         for p in f:
             param = bistableparametergraph.parameter(int(p))
-            bistableparams.append(truncateSfromE2Fparam(param)) #[1:] means cut off S param 
+            bistableparams.add(truncateSfromE2Fparam(param)) 
     parametergraph = DSGRN.ParameterGraph(network)
     paramslow,countlow,totlow,paramshigh,counthigh,tothigh = [],0,0,[],0,0
     for p in xrange(parametergraph.size()):
@@ -174,7 +175,7 @@ def runE2F6DNonEssential(networknum='2'):
             paramstr = truncateSfromE2Fparam(param)
             if paramstr in bistableparams:
                 countlow+=1
-                paramslow.append(paramstr) #[1:] means cut off S param 
+                paramslow.append(paramstr) 
                 if not (countlow + counthigh)%10000:
                     print countlow+counthigh
         else:
