@@ -151,8 +151,7 @@ def truncateSfromE2Fparam(param):
     p = param.stringify()
     return p[0]+p[p.index('[',18):]
 
-def runE2F6DNonEssential(networknum='2'):
-    networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/'
+def runE2F6DNonEssential(networknum='2',networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/'):    
     fname = networkdir+'6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential.txt'
     savefile = networkdir+'6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential_FPresults_intersectedbistable.txt'
     bistablefname=networkdir+'bistabilityquerynet'+networknum+'.txt'
@@ -176,7 +175,7 @@ def runE2F6DNonEssential(networknum='2'):
             if paramstr in bistableparams:
                 countlow+=1
                 paramslow.append(paramstr) 
-                if not (countlow + counthigh)%10000:
+                if not (countlow + counthigh)%50000:
                     print countlow+counthigh
         else:
             tothigh,nc= E2F_FPs(param,tothigh,0,low=False)
@@ -185,7 +184,7 @@ def runE2F6DNonEssential(networknum='2'):
                 if paramstr in bistableparams:
                     counthigh+=1
                     paramshigh.append(paramstr)
-                    if not (countlow + counthigh)%10000:
+                    if not (countlow + counthigh)%50000:
                         print countlow+counthigh
     both = set(paramslow).intersection(paramshigh)
     results = (countlow,totlow,counthigh,tothigh,len(both))
@@ -234,5 +233,5 @@ if __name__ == '__main__':
     # runYaoNonEssential()
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD) : E\nEE : (MD + EE)(~Rp) : E\n')
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD)(~EE) : E\nEE : (MD)(~Rp) : E\n')
-    networknum = '2'
-    runE2F6DNonEssential(networknum)
+    networknum = '3'
+    runE2F6DNonEssential(networknum,networkdir='.')
