@@ -151,10 +151,10 @@ def truncateSfromE2Fparam(param):
     p = param.stringify()
     return p[0]+p[p.index('[',18):]
 
-def runE2F6DNonEssential(networknum='2',networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/'):    
+def runE2F6DNonEssential(networknum='2',networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/',writeparams=True):    
     fname = networkdir+'6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential.txt'
     savefile = networkdir+'6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential_FPresults_intersectedbistable.txt'
-    bistablefname=networkdir+'bistabilityquerynet'+networknum+'.txt'
+    bistablefname=networkdir+'6D_2016_08_26_cancerE2Fnetwork'+networknum+'_bistabilityquery.txt'
     network = DSGRN.Network(fname)
     bistablenetworkspec = network.specification().replace('\n',': E\n',1)
     bistablenetwork = DSGRN.Network()
@@ -166,66 +166,36 @@ def runE2F6DNonEssential(networknum='2',networkdir = '/Users/bcummins/ProjectSim
             param = bistableparametergraph.parameter(int(p))
             bistableparams.add(truncateSfromE2Fparam(param)) 
     parametergraph = DSGRN.ParameterGraph(network)
-    paramslow,countlow,totlow,paramshigh,counthigh,tothigh = [],0,0,[],0,0
+    paramslow,countlow,totlow,paramshigh,counthigh,tothigh = set([]),0,0,set([]),0,0
     for p in xrange(parametergraph.size()):
         param = parametergraph.parameter(p)
-        totlow,nc= E2F_FPs(param,totlow,0,low=True)
-        if nc:
-            paramstr = truncateSfromE2Fparam(param)
-            if paramstr in bistableparams:
+        paramstr = truncateSfromE2Fparam(param)
+        if paramstr in bistableparams:
+            totlow,nc= E2F_FPs(param,totlow,0,low=True)
+            if nc:
                 countlow+=1
-                paramslow.append(paramstr) 
+                paramslow.add(paramstr) 
                 if not (countlow + counthigh)%50000:
                     print countlow+counthigh
-        else:
-            tothigh,nc= E2F_FPs(param,tothigh,0,low=False)
-            if nc:
-                paramstr = truncateSfromE2Fparam(param)
-                if paramstr in bistableparams:
+                    sys.stdout.flush()
+            else:
+                tothigh,nc= E2F_FPs(param,tothigh,0,low=False)
+                if nc:
                     counthigh+=1
-                    paramshigh.append(paramstr)
+                    paramshigh.add(paramstr)
                     if not (countlow + counthigh)%50000:
                         print countlow+counthigh
-    both = set(paramslow).intersection(paramshigh)
+                        sys.stdout.flush()
+    both = paramshigh & paramslow
     results = (countlow,totlow,counthigh,tothigh,len(both))
     print results
     with open(savefile,'w') as sf:
         sf.write(open(fname).read())
         sf.write('\n\nCount E2F low params + bistability out of total S low params, Count E2F high params + bistability out of total S high params, Count params in both:\n')
         sf.write(str(results))
-        sf.write('\n\nParams in both:\n')
-        sf.write(str(both))
-
-# def runE2F6DNonEssentialconley3(fname = '6D_2016_08_26_cancerE2Fnetwork1_nonessential.txt'
-# ,savefile = '6D_2016_08_26_cancerE2Fnetwork1_nonessential_FPresults.txt'):
-#     network = DSGRN.Network(fname)
-#     parametergraph = DSGRN.ParameterGraph(network)
-#     paramslow,countlow,totlow,paramshigh,counthigh,tothigh = [],0,0,[],0,0
-#     for p in xrange(parametergraph.size()):
-#         param = parametergraph.parameter(p)
-#         totlow,nc= E2F_FPs(param,totlow,0,low=True)
-#         if nc:
-#             countlow+=1
-#             paramslow.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]])) #[1:] means cut off S param 
-#             if not (countlow + counthigh)%10000:
-#                 print countlow+counthigh
-#         else:
-#             tothigh,nc= E2F_FPs(param,tothigh,0,low=False)
-#             if nc:
-#                 counthigh+=1
-#                 paramshigh.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]]))
-#                 if not (countlow + counthigh)%10000:
-#                     print countlow+counthigh
-#     both = set(paramslow).intersection(paramshigh)
-#     results = (countlow,totlow,counthigh,tothigh,len(both))
-#     print results
-#     with open(savefile,'w') as sf:
-#         sf.write(open(fname).read())
-#         sf.write('\n\nCount E2F low params out of total S low params, Count E2F high params out of total S high params, Count params in both:\n')
-#         sf.write(str(results))
-#         sf.write('\n\nParams in both:\n')
-#         sf.write(str(both))
-
+        if writeparams:
+            sf.write('\n\nParams in both:\n')
+            sf.write(str(both))
 
 if __name__ == '__main__':
     # makeSelfEdgePerturbations()
@@ -233,5 +203,4 @@ if __name__ == '__main__':
     # runYaoNonEssential()
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD) : E\nEE : (MD + EE)(~Rp) : E\n')
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD)(~EE) : E\nEE : (MD)(~Rp) : E\n')
-    networknum = '3'
-    runE2F6DNonEssential(networknum,networkdir='.')
+    runE2F6DNonEssential(networknum='1',networkdir='./',writeparams=False)

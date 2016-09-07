@@ -169,14 +169,14 @@ def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2
     fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt'
     with open(fname,'r') as f:
         network_spec = f.read()
-    ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
-    # print list_of_networks[8]
-    # print suggestiongraphs[8].graphviz()
-    # print list_of_networks[19]
-    # print suggestiongraphs[19].graphviz()
-    counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
-    for c,e in zip(counts,edges):
-        print str(e) + ': ' + str(c)
+    # ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
+    # # print list_of_networks[8]
+    # # print suggestiongraphs[8].graphviz()
+    # # print list_of_networks[19]
+    # # print suggestiongraphs[19].graphviz()
+    # counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
+    # for c,e in zip(counts,edges):
+    #     print str(e) + ': ' + str(c)
 
     def bestFPresults(fpfile):
         with open(fpfile,'r') as f:
@@ -184,28 +184,72 @@ def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2
         percents = sorted([(float(r[0])/int(r[1])*100,r[2],r[0],r[1]) for r in results],reverse=True)
         count = 0
         for p in percents:
-            ess = p[1].replace('\n',': E\n',1) 
-            if p[0] >= 70 and ess in list_of_networks:
+            # ess = p[1].replace('\n',': E\n',1) 
+            if p[0] >= 70: #and ess in list_of_networks:
                 print p
                 count+=1
         print count
         # for n in list_of_networks: print n
 
-    lowFP = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_lowFPresults.txt'
-    print 'Low S'
-    bestFPresults(lowFP)
-    highFP = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_highFPresults.txt'
-    print 'High S'
-    bestFPresults(highFP)
+    # lowFP = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_lowFPresults.txt'
+    # print 'Low S'
+    # bestFPresults(lowFP)
+    # highFP = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_highFPresults.txt'
+    # print 'High S'
+    # bestFPresults(highFP)
 
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_FPresults.txt','r') as f:
         results=eval(f.readline())
         params=eval(f.readline())
-    pairs = sorted([ ( float(r[0])/int(r[1]), float(r[2])/int(r[3]), float(r[4])/int(r[3]),p[0],r ) for (r,p) in zip(results,params)], reverse=True)
-    for p in pairs:
-        ess = p[3].replace('\n',': E\n',1) 
-        if ess in list_of_networks:
+    percents = sorted([ ( float(r[0])/int(r[1]), float(r[2])/int(r[3]), float(r[4])/int(r[3]),p[0],r ) for (r,p) in zip(results,params)], reverse=True)
+    for p in percents:
+        # ess = p[1].replace('\n',': E\n',1) 
+        if p[2] > 0: #and ess in list_of_networks:
             print p
+            ess = p[3].replace('\n',': E\n',1) 
+            if ess in list_of_networks:
+                print "100% bistable"
+    # pairs = sorted([ ( float(r[0])/int(r[1]), float(r[2])/int(r[3]), float(r[4])/int(r[3]),p[0],r ) for (r,p) in zip(results,params)], reverse=True)
+    # for p in pairs:
+    #     ess = p[3].replace('\n',': E\n',1) 
+    #     if ess in list_of_networks:
+    #         print p
+
+def YaoNetworks_tiered_suggested_edges(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
+    nname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt'
+    with open(nname,'r') as f:
+        network_spec = f.read()
+    with open(fname,'r') as f:
+        lod = json.load(f)
+    bistablepercents=sorted([ (float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount'])*100,d["Network"],d['DoubleFPQueryParameterCount']) for d in lod ],reverse=True)
+
+    def bistable_sugg_edges(thresh):
+        list_of_networks = [y[1] for y in filter(lambda x: x[0] > thresh and x[2]>0, bistablepercents)]
+        ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
+        counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
+        print "\n\nEdges suggested by all {} networks with greater than {}% bistability:\n".format(len(list_of_networks),thresh)
+        for c,e in zip(counts,edges):
+            print str(e) + ': ' + str(c)
+
+    bistable_sugg_edges(0)
+    # bistable_sugg_edges(25)
+    bistable_sugg_edges(50)
+    # bistable_sugg_edges(75)
+    bistable_sugg_edges(99)
+
+    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_FPresults.txt','r') as f:
+        results=eval(f.readline())
+        params=eval(f.readline())
+    allthreepercents = sorted([ ( float(r[4])/int(r[3])*100 ,p[0] ) for (r,p) in zip(results,params)], reverse=True)
+    # verified that percents >0.9% all have 100% bistability, therefore the intersection between low and high is the same as with bistability (i.e., don't choose a lower threshold)
+    list_of_networks = [y[1] for y in filter(lambda x: x[0] > 0.9, allthreepercents)]
+    ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
+    counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
+    print "\n\nEdges suggested by all {} networks with greater than 0.9% bistability, resettability, and inducibility:\n".format(len(list_of_networks))
+    for c,e in zip(counts,edges):
+        print str(e) + ': ' + str(c)
+
+
 
 
 def E2Fbistability(func=1,networknum='2'):
@@ -252,7 +296,8 @@ if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15('/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json')
     # wavepool_network1_Dukediscussion_perturbations_suggestiongraphs()
     # YaoNetworks()
+    YaoNetworks_tiered_suggested_edges()
     # E2Fbistability(1,'4')
-    wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
+    # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
 
 
