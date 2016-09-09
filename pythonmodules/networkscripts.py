@@ -1,6 +1,6 @@
 from pythonmodules.makejobs import Job 
 import networkperturbations as perturb
-import subprocess, os, DSGRN, sys, itertools
+import subprocess, os, DSGRN, sys, itertools, json
 
 def makeSelfEdgePerturbations():
     job=Job()
@@ -197,10 +197,31 @@ def runE2F6DNonEssential(networknum='2',networkdir = '/Users/bcummins/ProjectSim
             sf.write('\n\nParams in both:\n')
             sf.write(str(both))
 
+
+def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery(fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json',NETWORKDIR = '/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks/',dsgrn="/Users/bcummins/GIT/DSGRN",location='local'):
+    lod = json.load(open(fname,'r'))
+    # networks=[ d["Network"] for d in lod  if float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount'])*100 > 25 ]
+    networks=[ d["Network"] for d in lod  if float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount'])*100 > 25 ]
+    N=len(str(len(networks)))    
+    for (k,n) in enumerate(networks):
+        uid = str(k).zfill(N)
+        nfile = os.path.join(NETWORKDIR, "network"+uid+".txt")
+        open(nfile,'w').write(n)
+    params={}
+    params['dsgrn'] = dsgrn
+    params['networkfolder'] = NETWORKDIR
+    params['queryfile'] = './shellscripts/stableFCqueryscript.sh'
+    job = Job(location,params)
+    job.prep()
+    job.run()
+
+
+
 if __name__ == '__main__':
     # makeSelfEdgePerturbations()
     # makeYaoGraphs()
     # runYaoNonEssential()
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD) : E\nEE : (MD + EE)(~Rp) : E\n')
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD)(~EE) : E\nEE : (MD)(~Rp) : E\n')
-    runE2F6DNonEssential(networknum='1',networkdir='./',writeparams=False)
+    # runE2F6DNonEssential(networknum='1',networkdir='./',writeparams=False)
+    wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery('5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json','5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks','/share/data/bcummins/DSGRN','qsub')
