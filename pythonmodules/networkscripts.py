@@ -201,7 +201,7 @@ def runE2F6DNonEssential(networknum='2',networkdir = '/Users/bcummins/ProjectSim
 def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery(fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json',NETWORKDIR = '/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks/',dsgrn="/Users/bcummins/GIT/DSGRN",location='local'):
     lod = json.load(open(fname,'r'))
     # networks=[ d["Network"] for d in lod  if float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount'])*100 > 25 ]
-    networks=[ d["Network"] for d in lod  if float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount'])*100 > 25 ]
+    networks=[ d["Network"] for d in lod ]
     N=len(str(len(networks)))  
     subprocess.call('mkdir '+NETWORKDIR,shell=True)  
     for (k,n) in enumerate(networks):
