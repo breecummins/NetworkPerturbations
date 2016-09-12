@@ -1,7 +1,7 @@
 from callandanswer import getinfo
 import networkperturbations as perturb
 import fileparsers,ExtremaPO
-import subprocess, os, json, itertools
+import subprocess, os, json, itertools,sys
 
 
 class Job():
@@ -13,6 +13,8 @@ class Job():
             self.maindir = ""
         elif run_type=="sbatch":
             self.maindir = "/scratch/bc567" # eventually this needs to be in callandanswer.py
+        print self.maindir
+        sys.exit()
         if not params:
             # collect parameters
             self.params = getinfo()
