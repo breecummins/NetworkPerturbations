@@ -226,4 +226,4 @@ if __name__ == '__main__':
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD)(~EE) : E\nEE : (MD)(~Rp) : E\n')
     # runE2F6DNonEssential(networknum='1',networkdir='./',writeparams=False)
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery()
-    wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery('5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json','5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks','/share/data/bcummins/DSGRN','qsub')
+    wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery('5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json','5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks','../DSGRN','sbatch')
