@@ -9,12 +9,10 @@ class Job():
     def __init__(self,run_type="qsub",params={}):
         # use qsub (conley3) or sbatch (hpcc/fen2) or local (mac os x, my install) as run_type
         self.run_type = run_type
-        if run_type=="qsub" or "local":
+        if run_type in ["qsub", "local"]:
             self.maindir = ""
         elif run_type=="sbatch":
             self.maindir = "/scratch/bc567" # eventually this needs to be in callandanswer.py
-        print self.maindir
-        sys.exit()
         if not params:
             # collect parameters
             self.params = getinfo()
