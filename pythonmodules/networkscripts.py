@@ -216,6 +216,28 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery(fname='
     job.prep()
     job.run()
 
+def makeE2FNetwork4WavepoolPerturbations(location='qsub',netfile='6D_2016_08_26_cancerE2Fnetwork4.txt'):
+    params = {}
+    params['networkfile'] = netfile
+    params['swap_edge_reg'] = False
+    params['add_madeup_nodes'] = 'y'    
+    params['numperturbations'] = 200
+    params['maxadditionspergraph'] = 2
+    params['maxparams'] = 2500000
+    params['time_to_wait'] = 60
+
+    job=Job(location,params)
+    job.prep()
+    job.run()
+    # # make networks only 
+    # job._parsefilesforperturbation()
+    # networks = perturb.perturbNetwork(job.params)
+    # job.NETWORKDIR = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork4perturbations'
+    # subprocess.call('mkdir '+job.NETWORKDIR,shell=True)
+    # job._savefiles(networks)
+
+
+
 
 
 if __name__ == '__main__':
@@ -226,4 +248,5 @@ if __name__ == '__main__':
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD)(~EE) : E\nEE : (MD)(~Rp) : E\n')
     # runE2F6DNonEssential(networknum='1',networkdir='./',writeparams=False)
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery()
-    wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery('5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json','5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks','../DSGRN','sbatch')
+    # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery('5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json','5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks','../DSGRN','sbatch')
+    makeE2FNetwork4WavepoolPerturbations()
