@@ -218,6 +218,7 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery(fname='
 
 def makeE2FNetwork4WavepoolPerturbations(location='qsub',netfile='6D_2016_08_26_cancerE2Fnetwork4.txt'):
     params = {}
+    params['dsgrn'] = '../DSGRN'
     params['networkfile'] = netfile
     params['swap_edge_reg'] = False
     params['add_madeup_nodes'] = 'y'    
