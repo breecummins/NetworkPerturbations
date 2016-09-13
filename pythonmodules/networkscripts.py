@@ -226,6 +226,7 @@ def makeE2FNetwork4WavepoolPerturbations(location='qsub',netfile='6D_2016_08_26_
     params['maxadditionspergraph'] = 2
     params['maxparams'] = 2500000
     params['time_to_wait'] = 60
+    params['queryfile'] = './shellscripts/doubleFPqueryscript_FCalso_E2F.sh'
 
     job=Job(location,params)
     job.prep()
