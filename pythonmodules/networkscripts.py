@@ -151,10 +151,10 @@ def truncateSfromE2Fparam(param):
     p = param.stringify()
     return p[0]+p[p.index('[',18):]
 
-def runE2F6DNonEssential(networknum='2',networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/',writeparams=True):    
-    fname = networkdir+'6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential.txt'
-    savefile = networkdir+'6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential_FPresults_intersectedbistable.txt'
-    bistablefname=networkdir+'6D_2016_08_26_cancerE2Fnetwork'+networknum+'_bistabilityquery.txt'
+def runE2F6DNonEssential(networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/',fname='6D_2016_08_26_cancerE2Fnetwork2_nonessential.txt',savefile='6D_2016_08_26_cancerE2Fnetwork2_nonessential_FPresults_intersectedbistable.txt',bistablefile='6D_2016_08_26_cancerE2Fnetwork2_bistabilityquery.txt', writeparams=True):    
+    netfname = networkdir+fname
+    savefname = networkdir+savefile
+    bistablefname=networkdir+bistablefile
     network = DSGRN.Network(fname)
     bistablenetworkspec = network.specification().replace('\n',': E\n',1)
     bistablenetwork = DSGRN.Network()
@@ -189,7 +189,7 @@ def runE2F6DNonEssential(networknum='2',networkdir = '/Users/bcummins/ProjectSim
     both = paramshigh & paramslow
     results = (countlow,totlow,counthigh,tothigh,len(both))
     print results
-    with open(savefile,'w') as sf:
+    with open(savefname,'w') as sf:
         sf.write(open(fname).read())
         sf.write('\n\nCount E2F low params + bistability out of total S low params, Count E2F high params + bistability out of total S high params, Count params in both:\n')
         sf.write(str(results))
@@ -222,11 +222,11 @@ def makeE2FNetwork4WavepoolPerturbations(location='qsub',netfile='6D_2016_08_26_
     params['networkfile'] = netfile
     params['swap_edge_reg'] = False
     params['add_madeup_nodes'] = 'y'    
-    params['numperturbations'] = 200
+    params['numperturbations'] = 100
     params['maxadditionspergraph'] = 2
-    params['maxparams'] = 2500000
+    params['maxparams'] = 2000000
     params['time_to_wait'] = 120
-    params['queryfile'] = './shellscripts/doubleFPqueryscript_FCalso_E2F.sh'
+    params['queryfile'] = './shellscripts/doubleFPqueryscript_E2F_withparamfiles.sh'
 
     job=Job(location,params)
     job.prep()
