@@ -309,6 +309,16 @@ def fullinducibility_E2Fnetwork4perturbations(path = '/Users/bcummins/ProjectSim
             internal(str(networkspec),bistablefname,savefname)
 
 
+def makeE2FNetwork4WavepoolPerturbations_filteredS(location='qsub',netdir='6D_2016_08_26_cancerE2Fnetwork4perturbations_filternoSedges'):
+    params = {}
+    params['dsgrn'] = '../DSGRN'
+    params['networkfolder'] = netdir
+    params['queryfile'] = './shellscripts/doubleFPqueryscript_E2F_withparamfiles.sh'
+
+    job=Job(location,params)
+    job.prep()
+    job.run()
+
 
 if __name__ == '__main__':
     # makeSelfEdgePerturbations()
