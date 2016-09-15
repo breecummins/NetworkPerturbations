@@ -151,11 +151,14 @@ def truncateSfromE2Fparam(param):
     p = param.stringify()
     return p[0]+p[p.index('[',18):]
 
-def runE2F6DNonEssential(networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/',fname='6D_2016_08_26_cancerE2Fnetwork2_nonessential.txt',savefile='6D_2016_08_26_cancerE2Fnetwork2_nonessential_FPresults_intersectedbistable.txt',bistablefile='6D_2016_08_26_cancerE2Fnetwork2_bistabilityquery.txt', writeparams=True):    
-    netfname = networkdir+fname
-    savefname = networkdir+savefile
-    bistablefname=networkdir+bistablefile
-    network = DSGRN.Network(fname)
+def runE2F6DNonEssential(networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/',fname='6D_2016_08_26_cancerE2Fnetwork2_nonessential.txt',savefile='6D_2016_08_26_cancerE2Fnetwork2_nonessential_FPresults_intersectedbistable.txt',bistablefile='6D_2016_08_26_cancerE2Fnetwork2_bistabilityquery.txt', writeparams=True,networkspec=None):  
+    if not networkspec:  
+        netfname = os.path.join(networkdir,fname)
+        networkspec = open(netfname).read()
+    savefname = os.path.join(networkdir,savefile)
+    bistablefname=os.path.join(networkdir,bistablefile)
+    network = DSGRN.Network()
+    network.assign(networkspec)
     bistablenetworkspec = network.specification().replace('\n',': E\n',1)
     bistablenetwork = DSGRN.Network()
     bistablenetwork.assign(bistablenetworkspec)
@@ -190,7 +193,7 @@ def runE2F6DNonEssential(networkdir = '/Users/bcummins/ProjectSimulationResults/
     results = (countlow,totlow,counthigh,tothigh,len(both))
     print results
     with open(savefname,'w') as sf:
-        sf.write(open(fname).read())
+        sf.write(networkspec)
         sf.write('\n\nCount E2F low params + bistability out of total S low params, Count E2F high params + bistability out of total S high params, Count params in both:\n')
         sf.write(str(results))
         if writeparams:
@@ -238,7 +241,61 @@ def makeE2FNetwork4WavepoolPerturbations(location='qsub',netfile='6D_2016_08_26_
     # subprocess.call('mkdir '+job.NETWORKDIR,shell=True)
     # job._savefiles(networks)
 
+def fullinducibility_E2Fnetwork4perturbations(path = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork4perturbations',writeparams=False):
+    def internal(networkspec,bistablefname,savefname):
+        bistablenetworkspec = networkspec
+        nonessentialnetworkspec = networkspec.replace(': E\n','\n',1)
+        bistablenetwork = DSGRN.Network()
+        bistablenetwork.assign(bistablenetworkspec)
+        network = DSGRN.Network()
+        network.assign(nonessentialnetworkspec)
+        bistableparametergraph = DSGRN.ParameterGraph(bistablenetwork)
+        with open(bistablefname,'r') as f:
+            bistableparams = set([])
+            for p in f:
+                param = bistableparametergraph.parameter(int(p))
+                bistableparams.add(truncateSfromE2Fparam(param)) 
+        parametergraph = DSGRN.ParameterGraph(network)
+        paramslow,countlow,totlow,paramshigh,counthigh,tothigh = set([]),0,0,set([]),0,0
+        for p in xrange(parametergraph.size()):
+            param = parametergraph.parameter(p)
+            paramstr = truncateSfromE2Fparam(param)
+            if paramstr in bistableparams:
+                totlow,nc= E2F_FPs(param,totlow,0,low=True)
+                if nc:
+                    countlow+=1
+                    paramslow.add(paramstr) 
+                    if not (countlow + counthigh)%50000:
+                        print countlow+counthigh
+                        sys.stdout.flush()
+                else:
+                    tothigh,nc= E2F_FPs(param,tothigh,0,low=False)
+                    if nc:
+                        counthigh+=1
+                        paramshigh.add(paramstr)
+                        if not (countlow + counthigh)%50000:
+                            print countlow+counthigh
+                            sys.stdout.flush()
+        both = paramshigh & paramslow
+        results = (countlow,totlow,counthigh,tothigh,len(both))
+        print results
+        with open(savefname,'w') as sf:
+            sf.write(nonessentialnetworkspec)
+            sf.write('\n\nCount E2F low params + bistability out of total S low params, Count E2F high params + bistability out of total S high params, Count params in both:\n')
+            sf.write(str(results))
+            if writeparams:
+                sf.write('\n\nParams in both:\n')
+                sf.write(str(both))
 
+    for fname in os.listdir(path):
+        if fname.startswith('results'):
+            netid = "".join([d for d in fname if d.isdigit()])
+            bistablefname = os.path.join(path,"bistability_net4_"+netid+".txt")
+            savefname = os.path.join(path,"fullinducibility"+netid+".txt")
+            with open(os.path.join(path,fname),'r') as f:
+                d = json.load(f)
+                networkspec=d["Network"]
+            internal(str(networkspec),bistablefname,savefname)
 
 
 
@@ -251,4 +308,5 @@ if __name__ == '__main__':
     # runE2F6DNonEssential(networknum='1',networkdir='./',writeparams=False)
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery()
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery('5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json','5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks','../DSGRN','sbatch')
-    makeE2FNetwork4WavepoolPerturbations()
+    # makeE2FNetwork4WavepoolPerturbations()
+    fullinducibility_E2Fnetwork4perturbations(os.path.expanduser('~/E2F_net4perturbations_results'))
