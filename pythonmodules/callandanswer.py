@@ -186,6 +186,8 @@ def getinfo():
             params['ts_type'] = gimme_str_from_list(raw_input("\nDo the time series occur in rows ('row') or columns ('col')?  "),['row','col'])
             params['ts_truncation'] = gimme_positive_or_minusone_float(raw_input("\nChoose a (positive) truncation time for the time series data, or the value -1 for no truncation.  "))
             params['scaling_factors'] = gimme_floats_0_1(input("\nGive a list of scaling factors (noise levels) between 0 and 1 to construct the patterns from the data. Example: [0.0, 0.05, 0.1, 0.15].  "))
+
+    params['removeDB'] = gimme_str_from_list(raw_input("\nRemove database after query is complete (y or n)? Recommended answer is 'y'. "),['y','n'])
     return params
 
 if __name__ == '__main__':

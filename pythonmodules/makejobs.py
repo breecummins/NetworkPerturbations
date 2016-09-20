@@ -39,7 +39,11 @@ class Job():
 
     def run(self):
         # shell call to scheduler (or serial if "local")
-        shellcall = ["shellscripts/networkperturbations.sh " + " ".join([self.params['dsgrn'],self.NETWORKDIR,self.PATTERNDIR, self.DATABASEDIR, self.RESULTSDIR, self.params['queryfile'],"shellscripts/networkperturbations_helper_"+self.run_type+".sh",self.run_type])]
+        if self.params['removeDB'] == 'y':
+            RMDB = "True"
+        else:
+            RMDB = "False"
+        shellcall = ["shellscripts/networkperturbations.sh " + " ".join([self.params['dsgrn'],self.NETWORKDIR,self.PATTERNDIR, self.DATABASEDIR, self.RESULTSDIR, self.params['queryfile'],"shellscripts/networkperturbations_helper_"+self.run_type+".sh",self.run_type, RMDB])]
         subprocess.call(shellcall,shell=True)
 
     def _makedirectories(self):

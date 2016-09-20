@@ -21,6 +21,7 @@ DATABASEDIR=$4
 RESULTSDIR=$5 
 NETWORKID=$6
 QUERYFILE=$7
+RMDB=$8
 
 DATABASEFILE="$DATABASEDIR/database$NETWORKID.db"
 
@@ -68,7 +69,11 @@ else
 fi
 
 # delete intermediate files; it is possible that $STABLEFCLIST does not exist
-rm $NETWORKFILE $DATABASEFILE 
+rm $NETWORKFILE 
+if [  $RMDB == "True" ]; then 
+	rm $DATABASEFILE
+fi 
+ 
 if [ -f $STABLEFCLIST ]; then
 	rm $STABLEFCLIST
 fi
