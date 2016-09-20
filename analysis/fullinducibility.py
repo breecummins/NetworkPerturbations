@@ -6,7 +6,7 @@ def makeYaoDatabases():
     with open('4D_2016_08_25_Yao.json','r') as Yf:
         lod = json.load(Yf)
     subprocess.call('mkdir YaoNetworks',shell=True)
-    N = len(lod)
+    N = len(str(len(lod)))
     for k,d in enumerate(lod):
         uid = str(k).zfill(N)
         open('YaoNetworks/network'+uid+'.txt','w').write(d["Network"])
