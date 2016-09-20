@@ -1,5 +1,5 @@
-import queryDSGRN as qDSGRN
-from makejobs import Job
+#import queryDSGRN as qDSGRN
+from pythonmodules.makejobs import Job
 import json,subprocess
 
 def makeYaoDatabases():
