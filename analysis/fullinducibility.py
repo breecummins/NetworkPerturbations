@@ -1,4 +1,4 @@
-# import queryDSGRN as qDSGRN
+import queryDSGRN as qDSGRN
 from pythonmodules.makejobs import Job
 import json,subprocess
 
@@ -21,11 +21,20 @@ def makeYaoDatabases():
     job.run()
 
 def fullinducibilityquery_Yao(databasefolder):
+    with open('4D_2016_08_25_Yao.json','r') as Yf:
+        lod = json.load(Yf)
+    networks = [d["Network"].replace(': E\n','\n',1) for d in lod]
+
     FP_OFF= {"EE":[0,0],"Rp":[1,1]}
     FP_ON={"EE":[1,8],"Rp":[0,0]}
 
-    for d in databasefolder:
-        database = qDSGRN.dsgrnDatabase(d)
+    countOFF=0
+    countON=0
+    countBiStab=0
+    fullInduc = {}
+
+    for (net,db) in zip(networks,databasefolder):
+        database = qDSGRN.dsgrnDatabase(db)
         num_Sparams,num_remainder = database.single_gene_query_prepare("S")
         matchesON = frozenset(database.SingleFPQuery(FP_OFF))
         matchesOFF = frozenset(database.SingleFPQuery(FP_ON))
@@ -45,6 +54,9 @@ def fullinducibilityquery_Yao(databasefolder):
             for i in range(min_gpi+1,max_gpi):
                 if graph.mgi(i) in matchesBiStab:
                     BiStab.add(m)
+                    break
+            
+
 
 
 
