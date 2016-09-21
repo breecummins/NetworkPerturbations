@@ -32,23 +32,18 @@ def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationR
 
     for (net,db) in zip(networks,os.listdir(databasefolder)):
         database = qDSGRN.dsgrnDatabase(os.path.join(databasefolder,db))
-        num_Sparams,num_remainder = database.single_gene_query_prepare("S")
+        num_Sparams,size_factor_graph = database.single_gene_query_prepare("S")
         print net
-        print str(num_remainder) + "\n"
+        print str(size_factor_graph) + "\n"
         matchesBiStab = frozenset(database.DoubleFPQuery(FP_ON,FP_OFF))
-        matchesOFF = set(database.SingleFPQuery(FP_OFF))
-        print matchesBiStab.issubset(matchesOFF)
-        matchesOFF = frozenset(matchesOFF.difference(matchesBiStab))
-        matchesON = set(database.SingleFPQuery(FP_ON))
-        print matchesBiStab.issubset(matchesON)
-        print "\n"
-        matchesON = frozenset(matchesON.difference(matchesBiStab))
+        matchesOFF = frozenset(set(database.SingleFPQuery(FP_OFF)).difference(matchesBiStab))
+        matchesON = frozenset(set(database.SingleFPQuery(FP_ON)).difference(matchesBiStab))
         min_gpi = 0
         max_gpi = num_Sparams-1
         OFF = set([])
         ON = set([])
         BiStab = set([])
-        for m in range(num_remainder):
+        for m in range(size_factor_graph):
             graph = database.single_gene_query("S", m)
             if graph.mgi(min_gpi) in matchesOFF:
                 OFF.add(m)
@@ -58,10 +53,12 @@ def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationR
                 if graph.mgi(i) in matchesBiStab:
                     BiStab.add(m)
                     break
-        fullinduc = len(BiStab.intersection(OFF.intersection(ON)))
-        fullInducDict[str(net)] = (len(OFF),len(ON),len(BiStab),num_remainder,fullinduc)
+        resettablebistab = BiStab.intersection(OFF)
+        induc = BiStab.intersection(ON)
+        fullinduc = len(resettablebistab.intersection(induc))
+        fullInducDict[str(net)] = (len(resettablebistab),len(induc),fullinduc,size_factor_graph)
     print fullInducDict
-    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults2.json','w') as f:
+    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json','w') as f:
         json.dump(fullInducDict,f)
 
 if __name__ == "__main__":

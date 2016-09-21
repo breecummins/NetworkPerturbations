@@ -167,7 +167,43 @@ def YaoNetworks_tiered_suggested_edges(fname='/Users/bcummins/ProjectSimulationR
     # bistable_sugg_edges(75)
     bistable_sugg_edges(99)
 
+def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json'):
+    # format: (len(resettablebistab),len(induc),len(BiStab),fullinduc,size_factor_graph)
+    with open(fname,'r') as f:
+        fidict = json.load(f) 
 
+    def makeAllHistograms():
+        # low FP at low S
+        percents = [float(val[0])/val[3] for val in fidict.values() if val[0] > 0]
+        xlabel = "% parameters in the factor graph"
+        title = "Resettable bistability > 0 for {} total networks".format(len(percents))
+        axislims = [0,5,0,10]
+        numbins = 10
+        makeHistogram(percents,numbins,[],xlabel,title,axislims)
+
+        # high FP at high S
+        percents = [float(val[1])/val[3] for val in fidict.values() if val[1] > 0]
+        xlabel = "% parameters in the factor graph"
+        title = "Inducibility > 0 for {} total networks".format(len(percents))
+        axislims = [0,5,0,10]
+        numbins = 10
+        makeHistogram(percents,numbins,[],xlabel,title,axislims)
+
+        # full incibility
+        percents = [float(val[2])/val[3] for val in fidict.values() if val[2] > 0]
+        xlabel = "% parameters in the factor graph"
+        title = "Full inducibility > 0 for {} total networks".format(len(percents))
+        axislims = [0,5,0,10]
+        numbins = 10
+        makeHistogram(percents,numbins,[],xlabel,title,axislims)
+
+    makeAllHistograms()
+
+    # full inducibility suggested edges
+    list_of_networks = [key for key,val in fidict.iteritems() if val[2] > 0]
+    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
+        network_spec = nf.read()
+    getSuggestedEdges(network_spec,list_of_networks)
 
 def E2Fbistability(func=1,networknum='2'):
     def bicount():
@@ -208,10 +244,10 @@ def E2Fbistability(func=1,networknum='2'):
 
 if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23()
-    wavepool_network1_Dukediscussion_perturbations_suggestiongraphs()
+    # wavepool_network1_Dukediscussion_perturbations_suggestiongraphs()
     # YaoNetworks()
     # YaoNetworks_tiered_suggested_edges()
     # E2Fbistability(1,'4')
     # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
-
+    YaoNetworks_fullinducibility()
 
