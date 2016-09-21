@@ -43,162 +43,162 @@ def makeYaoGraphs():
     subprocess.call('mkdir '+job.NETWORKDIR,shell=True)
     job._savefiles(networks)
 
-def getAnnotations(param):
-    domaingraph = DSGRN.DomainGraph(param)
-    morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
-    morsegraph = DSGRN.MorseGraph()
-    morsegraph.assign(domaingraph, morsedecomposition)
-    mg = eval(morsegraph.stringify())
-    return list(itertools.chain(*mg['annotations']))
+# def getAnnotations(param):
+#     domaingraph = DSGRN.DomainGraph(param)
+#     morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
+#     morsegraph = DSGRN.MorseGraph()
+#     morsegraph.assign(domaingraph, morsedecomposition)
+#     mg = eval(morsegraph.stringify())
+#     return list(itertools.chain(*mg['annotations']))
 
-# def Yao_low(param,numparams,count):
-#     if param.logic()[0].hex() == '0': # if L, U of source S are lowest
-#         numparams += 1
+# # def Yao_low(param,numparams,count):
+# #     if param.logic()[0].hex() == '0': # if L, U of source S are lowest
+# #         numparams += 1
+# #         ann = getAnnotations(param)
+# #         if len(ann) == 1 and ann[0][:2] == 'FP':
+# #             digits = [int(i) for i in ann[0] if i.isdigit()]
+# #             if digits[-2] == 1 and digits[-1] == 0: # if Rp high and EE low
+# #                 count += 1
+# #     return numparams,count
+
+# # def Yao_high(param,numparams,count):
+# #     if param.logic()[0].hex() == 'F': # if L, U of source S are highest
+# #         numparams += 1
+# #         ann = getAnnotations(param)
+# #         if len(ann) == 1 and ann[0][:2] == 'FP':
+# #             digits = [int(i) for i in ann[0] if i.isdigit()]
+# #             if digits[-2] == 0 and digits[-1] >= 1: # if Rp low and EE high
+# #                 count += 1
+# #     return numparams,count
+
+# def Yao_FPs(param,numparams,count,low=True):
+#     if param.logic()[0].hex() == '0'*low + 'F'*(not low):
+#         numparams+=1
 #         ann = getAnnotations(param)
-#         if len(ann) == 1 and ann[0][:2] == 'FP':
-#             digits = [int(i) for i in ann[0] if i.isdigit()]
-#             if digits[-2] == 1 and digits[-1] == 0: # if Rp high and EE low
-#                 count += 1
+#         nums = [[int(i) for i in a if i.isdigit()][-2:] for a in ann if a[:2]=='FP']
+#         if len(nums)!=1 or (low and ( ([1,0] not in nums) or (any(filter(lambda x: x[0] ==0 and x[1] > 0,nums))) )) or (not low and ( ([1,0] in nums) or (not any(filter(lambda x: x[0] ==0 and x[1] > 0,nums))) )):
+#             pass
+#         else: 
+#             count+=1
 #     return numparams,count
 
-# def Yao_high(param,numparams,count):
-#     if param.logic()[0].hex() == 'F': # if L, U of source S are highest
-#         numparams += 1
+# def runYaoNonEssential(savefile = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_FPresults.txt'):
+#     networkdir = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential'
+#     list_of_networks=[]
+#     results=[]
+#     paramstrs=[]
+#     for fname in os.listdir(networkdir):
+#         full = os.path.join(networkdir,fname)
+#         with open(full,'r') as f:
+#             list_of_networks.append(f.read())
+#         network = DSGRN.Network(full)
+#         parametergraph = DSGRN.ParameterGraph(network)
+#         paramslow,countlow,totlow,paramshigh,counthigh,tothigh = [],0,0,[],0,0
+#         for p in xrange(parametergraph.size()):
+#             param = parametergraph.parameter(p)
+#             totlow,nc= Yao_FPs(param,totlow,0,low=True)
+#             if nc:
+#                 countlow+=1
+#                 paramslow.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]])) #[1:] means cut off S param 
+#             else:
+#                 tothigh,nc= Yao_FPs(param,tothigh,0,low=False)
+#                 if nc:
+#                     counthigh+=1
+#                     paramshigh.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]]))
+#         both = set(paramslow).intersection(paramshigh)
+#         r = (countlow,totlow,counthigh,tothigh,len(both))
+#         print list_of_networks[-1]
+#         print r
+#         results.append(r)
+#         paramstrs.append(both)
+#     with open(savefile,'w') as sf:
+#         sf.write(str(results)+'\n')
+#         sf.write(str(zip(list_of_networks,paramstrs)))
+
+# # def E2F_low(param,numparams,count):
+# #     if param.logic()[0].hex() == '0': # if L, U of source S are lowest
+# #         numparams += 1
+# #         ann = getAnnotations(param)
+# #         if len(ann) == 1 and ann[0][:2] == 'FP':
+# #             digits = [int(i) for i in ann[0] if i.isdigit()]
+# #             if digits[-2] == 0 and digits[-1] == 1: # E2F low and E2F_Rb high (opposite of Yao)
+# #                 count += 1
+# #     return numparams,count
+
+# # def E2F_high(param,numparams,count):
+# #     if param.logic()[0].hex() == 'F': # if L, U of source S are highest
+# #         numparams += 1
+# #         ann = getAnnotations(param)
+# #         if len(ann) == 1 and ann[0][:2] == 'FP':
+# #             digits = [int(i) for i in ann[0] if i.isdigit()]
+# #             if digits[-2] >= 1 and digits[-1] == 0: # E2F high and E2F_Rb low (opposite of Yao) 
+# #                 count += 1
+# #     return numparams,count
+
+# def E2F_FPs(param,numparams,count,low=True):
+#     if param.logic()[0].hex() == '0'*low + 'F'*(not low):
+#         numparams+=1
 #         ann = getAnnotations(param)
-#         if len(ann) == 1 and ann[0][:2] == 'FP':
-#             digits = [int(i) for i in ann[0] if i.isdigit()]
-#             if digits[-2] == 0 and digits[-1] >= 1: # if Rp low and EE high
-#                 count += 1
+#         nums = [[int(i) for i in a if i.isdigit()][-2:] for a in ann if a[:2]=='FP']
+#         if len(nums)!=1 or (low and ( ([0,1] not in nums) or (any(filter(lambda x: x[0] >0 and x[1] == 0,nums))) )) or (not low and ( ([0,1] in nums) or (not any(filter(lambda x: x[0] >0 and x[1] == 0,nums))) )):
+#             pass
+#         else: 
+#             count+=1
 #     return numparams,count
 
-def Yao_FPs(param,numparams,count,low=True):
-    if param.logic()[0].hex() == '0'*low + 'F'*(not low):
-        numparams+=1
-        ann = getAnnotations(param)
-        nums = [[int(i) for i in a if i.isdigit()][-2:] for a in ann if a[:2]=='FP']
-        if len(nums)!=1 or (low and ( ([1,0] not in nums) or (any(filter(lambda x: x[0] ==0 and x[1] > 0,nums))) )) or (not low and ( ([1,0] in nums) or (not any(filter(lambda x: x[0] ==0 and x[1] > 0,nums))) )):
-            pass
-        else: 
-            count+=1
-    return numparams,count
+# def truncateSfromE2Fparam(param):
+#     #cut off S param
+#     p = param.stringify()
+#     return p[0]+p[p.index('[',18):]
 
-def runYaoNonEssential(savefile = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_FPresults.txt'):
-    networkdir = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential'
-    list_of_networks=[]
-    results=[]
-    paramstrs=[]
-    for fname in os.listdir(networkdir):
-        full = os.path.join(networkdir,fname)
-        with open(full,'r') as f:
-            list_of_networks.append(f.read())
-        network = DSGRN.Network(full)
-        parametergraph = DSGRN.ParameterGraph(network)
-        paramslow,countlow,totlow,paramshigh,counthigh,tothigh = [],0,0,[],0,0
-        for p in xrange(parametergraph.size()):
-            param = parametergraph.parameter(p)
-            totlow,nc= Yao_FPs(param,totlow,0,low=True)
-            if nc:
-                countlow+=1
-                paramslow.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]])) #[1:] means cut off S param 
-            else:
-                tothigh,nc= Yao_FPs(param,tothigh,0,low=False)
-                if nc:
-                    counthigh+=1
-                    paramshigh.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]]))
-        both = set(paramslow).intersection(paramshigh)
-        r = (countlow,totlow,counthigh,tothigh,len(both))
-        print list_of_networks[-1]
-        print r
-        results.append(r)
-        paramstrs.append(both)
-    with open(savefile,'w') as sf:
-        sf.write(str(results)+'\n')
-        sf.write(str(zip(list_of_networks,paramstrs)))
-
-# def E2F_low(param,numparams,count):
-#     if param.logic()[0].hex() == '0': # if L, U of source S are lowest
-#         numparams += 1
-#         ann = getAnnotations(param)
-#         if len(ann) == 1 and ann[0][:2] == 'FP':
-#             digits = [int(i) for i in ann[0] if i.isdigit()]
-#             if digits[-2] == 0 and digits[-1] == 1: # E2F low and E2F_Rb high (opposite of Yao)
-#                 count += 1
-#     return numparams,count
-
-# def E2F_high(param,numparams,count):
-#     if param.logic()[0].hex() == 'F': # if L, U of source S are highest
-#         numparams += 1
-#         ann = getAnnotations(param)
-#         if len(ann) == 1 and ann[0][:2] == 'FP':
-#             digits = [int(i) for i in ann[0] if i.isdigit()]
-#             if digits[-2] >= 1 and digits[-1] == 0: # E2F high and E2F_Rb low (opposite of Yao) 
-#                 count += 1
-#     return numparams,count
-
-def E2F_FPs(param,numparams,count,low=True):
-    if param.logic()[0].hex() == '0'*low + 'F'*(not low):
-        numparams+=1
-        ann = getAnnotations(param)
-        nums = [[int(i) for i in a if i.isdigit()][-2:] for a in ann if a[:2]=='FP']
-        if len(nums)!=1 or (low and ( ([0,1] not in nums) or (any(filter(lambda x: x[0] >0 and x[1] == 0,nums))) )) or (not low and ( ([0,1] in nums) or (not any(filter(lambda x: x[0] >0 and x[1] == 0,nums))) )):
-            pass
-        else: 
-            count+=1
-    return numparams,count
-
-def truncateSfromE2Fparam(param):
-    #cut off S param
-    p = param.stringify()
-    return p[0]+p[p.index('[',18):]
-
-def runE2F6DNonEssential(networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/',fname='6D_2016_08_26_cancerE2Fnetwork2_nonessential.txt',savefile='6D_2016_08_26_cancerE2Fnetwork2_nonessential_FPresults_intersectedbistable.txt',bistablefile='6D_2016_08_26_cancerE2Fnetwork2_bistabilityquery.txt', writeparams=True,networkspec=None):  
-    if not networkspec:  
-        netfname = os.path.join(networkdir,fname)
-        networkspec = open(netfname).read()
-    savefname = os.path.join(networkdir,savefile)
-    bistablefname=os.path.join(networkdir,bistablefile)
-    network = DSGRN.Network()
-    network.assign(networkspec)
-    bistablenetworkspec = network.specification().replace('\n',': E\n',1)
-    bistablenetwork = DSGRN.Network()
-    bistablenetwork.assign(bistablenetworkspec)
-    bistableparametergraph = DSGRN.ParameterGraph(bistablenetwork)
-    with open(bistablefname,'r') as f:
-        bistableparams = set([])
-        for p in f:
-            param = bistableparametergraph.parameter(int(p))
-            bistableparams.add(truncateSfromE2Fparam(param)) 
-    parametergraph = DSGRN.ParameterGraph(network)
-    paramslow,countlow,totlow,paramshigh,counthigh,tothigh = set([]),0,0,set([]),0,0
-    for p in xrange(parametergraph.size()):
-        param = parametergraph.parameter(p)
-        paramstr = truncateSfromE2Fparam(param)
-        if paramstr in bistableparams:
-            totlow,nc= E2F_FPs(param,totlow,0,low=True)
-            if nc:
-                countlow+=1
-                paramslow.add(paramstr) 
-                if not (countlow + counthigh)%50000:
-                    print countlow+counthigh
-                    sys.stdout.flush()
-            else:
-                tothigh,nc= E2F_FPs(param,tothigh,0,low=False)
-                if nc:
-                    counthigh+=1
-                    paramshigh.add(paramstr)
-                    if not (countlow + counthigh)%50000:
-                        print countlow+counthigh
-                        sys.stdout.flush()
-    both = paramshigh & paramslow
-    results = (countlow,totlow,counthigh,tothigh,len(both))
-    print results
-    with open(savefname,'w') as sf:
-        sf.write(networkspec)
-        sf.write('\n\nCount E2F low params + bistability out of total S low params, Count E2F high params + bistability out of total S high params, Count params in both:\n')
-        sf.write(str(results))
-        if writeparams:
-            sf.write('\n\nParams in both:\n')
-            sf.write(str(both))
+# def runE2F6DNonEssential(networkdir = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/',fname='6D_2016_08_26_cancerE2Fnetwork2_nonessential.txt',savefile='6D_2016_08_26_cancerE2Fnetwork2_nonessential_FPresults_intersectedbistable.txt',bistablefile='6D_2016_08_26_cancerE2Fnetwork2_bistabilityquery.txt', writeparams=True,networkspec=None):  
+#     if not networkspec:  
+#         netfname = os.path.join(networkdir,fname)
+#         networkspec = open(netfname).read()
+#     savefname = os.path.join(networkdir,savefile)
+#     bistablefname=os.path.join(networkdir,bistablefile)
+#     network = DSGRN.Network()
+#     network.assign(networkspec)
+#     bistablenetworkspec = network.specification().replace('\n',': E\n',1)
+#     bistablenetwork = DSGRN.Network()
+#     bistablenetwork.assign(bistablenetworkspec)
+#     bistableparametergraph = DSGRN.ParameterGraph(bistablenetwork)
+#     with open(bistablefname,'r') as f:
+#         bistableparams = set([])
+#         for p in f:
+#             param = bistableparametergraph.parameter(int(p))
+#             bistableparams.add(truncateSfromE2Fparam(param)) 
+#     parametergraph = DSGRN.ParameterGraph(network)
+#     paramslow,countlow,totlow,paramshigh,counthigh,tothigh = set([]),0,0,set([]),0,0
+#     for p in xrange(parametergraph.size()):
+#         param = parametergraph.parameter(p)
+#         paramstr = truncateSfromE2Fparam(param)
+#         if paramstr in bistableparams:
+#             totlow,nc= E2F_FPs(param,totlow,0,low=True)
+#             if nc:
+#                 countlow+=1
+#                 paramslow.add(paramstr) 
+#                 if not (countlow + counthigh)%50000:
+#                     print countlow+counthigh
+#                     sys.stdout.flush()
+#             else:
+#                 tothigh,nc= E2F_FPs(param,tothigh,0,low=False)
+#                 if nc:
+#                     counthigh+=1
+#                     paramshigh.add(paramstr)
+#                     if not (countlow + counthigh)%50000:
+#                         print countlow+counthigh
+#                         sys.stdout.flush()
+#     both = paramshigh & paramslow
+#     results = (countlow,totlow,counthigh,tothigh,len(both))
+#     print results
+#     with open(savefname,'w') as sf:
+#         sf.write(networkspec)
+#         sf.write('\n\nCount E2F low params + bistability out of total S low params, Count E2F high params + bistability out of total S high params, Count params in both:\n')
+#         sf.write(str(results))
+#         if writeparams:
+#             sf.write('\n\nParams in both:\n')
+#             sf.write(str(both))
 
 
 def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery(fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json',NETWORKDIR = '/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks/',dsgrn="/Users/bcummins/GIT/DSGRN",location='local'):
@@ -252,76 +252,76 @@ def makeE2FNetwork4WavepoolPerturbations(location='qsub',netfile='/Users/bcummin
     subprocess.call('mkdir '+job.NETWORKDIR,shell=True)
     job._savefiles(filterednetworks)
 
-def fullinducibility_E2Fnetwork4perturbations(path = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork4perturbations',writeparams=False):
-    def internal(networkspec,bistablefname,savefname):
-        bistablenetworkspec = networkspec
-        nonessentialnetworkspec = networkspec.replace(': E\n','\n',1)
-        bistablenetwork = DSGRN.Network()
-        bistablenetwork.assign(bistablenetworkspec)
-        network = DSGRN.Network()
-        network.assign(nonessentialnetworkspec)
-        bistableparametergraph = DSGRN.ParameterGraph(bistablenetwork)
-        with open(bistablefname,'r') as f:
-            bistableparams = set([])
-            for p in f:
-                param = bistableparametergraph.parameter(int(p))
-                bistableparams.add(truncateSfromE2Fparam(param)) 
-        parametergraph = DSGRN.ParameterGraph(network)
-        paramslow,countlow,totlow,paramshigh,counthigh,tothigh = set([]),0,0,set([]),0,0
-        for p in xrange(parametergraph.size()):
-            param = parametergraph.parameter(p)
-            paramstr = truncateSfromE2Fparam(param)
-            if paramstr in bistableparams:
-                totlow,nc= E2F_FPs(param,totlow,0,low=True)
-                if nc:
-                    countlow+=1
-                    paramslow.add(paramstr) 
-                    if not (countlow + counthigh)%50000:
-                        print countlow+counthigh
-                        sys.stdout.flush()
-                else:
-                    tothigh,nc= E2F_FPs(param,tothigh,0,low=False)
-                    if nc:
-                        counthigh+=1
-                        paramshigh.add(paramstr)
-                        if not (countlow + counthigh)%50000:
-                            print countlow+counthigh
-                            sys.stdout.flush()
-        both = paramshigh & paramslow
-        results = (countlow,totlow,counthigh,tothigh,len(both))
-        print results
-        with open(savefname,'w') as sf:
-            sf.write(nonessentialnetworkspec)
-            sf.write('\n\nCount E2F low params + bistability out of total S low params, Count E2F high params + bistability out of total S high params, Count params in both:\n')
-            sf.write(str(results))
-            if writeparams:
-                sf.write('\n\nParams in both:\n')
-                sf.write(str(both))
+# def fullinducibility_E2Fnetwork4perturbations(path = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork4perturbations',writeparams=False):
+#     def internal(networkspec,bistablefname,savefname):
+#         bistablenetworkspec = networkspec
+#         nonessentialnetworkspec = networkspec.replace(': E\n','\n',1)
+#         bistablenetwork = DSGRN.Network()
+#         bistablenetwork.assign(bistablenetworkspec)
+#         network = DSGRN.Network()
+#         network.assign(nonessentialnetworkspec)
+#         bistableparametergraph = DSGRN.ParameterGraph(bistablenetwork)
+#         with open(bistablefname,'r') as f:
+#             bistableparams = set([])
+#             for p in f:
+#                 param = bistableparametergraph.parameter(int(p))
+#                 bistableparams.add(truncateSfromE2Fparam(param)) 
+#         parametergraph = DSGRN.ParameterGraph(network)
+#         paramslow,countlow,totlow,paramshigh,counthigh,tothigh = set([]),0,0,set([]),0,0
+#         for p in xrange(parametergraph.size()):
+#             param = parametergraph.parameter(p)
+#             paramstr = truncateSfromE2Fparam(param)
+#             if paramstr in bistableparams:
+#                 totlow,nc= E2F_FPs(param,totlow,0,low=True)
+#                 if nc:
+#                     countlow+=1
+#                     paramslow.add(paramstr) 
+#                     if not (countlow + counthigh)%50000:
+#                         print countlow+counthigh
+#                         sys.stdout.flush()
+#                 else:
+#                     tothigh,nc= E2F_FPs(param,tothigh,0,low=False)
+#                     if nc:
+#                         counthigh+=1
+#                         paramshigh.add(paramstr)
+#                         if not (countlow + counthigh)%50000:
+#                             print countlow+counthigh
+#                             sys.stdout.flush()
+#         both = paramshigh & paramslow
+#         results = (countlow,totlow,counthigh,tothigh,len(both))
+#         print results
+#         with open(savefname,'w') as sf:
+#             sf.write(nonessentialnetworkspec)
+#             sf.write('\n\nCount E2F low params + bistability out of total S low params, Count E2F high params + bistability out of total S high params, Count params in both:\n')
+#             sf.write(str(results))
+#             if writeparams:
+#                 sf.write('\n\nParams in both:\n')
+#                 sf.write(str(both))
 
-    for fname in os.listdir(path):
-        if fname.startswith('results'):
-            netid = "".join([d for d in fname if d.isdigit()])
-            bistablefname = os.path.join(path,"bistability_net4_"+netid+".txt")
-            savefname = os.path.join(path,"fullinducibility"+netid+".txt")
-            with open(os.path.join(path,fname),'r') as f:
-                d = json.load(f)
-                networkspec=d["Network"]
-            internal(str(networkspec),bistablefname,savefname)
+#     for fname in os.listdir(path):
+#         if fname.startswith('results'):
+#             netid = "".join([d for d in fname if d.isdigit()])
+#             bistablefname = os.path.join(path,"bistability_net4_"+netid+".txt")
+#             savefname = os.path.join(path,"fullinducibility"+netid+".txt")
+#             with open(os.path.join(path,fname),'r') as f:
+#                 d = json.load(f)
+#                 networkspec=d["Network"]
+#             internal(str(networkspec),bistablefname,savefname)
 
 
-def makeE2FNetwork4WavepoolPerturbations_filteredS(location='qsub',netdir='6D_2016_08_26_cancerE2Fnetwork4perturbations_filternoSedges'):
-    params = {}
-    params['dsgrn'] = '../DSGRN'
-    params['networkfolder'] = netdir
-    params['queryfile'] = './shellscripts/doubleFPqueryscript_E2F_withparamfiles.sh'
+# def makeE2FNetwork4WavepoolPerturbations_filteredS(location='qsub',netdir='6D_2016_08_26_cancerE2Fnetwork4perturbations_filternoSedges'):
+#     params = {}
+#     params['dsgrn'] = '../DSGRN'
+#     params['networkfolder'] = netdir
+#     params['queryfile'] = './shellscripts/doubleFPqueryscript_E2F_withparamfiles.sh'
 
-    job=Job(location,params)
-    job.prep()
-    job.run()
+#     job=Job(location,params)
+#     job.prep()
+#     job.run()
 
 
 if __name__ == '__main__':
-    # makeSelfEdgePerturbations()
+    makeSelfEdgePerturbations()
     # makeYaoGraphs()
     # runYaoNonEssential()
     # compareYaoParamsNonEssential('S : (S) \nMD : (S) : E\nRp : (~MD) : E\nEE : (MD + EE)(~Rp) : E\n')
@@ -330,4 +330,4 @@ if __name__ == '__main__':
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery()
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23_FCquery('5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json','5D_2016_08_23_wavepool_network1_Dukediscussion_topnetworks','../DSGRN','sbatch')
     # makeE2FNetwork4WavepoolPerturbations()
-    fullinducibility_E2Fnetwork4perturbations()
+    # fullinducibility_E2Fnetwork4perturbations()

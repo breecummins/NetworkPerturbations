@@ -142,56 +142,8 @@ def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2
     xlabel = "DoubleFPQuery: " + d['DoubleFPQuery']
     title = "% parameters with double FP over {} networks".format(len(lod))
     axislims = [0,100,0,25]
-    # makeHistogram(percents,20,[],xlabel,title,axislims)
-    list_of_networks = [ d["Network"] for d in lod  if float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount']) == 1.0 ]
-    fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt'
-    with open(fname,'r') as f:
-        network_spec = f.read()
-    # ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
-    # # print list_of_networks[8]
-    # # print suggestiongraphs[8].graphviz()
-    # # print list_of_networks[19]
-    # # print suggestiongraphs[19].graphviz()
-    # counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
-    # for c,e in zip(counts,edges):
-    #     print str(e) + ': ' + str(c)
+    makeHistogram(percents,20,[],xlabel,title,axislims)
 
-    def bestFPresults(fpfile):
-        with open(fpfile,'r') as f:
-            results = eval(f.read())
-        percents = sorted([(float(r[0])/int(r[1])*100,r[2],r[0],r[1]) for r in results],reverse=True)
-        count = 0
-        for p in percents:
-            # ess = p[1].replace('\n',': E\n',1) 
-            if p[0] >= 70: #and ess in list_of_networks:
-                print p
-                count+=1
-        print count
-        # for n in list_of_networks: print n
-
-    # lowFP = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_lowFPresults.txt'
-    # print 'Low S'
-    # bestFPresults(lowFP)
-    # highFP = '/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_highFPresults.txt'
-    # print 'High S'
-    # bestFPresults(highFP)
-
-    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_FPresults.txt','r') as f:
-        results=eval(f.readline())
-        params=eval(f.readline())
-    percents = sorted([ ( float(r[0])/int(r[1]), float(r[2])/int(r[3]), float(r[4])/int(r[3]),p[0],r ) for (r,p) in zip(results,params)], reverse=True)
-    for p in percents:
-        # ess = p[1].replace('\n',': E\n',1) 
-        if p[2] > 0: #and ess in list_of_networks:
-            print p
-            ess = p[3].replace('\n',': E\n',1) 
-            if ess in list_of_networks:
-                print "100% bistable"
-    # pairs = sorted([ ( float(r[0])/int(r[1]), float(r[2])/int(r[3]), float(r[4])/int(r[3]),p[0],r ) for (r,p) in zip(results,params)], reverse=True)
-    # for p in pairs:
-    #     ess = p[3].replace('\n',': E\n',1) 
-    #     if ess in list_of_networks:
-    #         print p
 
 def YaoNetworks_tiered_suggested_edges(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
     nname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt'
@@ -214,19 +166,6 @@ def YaoNetworks_tiered_suggested_edges(fname='/Users/bcummins/ProjectSimulationR
     bistable_sugg_edges(50)
     # bistable_sugg_edges(75)
     bistable_sugg_edges(99)
-
-    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_FPresults.txt','r') as f:
-        results=eval(f.readline())
-        params=eval(f.readline())
-    allthreepercents = sorted([ ( float(r[4])/int(r[3])*100 ,p[0] ) for (r,p) in zip(results,params)], reverse=True)
-    # verified that percents >0.9% all have 100% bistability, therefore the intersection between low and high is the same as with bistability (i.e., don't choose a lower threshold)
-    list_of_networks = [y[1] for y in filter(lambda x: x[0] > 0.9, allthreepercents)]
-    ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
-    counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
-    print "\n\nEdges suggested by all {} networks with greater than 0.9% bistability, resettability, and inducibility:\n".format(len(list_of_networks))
-    for c,e in zip(counts,edges):
-        print str(e) + ': ' + str(c)
-
 
 
 
@@ -266,9 +205,6 @@ def E2Fbistability(func=1,networknum='2'):
         bicount()
     else:
         checkall3()
-
-    
-
 
 if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23()
