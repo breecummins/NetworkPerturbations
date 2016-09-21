@@ -32,18 +32,18 @@ def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationR
 
     for (net,db) in zip(networks,os.listdir(databasefolder)):
         database = qDSGRN.dsgrnDatabase(os.path.join(databasefolder,db))
-        num_Sparams,size_factor_graph = database.single_gene_query_prepare("S")
+        size_factor_graph,num_factor_graphs = database.single_gene_query_prepare("S")
         print net
-        print str(size_factor_graph) + "\n"
+        print str(num_factor_graphs) + "\n"
         matchesBiStab = frozenset(database.DoubleFPQuery(FP_ON,FP_OFF))
         matchesOFF = frozenset(set(database.SingleFPQuery(FP_OFF)).difference(matchesBiStab))
         matchesON = frozenset(set(database.SingleFPQuery(FP_ON)).difference(matchesBiStab))
         min_gpi = 0
-        max_gpi = num_Sparams-1
+        max_gpi = size_factor_graph-1
         OFF = set([])
         ON = set([])
         BiStab = set([])
-        for m in range(size_factor_graph):
+        for m in range(num_factor_graphs):
             graph = database.single_gene_query("S", m)
             if graph.mgi(min_gpi) in matchesOFF:
                 OFF.add(m)
@@ -53,10 +53,10 @@ def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationR
                 if graph.mgi(i) in matchesBiStab:
                     BiStab.add(m)
                     break
-        resettablebistab = BiStab.intersection(OFF)
-        induc = BiStab.intersection(ON)
-        fullinduc = len(resettablebistab.intersection(induc))
-        fullInducDict[str(net)] = (len(resettablebistab),len(induc),fullinduc,size_factor_graph)
+        resettablebistability = BiStab.intersection(OFF)
+        inducibility = BiStab.intersection(ON)
+        fullinducibility = len(resettablebistability.intersection(inducibility))
+        fullInducDict[str(net)] = (len(resettablebistability),len(inducibility),fullinducibility,num_factor_graphs)
     print fullInducDict
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json','w') as f:
         json.dump(fullInducDict,f)
