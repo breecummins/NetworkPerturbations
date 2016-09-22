@@ -174,26 +174,26 @@ def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
 
     def makeAllHistograms():
         # low FP at low S
-        percents = [float(val[0])/val[3] for val in fidict.values() if val[0] > 0]
+        percents = [float(val[0])/val[3]*100 for val in fidict.values() if val[0] > 0]
         xlabel = "% parameters in the factor graph"
         title = "Resettable bistability > 0 for {} total networks".format(len(percents))
-        axislims = [0,5,0,10]
+        axislims = [0,100,0,10]
         numbins = 10
         makeHistogram(percents,numbins,[],xlabel,title,axislims)
 
         # high FP at high S
-        percents = [float(val[1])/val[3] for val in fidict.values() if val[1] > 0]
+        percents = [float(val[1])/val[3]*100 for val in fidict.values() if val[1] > 0]
         xlabel = "% parameters in the factor graph"
         title = "Inducibility > 0 for {} total networks".format(len(percents))
-        axislims = [0,5,0,10]
+        axislims = [0,100,0,10]
         numbins = 10
         makeHistogram(percents,numbins,[],xlabel,title,axislims)
 
         # full incibility
-        percents = [float(val[2])/val[3] for val in fidict.values() if val[2] > 0]
+        percents = [float(val[2])/val[3]*100 for val in fidict.values() if val[2] > 0]
         xlabel = "% parameters in the factor graph"
         title = "Full inducibility > 0 for {} total networks".format(len(percents))
-        axislims = [0,5,0,10]
+        axislims = [0,100,0,10]
         numbins = 10
         makeHistogram(percents,numbins,[],xlabel,title,axislims)
 
