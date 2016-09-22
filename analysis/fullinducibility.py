@@ -22,19 +22,16 @@ def makeYaoDatabases(fname='4D_2016_08_25_Yao.json'):
     job.run()
 
 def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationResults/YaoNetworks/Yaonetworks_nonessential_databases'):
-    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json','r') as Yf:
-        lod = json.load(Yf)
-    networks = [d["Network"].replace(': E\n','\n',1) for d in lod]
 
     FP_OFF= {"EE":[0,0],"Rp":[1,1]}
     FP_ON={"EE":[1,8],"Rp":[0,0]}
 
     fullInducDict = {}
 
-    for (net,db) in zip(networks,os.listdir(databasefolder)):
+    for db in os.listdir(databasefolder):
         database = qDSGRN.dsgrnDatabase(os.path.join(databasefolder,db))
         size_factor_graph,num_factor_graphs = database.single_gene_query_prepare("S")
-        print net
+        print(database.network.specification())
         print str(num_factor_graphs) + "\n"
         matchesBiStab = frozenset(database.DoubleFPQuery(FP_ON,FP_OFF))
         matchesOFF = frozenset(set(database.SingleFPQuery(FP_OFF)).difference(matchesBiStab))
@@ -57,14 +54,14 @@ def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationR
         resettablebistability = BiStab.intersection(OFF)
         inducibility = BiStab.intersection(ON)
         fullinducibility = len(resettablebistability.intersection(inducibility))
-        fullInducDict[str(net)] = (len(resettablebistability),len(inducibility),fullinducibility,num_factor_graphs)
+        fullInducDict[database.network.specification()] = (len(resettablebistability),len(inducibility),fullinducibility,num_factor_graphs)
     print fullInducDict
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json','w') as f:
         json.dump(fullInducDict,f)
 
 if __name__ == "__main__":
-    makeYaoDatabases()
+    # makeYaoDatabases()
     # makeYaoDatabases('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json')
-    # fullinducibilityquery_Yao()
+    fullinducibilityquery_Yao()
 
 
