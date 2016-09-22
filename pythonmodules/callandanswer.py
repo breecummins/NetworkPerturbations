@@ -188,6 +188,7 @@ def getinfo():
             params['scaling_factors'] = gimme_floats_0_1(input("\nGive a list of scaling factors (noise levels) between 0 and 1 to construct the patterns from the data. Example: [0.0, 0.05, 0.1, 0.15].  "))
 
     params['removeDB'] = gimme_str_from_list(raw_input("\nRemove database after query is complete (y or n)? Recommended answer is 'y'. "),['y','n'])
+    params['removeNF'] = gimme_str_from_list(raw_input("\nRemove network file after query is complete (y or n)? Recommended answer is 'y' (network is stored in results). "),['y','n'])
     return params
 
 if __name__ == '__main__':

@@ -22,11 +22,12 @@ RESULTSDIR=$5
 NETWORKID=$6
 QUERYFILE=$7
 RMDB=$8
+RMNF=$9
 
 DATABASEFILE="$DATABASEDIR/database$NETWORKID.db"
 
 # make database
-mpiexec $SIGNATURES $NETWORKFILE $DATABASEFILE
+mpiexec --mca mpi_preconnect_mpi 1 -np $NSLOTS -x LD_LIBRARY_PATH $SIGNATURES $NETWORKFILE $DATABASEFILE
 
 # if making the database fails, then quit
 if [ ! -f $DATABASEFILE ]; then echo "Database $NETWORKID did not compute\n"; cat $2; exit 1; fi 
@@ -69,7 +70,9 @@ else
 fi
 
 # delete intermediate files; it is possible that $STABLEFCLIST does not exist
-rm $NETWORKFILE 
+if  [  $RMNF == "True" ]; then 
+	rm $NETWORKFILE 
+fi 
 if [  $RMDB == "True" ]; then 
 	rm $DATABASEFILE
 fi 

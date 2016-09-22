@@ -36,6 +36,7 @@ def Yao_FPs(param):
 
 def fullinducibility_usingDSGRN():
     network = DSGRN.Network(networkfile)
+    print open(networkfile).read()
     parametergraph = DSGRN.ParameterGraph(network)
     num_factor_graphs = 0
     params_rbs, params_induc, params_bs = set([]),set([]),set([])
@@ -90,4 +91,3 @@ if __name__ == '__main__':
     fullinducibility_usingDSGRN()
     print "\nUsing queryDSGRN:\n"
     fullinducibility_usingqueryDSGRN()
-    print "Is there a mismatch between network file and db file?"

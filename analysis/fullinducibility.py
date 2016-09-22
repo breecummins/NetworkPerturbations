@@ -2,8 +2,8 @@ import queryDSGRN as qDSGRN
 from pythonmodules.makejobs import Job
 import json,subprocess,os
 
-def makeYaoDatabases():
-    with open('4D_2016_08_25_Yao.json','r') as Yf:
+def makeYaoDatabases(fname='4D_2016_08_25_Yao.json'):
+    with open(fname,'r') as Yf:
         lod = json.load(Yf)
     subprocess.call('mkdir YaoNetworks',shell=True)
     N = len(str(len(lod)))
@@ -16,6 +16,7 @@ def makeYaoDatabases():
     params['networkfolder'] = 'YaoNetworks'
     params['queryfile'] = 'shellscripts/doubleFPqueryscript_Yao.sh'
     params['removeDB'] = 'n'
+    params['removeNF'] = 'n'
     job = Job('qsub',params)
     job.prep()
     job.run()
@@ -62,7 +63,8 @@ def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationR
         json.dump(fullInducDict,f)
 
 if __name__ == "__main__":
-    # makeYaoDatabases()
-    fullinducibilityquery_Yao()
+    makeYaoDatabases()
+    # makeYaoDatabases('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json')
+    # fullinducibilityquery_Yao()
 
 
