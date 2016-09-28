@@ -168,42 +168,67 @@ def YaoNetworks_tiered_suggested_edges(fname='/Users/bcummins/ProjectSimulationR
     bistable_sugg_edges(99)
 
 def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json'):
-    # format: (len(resettablebistab),len(induc),len(BiStab),fullinduc,size_factor_graph)
+    # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
     with open(fname,'r') as f:
         fidict = json.load(f) 
 
     def makeAllHistograms():
+        # bistability at middle S
+        percents = [float(val[0])/val[4]*100 for val in fidict.values() if val[0] > 0]
+        xlabel = "% parameters in the factor graph"
+        title = "Bistability > 0 (at middle S) for {} total networks".format(len(percents))
+        axislims = [0,100,0,21]
+        numbins = 15
+        makeHistogram(percents,numbins,[],xlabel,title,axislims)
+
         # low FP at low S
-        percents = [float(val[0])/val[3]*100 for val in fidict.values() if val[0] > 0]
+        percents = [float(val[1])/val[4]*100 for val in fidict.values() if val[1] > 0]
         xlabel = "% parameters in the factor graph"
         title = "Resettable bistability > 0 for {} total networks".format(len(percents))
-        axislims = [0,100,0,10]
-        numbins = 10
+        axislims = [0,100,0,21]
+        numbins = 15
         makeHistogram(percents,numbins,[],xlabel,title,axislims)
 
         # high FP at high S
-        percents = [float(val[1])/val[3]*100 for val in fidict.values() if val[1] > 0]
+        percents = [float(val[2])/val[4]*100 for val in fidict.values() if val[2] > 0]
         xlabel = "% parameters in the factor graph"
         title = "Inducibility > 0 for {} total networks".format(len(percents))
-        axislims = [0,100,0,10]
-        numbins = 10
+        axislims = [0,100,0,21]
+        numbins = 15
         makeHistogram(percents,numbins,[],xlabel,title,axislims)
 
         # full incibility
-        percents = [float(val[2])/val[3]*100 for val in fidict.values() if val[2] > 0]
+        percents = [float(val[3])/val[4]*100 for val in fidict.values() if val[3] > 0]
         xlabel = "% parameters in the factor graph"
         title = "Full inducibility > 0 for {} total networks".format(len(percents))
-        axislims = [0,100,0,10]
-        numbins = 10
+        axislims = [0,100,0,21]
+        numbins = 15
         makeHistogram(percents,numbins,[],xlabel,title,axislims)
 
-    makeAllHistograms()
+    # makeAllHistograms()
 
-    # full inducibility suggested edges
-    list_of_networks = [key for key,val in fidict.iteritems() if val[2] > 0]
+    # full inducibility > 0% suggested edges
+    list_of_networks = [key for key,val in fidict.iteritems() if val[3] > 0]
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
         network_spec = nf.read()
     getSuggestedEdges(network_spec,list_of_networks)
+
+    print "\n\n"
+
+    # full inducibility > 50% suggested edges
+    percents = sorted([(float(val[3])/val[4]*100,key) for key,val in fidict.iteritems()],reverse=True)
+    list_of_networks = [ tup[1] for tup in percents if tup[0] > 40]
+    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
+        network_spec = nf.read()
+    getSuggestedEdges(network_spec,list_of_networks)
+
+    # top networks
+    for n in percents:
+        if n[0] > 40:
+            print "\n"
+            print n[1]
+            print n[0]
+
 
 def E2Fbistability(func=1,networknum='2'):
     def bicount():

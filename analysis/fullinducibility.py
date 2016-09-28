@@ -54,7 +54,7 @@ def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationR
         resettablebistability = BiStab.intersection(OFF)
         inducibility = BiStab.intersection(ON)
         fullinducibility = len(resettablebistability.intersection(inducibility))
-        fullInducDict[database.network.specification()] = (len(resettablebistability),len(inducibility),fullinducibility,num_factor_graphs)
+        fullInducDict[database.network.specification()] = (len(BiStab),len(resettablebistability),len(inducibility),fullinducibility,num_factor_graphs)
     print fullInducDict
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json','w') as f:
         json.dump(fullInducDict,f)
