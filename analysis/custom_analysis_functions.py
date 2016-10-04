@@ -230,42 +230,53 @@ def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
             print n[0]
 
 
-def E2Fbistability(func=1,networknum='2'):
-    def bicount():
-        N = parametergraph.size()
-        n = subprocess.check_output('cat '+bistablefname+' | wc -l', shell=True)
-        print "Percentage bistability:"
-        print float(n)/N
+# def E2Fbistability(func=1,networknum='2'):
+#     def bicount():
+#         N = parametergraph.size()
+#         n = subprocess.check_output('cat '+bistablefname+' | wc -l', shell=True)
+#         print "Percentage bistability:"
+#         print float(n)/N
 
-    def checkall3():
-        with open(bistablefname,'r') as f:
-            params = []
-            bistablecount = 0
-            for p in f:
-                param = parametergraph.parameter(int(p))
-                params.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]])) #[1:] means cut off S param 
-                bistablecount+=1
-        with open('/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential_FPresults.txt','r') as f:
-            getnext=0
-            for l in f.readlines():
-                if l == 'Params in both:\n':
-                    getnext=1
-                elif getnext:
-                    lowandhigh = eval(l)
-                    break
-        allparams = set(params).intersection(lowandhigh)
-        print "Count of params with all three properties:"
-        print len(allparams)
-        print "Percentage bistability:"
-        print float(bistablecount)/N
+#     def checkall3():
+#         with open(bistablefname,'r') as f:
+#             params = []
+#             bistablecount = 0
+#             for p in f:
+#                 param = parametergraph.parameter(int(p))
+#                 params.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]])) #[1:] means cut off S param 
+#                 bistablecount+=1
+#         with open('/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential_FPresults.txt','r') as f:
+#             getnext=0
+#             for l in f.readlines():
+#                 if l == 'Params in both:\n':
+#                     getnext=1
+#                 elif getnext:
+#                     lowandhigh = eval(l)
+#                     break
+#         allparams = set(params).intersection(lowandhigh)
+#         print "Count of params with all three properties:"
+#         print len(allparams)
+#         print "Percentage bistability:"
+#         print float(bistablecount)/N
 
-    network = DSGRN.Network('/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'.txt')
-    parametergraph = DSGRN.ParameterGraph(network)
-    bistablefname = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/bistabilityquerynet'+networknum+'.txt'        
-    if func == 1:
-        bicount()
-    else:
-        checkall3()
+#     network = DSGRN.Network('/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'.txt')
+#     parametergraph = DSGRN.ParameterGraph(network)
+#     bistablefname = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/bistabilityquerynet'+networknum+'.txt'        
+#     if func == 1:
+#         bicount()
+#     else:
+#         checkall3()
+
+def E2FNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_nets2_3_4.json'):
+    # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
+    with open(fname,'r') as f:
+        fidict = json.load(f) 
+    for key,value in fidict.iteritems():
+        print key
+        print 'Bistability: {:.1f}%'.format(float(value[0])/value[4]*100)
+        print 'Resettable bistability: {:.1f}%'.format(float(value[1])/value[4]*100)
+        print 'Inducibility: {:.1f}%'.format(float(value[2])/value[4]*100)
+        print 'Full inducibility: {:.1f}%\n'.format(float(value[3])/value[4]*100)
 
 if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23()
@@ -274,5 +285,6 @@ if __name__ == "__main__":
     # YaoNetworks_tiered_suggested_edges()
     # E2Fbistability(1,'4')
     # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
-    YaoNetworks_fullinducibility()
+    # YaoNetworks_fullinducibility()
+    E2FNetworks_fullinducibility()
 
