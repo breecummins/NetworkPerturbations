@@ -1,12 +1,14 @@
 import json
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-mpl.rcParams['font.size'] = 24
+mpl.rcParams['font.size'] = 48
 import suggestiongraphs as SG
 import DSGRN, subprocess
 
 
-def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims):
+def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims,figsize=None):
+    if figsize:
+        plt.figure(figsize=figsize)
     n, bins, patches = plt.hist(data, nbins, normed=0, facecolor='green', alpha=0.75)
     plt.hold('on')
     N=len(extrapoints)
@@ -135,37 +137,37 @@ def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02(network_spec_fi
     for b in bestones: print b
     getSuggestedEdges(lod[0]["Network"],list_of_networks[1:])
 
-def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
-    with open(fname,'r') as f:
-        lod = json.load(f)
-    percents=[ float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount'])*100 for d in lod ]
-    xlabel = "DoubleFPQuery: " + d['DoubleFPQuery']
-    title = "% parameters with double FP over {} networks".format(len(lod))
-    axislims = [0,100,0,25]
-    makeHistogram(percents,20,[],xlabel,title,axislims)
+# def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
+#     with open(fname,'r') as f:
+#         lod = json.load(f)
+#     percents=[ float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount'])*100 for d in lod ]
+#     xlabel = "DoubleFPQuery: " + d['DoubleFPQuery']
+#     title = "% parameters with double FP over {} networks".format(len(lod))
+#     axislims = [0,100,0,25]
+#     makeHistogram(percents,20,[],xlabel,title,axislims)
 
 
-def YaoNetworks_tiered_suggested_edges(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
-    nname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt'
-    with open(nname,'r') as f:
-        network_spec = f.read()
-    with open(fname,'r') as f:
-        lod = json.load(f)
-    bistablepercents=sorted([ (float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount'])*100,d["Network"],d['DoubleFPQueryParameterCount']) for d in lod ],reverse=True)
+# def YaoNetworks_tiered_suggested_edges(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
+#     nname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt'
+#     with open(nname,'r') as f:
+#         network_spec = f.read()
+#     with open(fname,'r') as f:
+#         lod = json.load(f)
+#     bistablepercents=sorted([ (float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount'])*100,d["Network"],d['DoubleFPQueryParameterCount']) for d in lod ],reverse=True)
 
-    def bistable_sugg_edges(thresh):
-        list_of_networks = [y[1] for y in filter(lambda x: x[0] > thresh and x[2]>0, bistablepercents)]
-        ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
-        counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
-        print "\n\nEdges suggested by all {} networks with greater than {}% bistability:\n".format(len(list_of_networks),thresh)
-        for c,e in zip(counts,edges):
-            print str(e) + ': ' + str(c)
+#     def bistable_sugg_edges(thresh):
+#         list_of_networks = [y[1] for y in filter(lambda x: x[0] > thresh and x[2]>0, bistablepercents)]
+#         ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
+#         counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
+#         print "\n\nEdges suggested by all {} networks with greater than {}% bistability:\n".format(len(list_of_networks),thresh)
+#         for c,e in zip(counts,edges):
+#             print str(e) + ': ' + str(c)
 
-    bistable_sugg_edges(0)
-    # bistable_sugg_edges(25)
-    bistable_sugg_edges(50)
-    # bistable_sugg_edges(75)
-    bistable_sugg_edges(99)
+#     bistable_sugg_edges(0)
+#     # bistable_sugg_edges(25)
+#     bistable_sugg_edges(50)
+#     # bistable_sugg_edges(75)
+#     bistable_sugg_edges(99)
 
 def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json'):
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
@@ -173,51 +175,46 @@ def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
         fidict = json.load(f) 
 
     def makeAllHistograms():
-        # bistability at middle S
-        percents = [float(val[0])/val[4]*100 for val in fidict.values() if val[0] > 0]
-        xlabel = "% parameters in the factor graph"
-        title = "Bistability > 0 (at middle S) for {} total networks".format(len(percents))
+        figsize = (25,15)
+        xlabel = "% reduced parameters"
         axislims = [0,100,0,21]
         numbins = 15
-        makeHistogram(percents,numbins,[],xlabel,title,axislims)
+
+        # bistability at middle S
+        percents = [float(val[0])/val[4]*100 for val in fidict.values() if val[0] > 0]
+        title = "Some bistability (at middle S), {} total networks".format(len(percents))
+        makeHistogram(percents,numbins,[],xlabel,title,axislims,figsize)
 
         # low FP at low S
         percents = [float(val[1])/val[4]*100 for val in fidict.values() if val[1] > 0]
-        xlabel = "% parameters in the factor graph"
-        title = "Resettable bistability > 0 for {} total networks".format(len(percents))
-        axislims = [0,100,0,21]
-        numbins = 15
-        makeHistogram(percents,numbins,[],xlabel,title,axislims)
+        title = "Some resettable bistability, {} total networks".format(len(percents))
+        makeHistogram(percents,numbins,[],xlabel,title,axislims,figsize)
 
         # high FP at high S
         percents = [float(val[2])/val[4]*100 for val in fidict.values() if val[2] > 0]
-        xlabel = "% parameters in the factor graph"
-        title = "Inducibility > 0 for {} total networks".format(len(percents))
-        axislims = [0,100,0,21]
-        numbins = 15
-        makeHistogram(percents,numbins,[],xlabel,title,axislims)
+        title = "Some inducibility, {} total networks".format(len(percents))
+        makeHistogram(percents,numbins,[],xlabel,title,axislims,figsize)
 
-        # full incibility
+        # full inducibility
         percents = [float(val[3])/val[4]*100 for val in fidict.values() if val[3] > 0]
-        xlabel = "% parameters in the factor graph"
-        title = "Full inducibility > 0 for {} total networks".format(len(percents))
-        axislims = [0,100,0,21]
-        numbins = 15
-        makeHistogram(percents,numbins,[],xlabel,title,axislims)
+        title = "Some full inducibility, {} total networks".format(len(percents))
+        makeHistogram(percents,numbins,[],xlabel,title,axislims,figsize)
 
-    # makeAllHistograms()
+    makeAllHistograms()
 
     # full inducibility > 0% suggested edges
     list_of_networks = [key for key,val in fidict.iteritems() if val[3] > 0]
+    print "{} networks".format(len(list_of_networks))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
         network_spec = nf.read()
     getSuggestedEdges(network_spec,list_of_networks)
 
     print "\n\n"
 
-    # full inducibility > 50% suggested edges
+    # full inducibility > 20% suggested edges
     percents = sorted([(float(val[3])/val[4]*100,key) for key,val in fidict.iteritems()],reverse=True)
-    list_of_networks = [ tup[1] for tup in percents if tup[0] > 40]
+    list_of_networks = [ tup[1] for tup in percents if tup[0] > 20]
+    print "{} networks".format(len(list_of_networks))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
         network_spec = nf.read()
     getSuggestedEdges(network_spec,list_of_networks)
@@ -285,6 +282,6 @@ if __name__ == "__main__":
     # YaoNetworks_tiered_suggested_edges()
     # E2Fbistability(1,'4')
     # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
-    # YaoNetworks_fullinducibility()
-    E2FNetworks_fullinducibility()
+    YaoNetworks_fullinducibility()
+    # E2FNetworks_fullinducibility()
 

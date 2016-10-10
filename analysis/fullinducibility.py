@@ -21,84 +21,75 @@ def makeYaoDatabases(fname='4D_2016_08_25_Yao.json'):
     job.prep()
     job.run()
 
-def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationResults/YaoNetworks/Yaonetworks_nonessential_databases'):
+def fullinducibilityquery(database,FP_OFF,FP_ON):
+    size_factor_graph,num_reduced_parameters = database.single_gene_query_prepare("S")
+    print str(num_reduced_parameters) + "\n"
+    matchesBiStab = frozenset(database.DoubleFPQuery(FP_ON,FP_OFF))
+    matchesOFF = frozenset(set(database.MonostableFPQuery(FP_OFF)))
+    matchesON = frozenset(set(database.MonostableFPQuery(FP_ON)))
+    min_gpi = 0
+    max_gpi = size_factor_graph-1
+    OFF = set([])
+    ON = set([])
+    BiStab = set([])
+    for m in range(num_reduced_parameters):
+        if not m%1000:
+            print "Reduced parameter {}".format(m)
+        graph = database.single_gene_query("S", m)
+        if graph.mgi(min_gpi) in matchesOFF:
+            OFF.add(m)
+        if graph.mgi(max_gpi) in matchesON:
+            ON.add(m)
+        for i in range(min_gpi+1,max_gpi):
+            if graph.mgi(i) in matchesBiStab:
+                BiStab.add(m)
+                break
+    resettablebistability = BiStab.intersection(OFF)
+    inducibility = BiStab.intersection(ON)
+    fullinducibility = resettablebistability.intersection(inducibility)
+    return (len(BiStab),len(resettablebistability),len(inducibility),len(fullinducibility),num_reduced_parameters)
 
-    FP_OFF= {"EE":[0,0],"Rp":[1,1]}
-    FP_ON={"EE":[1,8],"Rp":[0,0]}
-
+def fi_wrapper(databasefolder,FP_OFF,FP_ON,savefilename):
     fullInducDict = {}
-
-    for db in os.listdir(databasefolder):
-        database = qDSGRN.dsgrnDatabase(os.path.join(databasefolder,db))
-        size_factor_graph,num_factor_graphs = database.single_gene_query_prepare("S")
-        print(database.network.specification())
-        print str(num_factor_graphs) + "\n"
-        matchesBiStab = frozenset(database.DoubleFPQuery(FP_ON,FP_OFF))
-        matchesOFF = frozenset(set(database.SingleFPQuery(FP_OFF)).difference(matchesBiStab))
-        matchesON = frozenset(set(database.SingleFPQuery(FP_ON)).difference(matchesBiStab))
-        min_gpi = 0
-        max_gpi = size_factor_graph-1
-        OFF = set([])
-        ON = set([])
-        BiStab = set([])
-        for m in range(num_factor_graphs):
-            graph = database.single_gene_query("S", m)
-            if graph.mgi(min_gpi) in matchesOFF:
-                OFF.add(m)
-            if graph.mgi(max_gpi) in matchesON:
-                ON.add(m)
-            for i in range(min_gpi+1,max_gpi):
-                if graph.mgi(i) in matchesBiStab:
-                    BiStab.add(m)
-                    break
-        resettablebistability = BiStab.intersection(OFF)
-        inducibility = BiStab.intersection(ON)
-        fullinducibility = len(resettablebistability.intersection(inducibility))
-        fullInducDict[database.network.specification()] = (len(BiStab),len(resettablebistability),len(inducibility),fullinducibility,num_factor_graphs)
-    print fullInducDict
-    with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json','w') as f:
-        json.dump(fullInducDict,f)
-
-def fullinducibilityquery_E2F(databasefolder='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper'):
-
-    FP_OFF={"E2F":[0,0],"E2F_Rb":[1,1]} 
-    FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
-
-    fullInducDict = {}
-
     for db in os.listdir(databasefolder):
         if db[-2:] == 'db':
             database = qDSGRN.dsgrnDatabase(os.path.join(databasefolder,db))
             print(database.network.specification())
-            size_factor_graph,num_factor_graphs = database.single_gene_query_prepare("S")
-            print str(num_factor_graphs) + "\n"
-            matchesBiStab = frozenset(database.DoubleFPQuery(FP_ON,FP_OFF))
-            matchesOFF = frozenset(set(database.SingleFPQuery(FP_OFF)).difference(matchesBiStab))
-            matchesON = frozenset(set(database.SingleFPQuery(FP_ON)).difference(matchesBiStab))
-            min_gpi = 0
+            fullInducDict[database.network.specification()] = fullinducibilityquery(database,FP_OFF,FP_ON)
+    print fullInducDict
+    with open(savefilename,'w') as f:
+        json.dump(fullInducDict,f)
+
+def fi_wrapper_new(databasefolder,FP_OFF,FP_ON,gene,savefilename):
+    fullInducDict = {}
+    for db in os.listdir(databasefolder):
+        if db[-2:] == 'db':
+            database = qDSGRN.dsgrnDatabase(os.path.join(databasefolder,db))
+            print(database.network.specification())
+            size_factor_graph,num_reduced_parameters = database.single_gene_query_prepare(gene)
+            print str(num_reduced_parameters) + "\n"
             max_gpi = size_factor_graph-1
-            OFF = set([])
-            ON = set([])
-            BiStab = set([])
-            for m in range(num_factor_graphs):
-                if not m%1000:
-                    print "Factor graph {}".format(m)
-                graph = database.single_gene_query("S", m)
-                if graph.mgi(min_gpi) in matchesOFF:
-                    OFF.add(m)
-                if graph.mgi(max_gpi) in matchesON:
-                    ON.add(m)
-                for i in range(min_gpi+1,max_gpi):
-                    if graph.mgi(i) in matchesBiStab:
-                        BiStab.add(m)
-                        break
+            OFF, ON, BiStab = database.full_inducibility(gene,FP_OFF,FP_ON,max_gpi)
             resettablebistability = BiStab.intersection(OFF)
             inducibility = BiStab.intersection(ON)
-            fullinducibility = len(resettablebistability.intersection(inducibility))
-            fullInducDict[database.network.specification()] = (len(BiStab),len(resettablebistability),len(inducibility),fullinducibility,num_factor_graphs)
+            fullinducibility = resettablebistability.intersection(inducibility)
+            counts = (len(BiStab),len(resettablebistability),len(inducibility),len(fullinducibility),num_reduced_parameters)
+            fullInducDict[database.network.specification()] = counts
     print fullInducDict
-    with open('/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_nets2_3_4.json','w') as f:
+    with open(savefilename,'w') as f:
         json.dump(fullInducDict,f)
+
+def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationResults/YaoNetworks/Yaonetworks_nonessential_databases',savefilename='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults_new.json'):
+    FP_OFF= {"EE":[0,0],"Rp":[1,1]}
+    FP_ON={"EE":[1,8],"Rp":[0,0]}
+    # fi_wrapper(databasefolder,FP_OFF,FP_ON,savefilename)
+    fi_wrapper_new(databasefolder,FP_OFF,FP_ON,"S",savefilename)
+
+def fullinducibilityquery_E2F(databasefolder='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper', savefilename='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_nets2_3_4_new.json'):
+    FP_OFF={"E2F":[0,0],"E2F_Rb":[1,1]} 
+    FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
+    # fi_wrapper(databasefolder,FP_OFF,FP_ON,savefilename)
+    fi_wrapper_new(databasefolder,FP_OFF,FP_ON,"S",savefilename)
 
 if __name__ == "__main__":
     # makeYaoDatabases()
