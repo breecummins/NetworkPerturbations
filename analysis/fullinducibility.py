@@ -66,7 +66,7 @@ def fi_wrapper_new(databasefolder,FP_OFF,FP_ON,gene,savefilename):
         if db[-2:] == 'db':
             database = qDSGRN.dsgrnDatabase(os.path.join(databasefolder,db))
             print(database.network.specification())
-            size_factor_graph,num_reduced_parameters = database.single_gene_query_prepare(gene)
+            size_factor_graph,num_reduced_parameters = database.single_gene_query_prepare2(gene)
             print str(num_reduced_parameters) + "\n"
             max_gpi = size_factor_graph-1
             OFF, ON, BiStab = database.full_inducibility(gene,FP_OFF,FP_ON,max_gpi)
@@ -79,7 +79,7 @@ def fi_wrapper_new(databasefolder,FP_OFF,FP_ON,gene,savefilename):
     with open(savefilename,'w') as f:
         json.dump(fullInducDict,f)
 
-def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationResults/YaoNetworks/Yaonetworks_nonessential_databases',savefilename='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults_new.json'):
+def fullinducibilityquery_Yao(databasefolder='/Users/bcummins/ProjectSimulationResults/YaoNetworks/Yaonetworks_nonessential_databases',savefilename='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults_new_new.json'):
     FP_OFF= {"EE":[0,0],"Rp":[1,1]}
     FP_ON={"EE":[1,8],"Rp":[0,0]}
     # fi_wrapper(databasefolder,FP_OFF,FP_ON,savefilename)
@@ -94,6 +94,6 @@ def fullinducibilityquery_E2F(databasefolder='/Users/bcummins/ProjectSimulationR
 if __name__ == "__main__":
     # makeYaoDatabases()
     # makeYaoDatabases('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json')
-    # fullinducibilityquery_Yao()
-    fullinducibilityquery_E2F()
+    fullinducibilityquery_Yao()
+    # fullinducibilityquery_E2F()
 

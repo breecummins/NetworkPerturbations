@@ -81,14 +81,14 @@ def display(OFF,ON,BiStab,num_reduced_parameters):
     print "Inducibility in {} reduced parameters.".format(len(inducibility))
     print "Full inducibility in {} reduced parameters.".format(len(fullinducibility))
     print("\n")
-   
-if __name__ == '__main__':
+
+def testfullinducibility(args):
     # some small parameter graphs are networks 2, 3, 4, 32
 
-    if len(sys.argv) < 2:
+    if len(args) < 2:
         n = str(n).zfill(2)
     else:
-        n = str(sys.argv[1]).zfill(2)
+        n = str(args[1]).zfill(2)
 
     networkfile = 'Yaonetworks_nonessential/network{}.txt'.format(n)
     dbfile = 'Yaonetworks_nonessential_databases/database{}.db'.format(n)
@@ -97,3 +97,18 @@ if __name__ == '__main__':
     fullinducibility_usingDSGRN(networkfile)
     print "\nUsing queryDSGRN:\n"
     fullinducibility_usingqueryDSGRN(dbfile)
+
+def testgenerator():
+    dbfile = '/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2Fnetwork2.db'
+    db = queryDSGRN.dsgrnDatabase(dbfile)
+    print "old\n"
+    N,M = db.single_gene_query_prepare("S")
+    print "new\n"
+    N,M = db.single_gene_query_prepare2("S")
+
+  
+if __name__ == '__main__':
+    # testfullinducibility(sys.argv)
+    testgenerator()
+
+    
