@@ -1,6 +1,8 @@
 import DSGRN
 import queryDSGRN
 import itertools, sys
+from datetime import datetime
+
 
 # Order of variables in network file: S, MD, Rp, EE
 # Then low FP is [*,*,1,0]
@@ -99,13 +101,16 @@ def testfullinducibility(args):
     fullinducibility_usingqueryDSGRN(dbfile)
 
 def testgenerator():
-    dbfile = '/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2Fnetwork2.db'
+    dbfile = '/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2Fnetwork3.db'
     db = queryDSGRN.dsgrnDatabase(dbfile)
     print "old\n"
+    startTime = datetime.now()
     N,M = db.single_gene_query_prepare("S")
-    print "new\n"
+    print "Run time = {}".format(datetime.now()-startTime)
+    print "\nnew\n"
+    startTime = datetime.now()
     N,M = db.single_gene_query_prepare2("S")
-
+    print "Run time = {}".format(datetime.now()-startTime)
   
 if __name__ == '__main__':
     # testfullinducibility(sys.argv)
