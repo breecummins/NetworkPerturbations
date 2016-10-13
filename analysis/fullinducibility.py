@@ -98,8 +98,10 @@ def fullinducibilityquery_E2F_network1(dbfile = "/share/data/CHomP/Projects/DSGR
     FP_OFF={"E2F":[0,0],"E2F_Rb":[1,1]} 
     FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
     counts,network_spec = fullinducibility(dbfile,FP_OFF,FP_ON,"S")
+    result = {network_spec : counts}
+    print result
     with open(savefilename,'w') as f:
-        json.dump({network_spec : counts},f)
+        json.dump(result,f)
 
 
 
