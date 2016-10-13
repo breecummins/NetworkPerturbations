@@ -61,7 +61,7 @@ def makeYaoDatabases(fname='4D_2016_08_25_Yao.json'):
 #         json.dump(fullInducDict,f)
 
 def fullinducibility(dbfile,FP_OFF,FP_ON,gene):
-    database = qDSGRN.dsgrnDatabase()
+    database = qDSGRN.dsgrnDatabase(dbfile)
     print(database.network.specification())
     size_factor_graph,num_reduced_parameters = database.single_gene_query_prepare(gene)
     print str(num_reduced_parameters) + "\n"
