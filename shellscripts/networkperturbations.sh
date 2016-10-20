@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # main script for constructing and analyzing network perturbations
-# dependencies: bash 4 (associative arrays), dsgrn installed on path (get number of parameters -- see querylibrary.sh), DSGRN dependencies, mpiexec, python 2.7, sqlite3
+# dependencies: dsgrn installed on path (get number of parameters -- see querylibrary.sh), DSGRN dependencies, mpiexec, python 2.7, sqlite3
 
 # get paths
 PATH_TO_DSGRN=$1
