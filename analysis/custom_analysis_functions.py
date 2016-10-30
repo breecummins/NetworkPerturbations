@@ -83,9 +83,6 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23(fname='/Users/b
     # for z in bestones:
     #     print z
     
-
-
-
 def wavepool_network1_Dukediscussion_perturbations_suggestiongraphs(network_spec_file='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_02_wavepool_network1_Dukediscussion.txt', fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json'):
     with open(network_spec_file,'r') as f:
         network_spec = f.read()
@@ -136,38 +133,6 @@ def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02(network_spec_fi
     makeHistogram(nonzeros,45,extrapoints,xlabel,title,axislims)
     for b in bestones: print b
     getSuggestedEdges(lod[0]["Network"],list_of_networks[1:])
-
-# def YaoNetworks(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
-#     with open(fname,'r') as f:
-#         lod = json.load(f)
-#     percents=[ float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount'])*100 for d in lod ]
-#     xlabel = "DoubleFPQuery: " + d['DoubleFPQuery']
-#     title = "% parameters with double FP over {} networks".format(len(lod))
-#     axislims = [0,100,0,25]
-#     makeHistogram(percents,20,[],xlabel,title,axislims)
-
-
-# def YaoNetworks_tiered_suggested_edges(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_25_Yao.json'):
-#     nname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt'
-#     with open(nname,'r') as f:
-#         network_spec = f.read()
-#     with open(fname,'r') as f:
-#         lod = json.load(f)
-#     bistablepercents=sorted([ (float(d['DoubleFPQueryParameterCount'])/int(d['ParameterCount'])*100,d["Network"],d['DoubleFPQueryParameterCount']) for d in lod ],reverse=True)
-
-#     def bistable_sugg_edges(thresh):
-#         list_of_networks = [y[1] for y in filter(lambda x: x[0] > thresh and x[2]>0, bistablepercents)]
-#         ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
-#         counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
-#         print "\n\nEdges suggested by all {} networks with greater than {}% bistability:\n".format(len(list_of_networks),thresh)
-#         for c,e in zip(counts,edges):
-#             print str(e) + ': ' + str(c)
-
-#     bistable_sugg_edges(0)
-#     # bistable_sugg_edges(25)
-#     bistable_sugg_edges(50)
-#     # bistable_sugg_edges(75)
-#     bistable_sugg_edges(99)
 
 def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json'):
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
@@ -226,44 +191,6 @@ def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
             print n[1]
             print n[0]
 
-
-# def E2Fbistability(func=1,networknum='2'):
-#     def bicount():
-#         N = parametergraph.size()
-#         n = subprocess.check_output('cat '+bistablefname+' | wc -l', shell=True)
-#         print "Percentage bistability:"
-#         print float(n)/N
-
-#     def checkall3():
-#         with open(bistablefname,'r') as f:
-#             params = []
-#             bistablecount = 0
-#             for p in f:
-#                 param = parametergraph.parameter(int(p))
-#                 params.append(tuple([ tuple([ tuple(a) for a in v  ]) for v in eval(param.stringify())[1:]])) #[1:] means cut off S param 
-#                 bistablecount+=1
-#         with open('/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'_nonessential_FPresults.txt','r') as f:
-#             getnext=0
-#             for l in f.readlines():
-#                 if l == 'Params in both:\n':
-#                     getnext=1
-#                 elif getnext:
-#                     lowandhigh = eval(l)
-#                     break
-#         allparams = set(params).intersection(lowandhigh)
-#         print "Count of params with all three properties:"
-#         print len(allparams)
-#         print "Percentage bistability:"
-#         print float(bistablecount)/N
-
-#     network = DSGRN.Network('/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/6D_2016_08_26_cancerE2Fnetwork'+networknum+'.txt')
-#     parametergraph = DSGRN.ParameterGraph(network)
-#     bistablefname = '/Users/bcummins/ProjectSimulationResults/E2F_Rb_paper_data/bistabilityquerynet'+networknum+'.txt'        
-#     if func == 1:
-#         bicount()
-#     else:
-#         checkall3()
-
 def E2FNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_nets2_3_4.json'):
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
     with open(fname,'r') as f:
@@ -279,8 +206,6 @@ if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23()
     # wavepool_network1_Dukediscussion_perturbations_suggestiongraphs()
     # YaoNetworks()
-    # YaoNetworks_tiered_suggested_edges()
-    # E2Fbistability(1,'4')
     # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
     YaoNetworks_fullinducibility()
     # E2FNetworks_fullinducibility()

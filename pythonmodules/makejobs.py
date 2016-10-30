@@ -43,6 +43,7 @@ class Job():
         else: RMDB = "False"
         if self.params['removeNF'] == 'y': RMNF = "True"
         else: RMNF = "False"
+        if not self.params['queryfile']: self.params['queryfile'] = 'shellscripts/blankquery.sh'
         shellcall = ["shellscripts/networkperturbations.sh " + " ".join([self.params['dsgrn'],self.NETWORKDIR,self.PATTERNDIR, self.DATABASEDIR, self.RESULTSDIR, self.params['queryfile'],"shellscripts/networkperturbations_helper_"+self.run_type+".sh",self.run_type, RMDB, RMNF])]
         subprocess.call(shellcall,shell=True)
 
