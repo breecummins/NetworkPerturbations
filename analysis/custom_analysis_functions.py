@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams['font.size'] = 48
 import suggestiongraphs as SG
-import DSGRN, subprocess
+import DSGRN, subprocess,sys
 
 
 def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims,figsize=None):
@@ -202,11 +202,18 @@ def E2FNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
         print 'Inducibility: {:.1f}%'.format(float(value[2])/value[4]*100)
         print 'Full inducibility: {:.1f}%\n'.format(float(value[3])/value[4]*100)
 
+def wavepool_9networks(fname='/Users/bcummins/ProjectSimulationResults/wavepool4patternmatch_paper/wavepool_9networks.json'):
+    with open(fname,'r') as f:
+        wd = json.load(f)
+    for d in wd:
+        print d["Network"] + "\n"
+        print str(d["ParameterCount"]) + "/" + str(d["StableFCParameterCount"]) + "/" + str(d["StableFCMatchesParameterCount"]) + "\n"
+
 if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23()
     # wavepool_network1_Dukediscussion_perturbations_suggestiongraphs()
     # YaoNetworks()
     # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
-    YaoNetworks_fullinducibility()
-    # E2FNetworks_fullinducibility()
-
+    # YaoNetworks_fullinducibility()
+    E2FNetworks_fullinducibility('/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_net1.json')
+    # wavepool_9networks(sys.argv[1])

@@ -19,9 +19,7 @@ RMNF=$10
 # for each perturbation, start a scheduled job for analysis
 for NETWORKFILE in $NETWORKDIR/*; do
 	# strip the uniquely identifying number off of the filename
-	bname=`basename $NETWORKFILE`
-	netid=${bname%%.*}
-	NETWORKID=${netid##network} 
+	NETWORKID=`basename $NETWORKFILE | sed 's/[^0-9]*//g'`
 	# start a scheduled job
 	if [[ $RUN_TYPE = "qsub" ]]; then
 		qsub $HELPER_SCRIPT_CMD $PATH_TO_DSGRN $NETWORKFILE $PATTERNDIR $DATABASEDIR $RESULTSDIR $NETWORKID $QUERYFILE $RMDB $RMNF

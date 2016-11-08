@@ -53,9 +53,8 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 
 	# pattern match in stable FCs
 	for PATTERNFILE in $PATTERNDIR/$NETWORKID/*; do
-		P=`basename $PATTERNFILE`
-		NUM="$NETWORKID${P##pattern}" # get everything after "pattern" in the file name (get the scaling factor); THIS REQUIRES STEREOTYPED NAMING CONVENTIONS
-		NUM=${NUM%%.*} # get everything before the file extension to make a unique identifier
+		P=`basename $PATTERNFILE | sed 's/[^0-9_]*//g'` #patterns must have unique numbers
+		NUM=$NETWORKID"_"$P 
 		MATCHFILE=$DATABASEDIR/Matches$NUM.txt
 		mpiexec --mca mpi_preconnect_mpi 1 -np $NSLOTS -x LD_LIBRARY_PATH $PATTERNMATCH $NETWORKFILE $PATTERNFILE $STABLEFCLIST $MATCHFILE > /dev/null
 		MATCHES=`getcountuniquelines $MATCHFILE`

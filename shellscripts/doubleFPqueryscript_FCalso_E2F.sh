@@ -8,5 +8,5 @@ python $DSGRN/software/FPQuery/FPQuery2.py $DATABASEFILE DoubleFP $FP1 $FP2 > $D
 NUMFP=`getcountuniquelines $DATABASEDIR/query$NETWORKID.txt`
 rm $DATABASEDIR/query$NETWORKID.txt
 getstableFClist
-SC="StableFCParameterCount:"`summarystableFCs`
-echo  $SC" ** DoubleFPQuery:$FP1 $FP2 ** DoubleFPQueryParameterCount:"$NUMFP #split entries by **
+SC="StableFCParameterCount:`summarystableFCs`"
+echo  $SC" ** DoubleFPQuery:$FP1 $FP2 __ DoubleFPQueryParameterCount:"$NUMFP #split entries by **
