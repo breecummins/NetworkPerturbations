@@ -1,33 +1,11 @@
 import networkx as nx
 import dsgrn
 import re
-# from functools import partial
 
 
 block_question=re.compile("[?]+")
 ID=re.compile("ID")
 DI=re.compile("DI")
-
-# def repl(c,m):
-#     return c * len(m.group())
-
-# def subs_ipath(ipath,ipaths=set()):
-#     firstmatch = re.search(block_question,ipath)
-#     if not firstmatch:
-#         ipaths.add(ipath)
-#     else:
-#         start, end = firstmatch.start(0), firstmatch.end(0)
-#         label1, label2 = None, None
-#         if start > 0: label1 = ipath[start-1]
-#         if end < len(ipath)-1: label2 = ipath[end+1]
-#         if label1 and (label1 == label2 or label2 is None):
-#             ipaths = subs_ipath(block_question.sub(partial(repl,label1),ipath[:],1),ipaths)
-#         elif label2 and label1 is None:
-#             ipaths = subs_ipath(block_question.sub(partial(repl,label2),ipath[:],1),ipaths)
-#         else:
-#             ipaths = subs_ipath(block_question.sub(partial(repl,label1),ipath[:],1),ipaths)
-#             ipaths = subs_ipath(block_question.sub(partial(repl,label2),ipath[:],1),ipaths)
-#     return ipaths
 
 def get_min_max(ipath):
     # First handle explicit extrema
