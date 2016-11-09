@@ -75,13 +75,12 @@ fi
 if  [  $RMNF == "True" ]; then 
 	rm $NETWORKFILE 
 fi 
-if [  $RMDB == "True" ]; then 
+if  [  $RMDB == "True" ]; then 
 	rm $DATABASEFILE
+	if [ -f $STABLEFCLIST ]; then
+		rm $STABLEFCLIST
+	fi
 fi 
-
-if [ -f $STABLEFCLIST ]; then
-	rm $STABLEFCLIST
-fi
 
 
 

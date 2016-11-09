@@ -69,8 +69,8 @@ if  [  $RMNF == "True" ]; then
 fi 
 if  [  $RMDB == "True" ]; then 
 	rm $DATABASEFILE
+	if [ -f $STABLEFCLIST ]; then
+		rm $STABLEFCLIST
+	fi
 fi 
-if [ -f $STABLEFCLIST ]; then
-	rm $STABLEFCLIST
-fi
 

@@ -1,7 +1,9 @@
+import re, subprocess, os
 import networkx as nx
-import DSGRN
-import re
 import intervalgraph as ig
+import DSGRN
+from makejobs import Job
+
 
 
 block_question=re.compile("[?]+")
@@ -38,21 +40,57 @@ def make_partial_orders(graph,names):
     graph is an nx.DiGraph object with meta-data "label" of the form {I,D,?}^len(names)
     names is a list of the gene names corresponding to each variable index
     '''
-    cycles = nx.simplecycles(graph)
+    cycles = nx.simple_cycles(graph)
     cycles = [cyc+[cyc[0]] for cyc in cycles] #first element is left off of the end in simplecycles() output
     labeled_cycles = [[graph.node[c]["label"] for c in cyc] for cyc in cycles]
-    partialorders = []
+    # print labeled_cycles
+    partialorders = set([])
     for cyc in labeled_cycles:
         extrema = []
         for i,name in enumerate(names):
             ipath = ''.join(c[i] for c in cyc)
+            print ipath
             imin,imax = get_min_max(ipath)
             if not consecutive(imin) or not consecutive(imax):
                 raise ValueError("More than one maximum or minimum of variable {} in path.".format(name))
             else:
-                extrema.append([name+" max",[imax[0],imax[-1]]])
-                extrema.append([name+" min",[imin[0],imin[-1]]])
-        partialorders.append(ig.IntervalGraph(extrema))
+                if imin: extrema.append([name+" min",[imin[0],imin[-1]]])
+                if imax: extrema.append([name+" max",[imax[0],imax[-1]]])
+        intgraph = ig.IntervalGraph(extrema)
+        partialorders.add({'graph' : { intgraph.vertex_label(v) : tuple([intgraph.vertex_label(w) for w in intgraph.adjacencies(v)]) for v in intgraph.vertices()}}.update({'graphviz' : intgraph.graphviz()}))
+    return partialorders
+
+def labelstring(L,D):
+    """
+    Inputs: label L, dimension D
+    Outputs:"label" output L of DomainGraph is converted into a string with "I", "D", and "?"
+    """
+    return ''.join([ "D" if L&(1<<d) else ("I" if L&(1<<(d+D)) else "?") for d in range(0,D) ])
+
+def iterate_over_params(networkfile="network.txt",FCfile="StableFClist.txt"):
+    # network is a DSGRN.Network object
+    network = DSGRN.Network(networkfile)
+    names = [network.name(i) for i in range(network.size())]
+    paramgraph = DSGRN.ParameterGraph(network)
+    partialorders = set([])
+    with open(FCfile,'r') as SFC:
+        for param_morse in SFC:
+            paramind,mset=param_morse.split()
+            domaingraph = DSGRN.DomainGraph(paramgraph.parameter(long(paramind)))
+            morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
+            morseset_of_interest = morsedecomposition.morseset(int(mset))
+            labels = { v : labelstring(domaingraph.label(v),domaingraph.dimension()) for v in morseset_of_interest}
+            G = nx.DiGraph()
+            for vertex,label in labels.iteritems():
+                G.add_node(vertex,label=label)
+            edges=[]
+            for i in range(domaingraph.digraph().size()):
+                if i in labels:
+                    edges.extend((i,a) for a in domaingraph.digraph().adjacencies(i) if a in labels)
+            G.add_edges_from(edges)
+            # print { n : G.node[n]['label'] for n in G.nodes() }
+            # print G.out_edges()
+            partialorders.update(make_partial_orders(G,names))
     return partialorders
 
 def test():
@@ -71,6 +109,24 @@ def test():
     for v in graph.vertices():
         # print graph.vertex_label(v), [graph.vertex_label(w) for w in  graph.adjacencies(v)]
         print answer[graph.vertex_label(v)] == [graph.vertex_label(w) for w in  graph.adjacencies(v)]
+    netdir  = 'testnetworks'
+    networkfile = netdir +'/network01.txt'
+    subprocess.call('mkdir '+netdir,shell=True)
+    with open(networkfile,'w') as tn:
+        tn.write('x : ~y : E\ny : x : E')
+    params = {}
+    params['dsgrn'] = '../DSGRN'
+    params['networkfolder'] = netdir
+    params['queryfile'] = 'shellscripts/stableFCqueryscript.sh'
+    params['removeDB'] = 'n'
+    params['removeNF'] = 'n'
+    job = Job('local',params)
+    job.prep()
+    job.run()
+    FCfile = os.path.join(job.DATABASEDIR,'StableFClist01.txt')
+    partialorders = iterate_over_params(networkfile,FCfile)
+    for po in partialorders:
+        print po
 
 
 if __name__ == "__main__":
