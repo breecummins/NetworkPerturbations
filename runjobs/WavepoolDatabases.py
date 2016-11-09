@@ -11,10 +11,10 @@ def makeWavePoolDatabases(location="local",netdir='/Users/bcummins/ProjectSimula
     params['timeseriesfile'] = 'pythonmodules/datafiles/haase-fpkm-p1_yeast_s29.txt'
     params['ts_type'] = 'row'
     params['ts_truncation'] = 60
-    params['scaling_factors'] = [0.0]
+    params['scaling_factors'] = [0.2]
     job = Job(location,params)
     job.prep()
-    job.run()
+    # job.run()
 
 if __name__ == "__main__":
     # makeWavePoolDatabases("qsub","wavepoolnetworks")

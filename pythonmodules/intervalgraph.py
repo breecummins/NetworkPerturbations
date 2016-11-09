@@ -159,7 +159,7 @@ def IntervalGraph(events):
     G.add_vertex(i,events[i][0])
   for i in range(0, N):
     for j in range(0, N):
-      if events[i][1][1] <= events[j][1][0]:
+      if events[i][1][1] <= events[j][1][0] and i!=j:
         G.add_edge(i,j)
   return G
 
