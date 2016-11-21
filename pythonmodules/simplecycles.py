@@ -1,4 +1,4 @@
-import re, subprocess, os
+import re, subprocess, os, itertools
 import networkx as nx
 import intervalgraph as ig
 import DSGRN
@@ -14,51 +14,85 @@ def get_min_max(ipath):
     # First handle explicit extrema
     imin = [m.start(0)+1 for m in DI_min.finditer(ipath)]
     imax = [m.start(0)+1 for m in ID_max.finditer(ipath)]
-    # Now search for extrema in question mark blocks
-    # Assume no extra extrema in D???I (i.e. there's exactly one min that occurs somewhere in ???)
-    # If ?? extends to the beginning or end of the path, assume no extrema.
-    # FIXME: if the path is a cycle, then could use extra info to get additional extrema,
+    # Now search for extrema in question mark blocks.
+    # Assume no extra extrema in D???I (i.e. there's exactly one min that occurs somewhere in ???).
+    # If ? at beginning and end of the path, add an extremum;
     # for example ???ID??? must have a min somewhere in the ?? if it's a cycle.
-    # However this leads to a bunch of special cases, so I'm ignoring it for now.
+    extremum = tuple()
     for m in block_question.finditer(ipath):
         start, end = m.start(0), m.end(0)
-        label1 = ipath[start-1] if start>0 else ""
-        label2 = ipath[end] if end<len(ipath) else ""
+        label1 = ipath[start-1] if start>0 else "?"
+        label2 = ipath[end] if end<len(ipath) else "?"
         if label1+label2 == 'DI': imin += range(start,end+1)
         elif label1+label2 == 'ID': imax += range(start,end+1)
+        elif label1 == "?": extremum = (label2,range(start,end+1))
+        elif label2 == "?" and extremum: 
+            if extremum[0] == "I" and label1 == "D": imin += extremum[1]+range(start,end)
+            elif extremum[0] == "D" and label1 == "I": imax += extremum[1]+range(start,end)
     return sorted(imin), sorted(imax)
 
-def consecutive(l):
-    # input list must be sorted low to high
-    diff = [l[i+1]-l[i] for i in range(len(l)-1)]
-    if any([d > 1 for d in diff]): return False
-    else: return True
+def make_consecutive_blocks(l):
+    if not l: return l
+    blocks, b, i = [], [l[0]], 1
+    while i <= len(l):
+        if i == len(l):
+            blocks.append([b[0],b[-1]])
+        elif l[i] - l[i-1] == 1:
+            b += [l[i]]
+        else:
+            blocks.append([b[0],b[-1]])
+            b = [l[i]]
+        i += 1
+    return blocks
 
-def make_partial_orders(graph,names):
+def make_partial_orders(cycles,names):
     '''
     Written assuming only one max and one min per variable.
-    graph is an nx.DiGraph object with meta-data "label" of the form {I,D,?}^len(names)
+    cycles is a list of lists of words from {I,D,?}^len(names)
     names is a list of the gene names corresponding to each variable index
     '''
-    cycles = nx.simple_cycles(graph)
-    cycles = [cyc+[cyc[0]] for cyc in cycles] #first element is left off of the end in simplecycles() output
-    labeled_cycles = [[graph.node[c]["label"] for c in cyc] for cyc in cycles]
-    # print labeled_cycles
-    partialorders = set([])
-    for cyc in labeled_cycles:
-        extrema = []
+    partialorders = []
+    for cyc in cycles:
+        extrema = [[]]
         for i,name in enumerate(names):
             ipath = ''.join(c[i] for c in cyc)
-            print ipath
-            imin,imax = get_min_max(ipath)
-            if not consecutive(imin) or not consecutive(imax):
-                raise ValueError("More than one maximum or minimum of variable {} in path.".format(name))
-            else:
-                if imin: extrema.append([name+" min",[imin[0],imin[-1]]])
-                if imax: extrema.append([name+" max",[imax[0],imax[-1]]])
-        intgraph = ig.IntervalGraph(extrema)
-        partialorders.add({'graph' : { intgraph.vertex_label(v) : tuple([intgraph.vertex_label(w) for w in intgraph.adjacencies(v)]) for v in intgraph.vertices()}}.update({'graphviz' : intgraph.graphviz()}))
+            imin,imax = get_min_max(ipath) 
+            minblocks = make_consecutive_blocks(imin)
+            maxblocks = make_consecutive_blocks(imax)
+            if minblocks and maxblocks: (iterator, flag) = (itertools.product(minblocks,maxblocks), 'both')
+            else: (iterator,flag) = (minblocks, 'min') or (maxblocks,'max')
+            new_extrema = []
+            for ex in extrema:
+                for block in iterator:
+                    new_ex = ex[:]
+                    if flag == 'both': new_ex.extend([(name+" min",block[0]),(name+" max",block[1])])
+                    else: new_ex.append((name+" "+flag,block))  
+                    new_extrema.append(new_ex)
+            extrema = new_extrema  
+        for ex in extrema:
+            intgraph = ig.IntervalGraph(ex)
+            graph_dict = { intgraph.vertex_label(v) : tuple([intgraph.vertex_label(w) for w in intgraph.adjacencies(v)]) for v in intgraph.vertices()}
+            partialorders.append({'graph' : graph_dict, 'graphviz' : intgraph.graphviz()})
     return partialorders
+
+def make_labeled_cycles(digraph):
+    # graph is nx.DiGraph object
+    cycles = nx.simple_cycles(digraph)
+    cycles = [cyc+[cyc[0]] for cyc in cycles] #first element is left off of the end in simplecycles() output
+    labeled_cycles = [[digraph.node[c]["label"] for c in cyc] for cyc in cycles]
+    return labeled_cycles
+
+def make_morse_digraph(paramgraph,paramind,morseset):
+    # paramind, morseset are ints (or longs)
+    domaingraph = DSGRN.DomainGraph(paramgraph.parameter(paramind))
+    morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
+    morseset_of_interest = morsedecomposition.morseset(morseset)
+    labels = { v : labelstring(domaingraph.label(v),domaingraph.dimension()) for v in morseset_of_interest}
+    G = nx.DiGraph()
+    for vertex,label in labels.iteritems(): G.add_node(vertex,label=label)
+    edges=[ (i,a) for i in range(domaingraph.digraph().size()) for a in domaingraph.digraph().adjacencies(i) if i in labels and a in labels ]
+    G.add_edges_from(edges)
+    return G
 
 def labelstring(L,D):
     """
@@ -72,25 +106,13 @@ def iterate_over_params(networkfile="network.txt",FCfile="StableFClist.txt"):
     network = DSGRN.Network(networkfile)
     names = [network.name(i) for i in range(network.size())]
     paramgraph = DSGRN.ParameterGraph(network)
-    partialorders = set([])
+    partialorders = []
     with open(FCfile,'r') as SFC:
         for param_morse in SFC:
             paramind,mset=param_morse.split()
-            domaingraph = DSGRN.DomainGraph(paramgraph.parameter(long(paramind)))
-            morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
-            morseset_of_interest = morsedecomposition.morseset(int(mset))
-            labels = { v : labelstring(domaingraph.label(v),domaingraph.dimension()) for v in morseset_of_interest}
-            G = nx.DiGraph()
-            for vertex,label in labels.iteritems():
-                G.add_node(vertex,label=label)
-            edges=[]
-            for i in range(domaingraph.digraph().size()):
-                if i in labels:
-                    edges.extend((i,a) for a in domaingraph.digraph().adjacencies(i) if a in labels)
-            G.add_edges_from(edges)
-            # print { n : G.node[n]['label'] for n in G.nodes() }
-            # print G.out_edges()
-            partialorders.update(make_partial_orders(G,names))
+            morse_digraph = make_morse_digraph(paramgraph,long(paramind),int(mset))
+            cycles = make_labeled_cycles(morse_digraph)
+            partialorders.extend(make_partial_orders(cycles,names))
     return partialorders
 
 def test():
@@ -110,10 +132,27 @@ def test():
         # print graph.vertex_label(v), [graph.vertex_label(w) for w in  graph.adjacencies(v)]
         print answer[graph.vertex_label(v)] == [graph.vertex_label(w) for w in  graph.adjacencies(v)]
     netdir  = 'testnetworks'
-    networkfile = netdir +'/network01.txt'
     subprocess.call('mkdir '+netdir,shell=True)
+    networkfile = netdir +'/network01.txt'
+    # with open(networkfile,'w') as tn:
+    #     tn.write('x : ~y : E\ny : x : E')
+    # params = {}
+    # params['dsgrn'] = '../DSGRN'
+    # params['networkfolder'] = netdir
+    # params['queryfile'] = 'shellscripts/stableFCqueryscript.sh'
+    # params['removeDB'] = 'n'
+    # params['removeNF'] = 'n'
+    # job = Job('local',params)
+    # job.prep()
+    # job.run()
+    # FCfile = os.path.join(job.DATABASEDIR,'StableFClist01.txt')
+    # partialorders = iterate_over_params(networkfile,FCfile)
+    # print partialorders == [{'graph': {'x min': (), 'y max': ('x min',), 'y min': ('x min', 'x max', 'y max'), 'x max': ('x min', 'y max')}, 'graphviz': 'digraph {\n0[label="x min"];\n1[label="x max"];\n2[label="y min"];\n3[label="y max"];\n1 -> 0 [label=""];\n1 -> 3 [label=""];\n2 -> 0 [label=""];\n2 -> 1 [label=""];\n2 -> 3 [label=""];\n3 -> 0 [label=""];\n}\n'}, {'graph': {'x min': ('y min',), 'y max': ('x min', 'y min'), 'y min': (), 'x max': ('x min', 'y min', 'y max')}, 'graphviz': 'digraph {\n0[label="x min"];\n1[label="x max"];\n2[label="y min"];\n3[label="y max"];\n0 -> 2 [label=""];\n1 -> 0 [label=""];\n1 -> 2 [label=""];\n1 -> 3 [label=""];\n3 -> 0 [label=""];\n3 -> 2 [label=""];\n}\n'}]
+    # # for po in partialorders:
+    # #     print po,"\n"
+    networkfile = netdir +'/network01.txt'
     with open(networkfile,'w') as tn:
-        tn.write('x : ~y : E\ny : x : E')
+        tn.write('x : (y)(z) : E\ny : ~x : E\nz : y : E')
     params = {}
     params['dsgrn'] = '../DSGRN'
     params['networkfolder'] = netdir
@@ -124,9 +163,20 @@ def test():
     job.prep()
     job.run()
     FCfile = os.path.join(job.DATABASEDIR,'StableFClist01.txt')
-    partialorders = iterate_over_params(networkfile,FCfile)
-    for po in partialorders:
-        print po
+    network = DSGRN.Network(networkfile)
+    names = [network.name(i) for i in range(network.size())]
+    paramgraph = DSGRN.ParameterGraph(network)
+    with open(FCfile,'r') as SFC:
+        for param_morse in SFC:
+            paramind,mset=param_morse.split()
+            digraph = make_morse_digraph(paramgraph,long(paramind),int(mset))
+            cycles = make_labeled_cycles(digraph)
+            if int(paramind) == 0:
+                setcycles = set([tuple(cyc) for cyc in cycles])
+                answer = set([('?I?', '?I?', '??I', 'I??', '?D?', '?DD', 'D?D', '?ID', '?I?'),('?I?', '?I?', '??I', 'I??', '?D?', '?DD', 'D?D', 'D??', '?I?'),('?I?', '?I?', '??I', 'I??', '?D?', '?DD', 'DD?', 'D??', '?I?'),('?I?', '??I', 'I??', '?D?', '?DD', 'D?D', '?ID', 'IID', '?I?'),('?I?', '??I', 'I??', '?D?', '?DD', 'DD?', '?I?'),('?ID', 'IID', 'I??', '?D?', '?DD', 'D?D', '?ID'),('?ID', 'IID', '?DD', 'D?D', '?ID')])
+                print setcycles == answer
+
+
 
 
 if __name__ == "__main__":
