@@ -1,47 +1,57 @@
 import DSGRN
 import json,os
 
-def hysteresis(dbfile,FP_OFF,FP_ON,gene):
-    database = DSGRN.Database(dbfile)
-    gene_index = database.network.index(gene)
-    print(database.network.specification())
+def hysteresis(database,gene,FP_OFF,FP_ON,gene_index):
     hys_query = DSGRN.HysteresisQuery(database,gene,FP_OFF,FP_ON)
     num_reduced_param = hys_query.GeneQuery.number_of_reduced_parameters()
     hysteresis_True = [ hys_query.GeneQuery.database.full_parameter_index(rpi,0,gene_index) for rpi in range(num_reduced_param) if hys_query(rpi) ]
-    return database.network.specification(), num_reduced_param, hysteresis_True
+    return num_reduced_param, hysteresis_True
 
-def hys_wrapper(databasefolder,FP_OFF,FP_ON,gene,savefilename):
-    HysteresisDict = {}
+def fullinducibility(database,gene,FP_OFF,FP_ON,gene_index):
+    ind_query = DSGRN.InducibilityQuery(database,gene,FP_OFF,FP_ON)
+    num_reduced_param = ind_query.GeneQuery.number_of_reduced_parameters()
+    fullinducibility_True = [ ind_query.GeneQuery.database.full_parameter_index(rpi,0,gene_index) for rpi in range(num_reduced_param) if all(ind_query(rpi)) ]
+    return num_reduced_param, fullinducibility_True
+
+def wrapper(databasefolder,FP_OFF,FP_ON,gene,savefilename,call):
+    results = {}
     for db in os.listdir(databasefolder):
         if db[-2:] == 'db':
             dbfile = os.path.join(databasefolder,db)
-            network_spec,num_reduced_param,hysteresis_True = hysteresis(dbfile,FP_OFF,FP_ON,gene)
-            HysteresisDict[network_spec] = (num_reduced_param,len(hysteresis_True),hysteresis_True)
-    for d in HysteresisDict:
-        print d,d[:-1]
+            database = DSGRN.Database(dbfile)
+            network_spec = database.network.specification()
+            print(network_spec)
+            num,Trueparams = call(database,gene,FP_OFF,FP_ON,database.network.index(gene))
+            results[network_spec] = (num,len(Trueparams),Trueparams)
+    for d in results:
+        print d,results[d][:-1],"\n"
     with open(savefilename,'w') as f:
-        json.dump(HysteresisDict,f)
+        json.dump(results,f)
 
-def hysteresis_Yao(databasefolder='/Users/bcummins/ProjectSimulationResults/YaoNetworks/Yaonetworks_nonessential_databases',savefilename='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_hysteresisresults.json'):
+def Yao_analysis(databasefolder='/Users/bcummins/ProjectSimulationResults/YaoNetworks/Yaonetworks_nonessential_databases',savefilename='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_hysteresisresults.json',call=hysteresis):
     FP_OFF= {"EE":[0,0],"Rp":[1,1]}
     FP_ON={"EE":[1,8],"Rp":[0,0]}
-    hys_wrapper(databasefolder,FP_OFF,FP_ON,"S",savefilename)
+    wrapper(databasefolder,FP_OFF,FP_ON,"S",savefilename,call)
 
-def fullinducibilityquery_E2F(databasefolder='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper', savefilename='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_nets2_3_4.json'):
+def E2F_nets234_analysis(databasefolder='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper', savefilename='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_hysteresisresults_nets2_3_4.json',call=hysteresis):
     FP_OFF={"E2F":[0,0],"E2F_Rb":[1,1]} 
     FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
-    fi_wrapper(databasefolder,FP_OFF,FP_ON,"S",savefilename)
+    wrapper(databasefolder,FP_OFF,FP_ON,"S",savefilename,call)
 
-def fullinducibilityquery_E2F_network1(dbfile = "/share/data/CHomP/Projects/DSGRN/DB/data/6D_2016_08_26_cancerE2Fnetwork1.db",savefilename="6D_2016_08_26_cancerE2F_fullinducibilityresults_net1.json"):
+def E2F_net1_analysis(dbfile = "/share/data/CHomP/Projects/DSGRN/DB/data/6D_2016_08_26_cancerE2Fnetwork1.db",savefilename="6D_2016_08_26_cancerE2F_hysteresis_net1.json",call=hysteresis):
     FP_OFF={"E2F":[0,0],"E2F_Rb":[1,1]} 
     FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
-    counts,network_spec = fullinducibility(dbfile,FP_OFF,FP_ON,"S")
-    result = {network_spec : counts}
-    print result
+    dbfile = os.path.join(databasefolder,db)
+    database = DSGRN.Database(dbfile)
+    network_spec = database.network.specification()
+    print(network_spec)
+    num,Trueparams = call(database,gene,FP_OFF,FP_ON,database.network.index(gene))
+    result = { network_spec : (num,len(Trueparams),Trueparams) }
+    print result[network_spec][:-1]
     with open(savefilename,'w') as f:
         json.dump(result,f)
 
 
 
 if __name__ == "__main__":
-    hysteresis_Yao()
+    Yao_analysis(savefilename='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_hysteresisresults.json',call=hysteresis)
