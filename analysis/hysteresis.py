@@ -28,8 +28,12 @@ def wrapper(databasefolder,FP_OFF,FP_ON,gene,savefilename,call):
                 print (num,len(Trueparams),len(ResetBistab))
             else:
                 results[network_spec] = (num,len(Trueparams),Trueparams)
-    for d in results:
-        print d,results[d][:-1],"\n"
+    if ResetBistab is None:
+        for d in results:
+            print d,results[d][:-1],"\n"
+    else:
+        for d in results:
+            print d,results[d][:2],results[d][3],"\n"        
     with open(savefilename,'w') as f:
         json.dump(results,f)
 
@@ -38,7 +42,7 @@ def Yao_analysis(databasefolder='/Users/bcummins/ProjectSimulationResults/YaoNet
     FP_ON={"EE":[1,8],"Rp":[0,0]}
     wrapper(databasefolder,FP_OFF,FP_ON,"S",savefilename,call)
 
-def E2F_nets234_analysis(databasefolder='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6Dnetworksnegative/', savefilename='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6Dnetworksnegative/6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4_negative.json',call=hysteresis):
+def E2F_nets234_analysis(databasefolder='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6Dnetworks/', savefilename='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6Dnetworks/6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4.json',call=hysteresis):
     FP_OFF={"E2F":[0,0],"E2F_Rb":[1,1]} 
     FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
     wrapper(databasefolder,FP_OFF,FP_ON,"S",savefilename,call)

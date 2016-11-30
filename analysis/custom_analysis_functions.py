@@ -248,13 +248,15 @@ def E2FNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
         print 'Inducibility: {:.1f}%'.format(float(value[2])/value[4]*100)
         print 'Full inducibility: {:.1f}%\n'.format(float(value[3])/value[4]*100)
 
-def E2FNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_hysteresisresults_nets2_3_4_noyeast.json'):
+def E2FNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6Dnetworks/6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4.json'):
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
     with open(fname,'r') as f:
         fidict = json.load(f) 
     for key,value in fidict.iteritems():
         print key
         print 'Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100)
+        print 'Resettable bistability: {:.1f}%'.format(float(value[3])/value[0]*100)
+        print set(value[2]).issubset(value[4]),"\n"
 
 def wavepool_9networks(fname='/Users/bcummins/ProjectSimulationResults/wavepool4patternmatch_paper/wavepool_9networks.json'):
     with open(fname,'r') as f:
