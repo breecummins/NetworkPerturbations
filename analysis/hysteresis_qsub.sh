@@ -5,6 +5,6 @@
 #$ -cwd
 #$ -j y
 #$ -S /bin/bash
-#$ -pe orte 8
+#$ -pe orte 16
 
 time python analysis/hysteresis.py
