@@ -63,7 +63,7 @@ def E2F_net1_analysis(dbfile = "/share/data/CHomP/Projects/DSGRN/DB/data/6D_2016
     network_spec = database.network.specification()
     print(network_spec)
     num,Trueparams,ResetBistab = call(database,"S",FP_OFF,FP_ON,database.network.index("S"))
-    result = { network_spec : (num,len(Trueparams),len(ResetBistab)] }
+    result = { network_spec : (num,len(Trueparams),len(ResetBistab)) }
     print result[network_spec]
     with open(savefilename,'w') as f:
         json.dump(result,f)
