@@ -50,13 +50,13 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 		NUM=$NETWORKID"_"$P 
 		MATCHFILE=$DATABASEDIR/Matches$NUM.txt
 		mpiexec -np $NSLOTS $PATTERNMATCH $NETWORKFILE $PATTERNFILE $STABLEFCLIST $MATCHFILE > /dev/null
-		MATCHES=`getcountuniquelines $MATCHFILE`
+		MATCHES=`getcountuniquelines_space $MATCHFILE`
 
 		# dump inputs and results to json
 		RESULTSFILE=$RESULTSDIR/results$NUM.txt
 		python pythonmodules/summaryJSON.py $NETWORKFILE $PATTERNFILE $RESULTSFILE "$SUMMARYSTR" $MATCHES
 
-		rm $PATTERNFILE $MATCHFILE
+		# rm $PATTERNFILE $MATCHFILE
 	done
 else
 	RESULTSFILE=$RESULTSDIR/results$NETWORKID.txt

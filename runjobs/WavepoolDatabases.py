@@ -6,7 +6,7 @@ def makeWavePoolDatabases(location="local",netdir='/Users/bcummins/ProjectSimula
     params['dsgrn'] = '../DSGRN'
     params['networkfolder'] = netdir
     params['queryfile'] = 'shellscripts/stableFCqueryscript.sh'
-    params['removeDB'] = 'y'
+    params['removeDB'] = 'n'
     params['removeNF'] = 'n'
     params['timeseriesfile'] = 'pythonmodules/datafiles/haase-fpkm-p1_yeast_s29.txt'
     params['ts_type'] = 'row'
@@ -14,7 +14,7 @@ def makeWavePoolDatabases(location="local",netdir='/Users/bcummins/ProjectSimula
     params['scaling_factors'] = [0.2]
     job = Job(location,params)
     job.prep()
-    # job.run()
+    job.run()
 
 if __name__ == "__main__":
     # makeWavePoolDatabases("qsub","wavepoolnetworks")

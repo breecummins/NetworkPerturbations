@@ -38,7 +38,7 @@ if [ ! -f $DATABASEFILE ]; then echo "Database $NETWORKID did not compute\n"; ca
 # do queries here (DEADLY INSECURE)
 SUMMARYSTR=`. $QUERYFILE` #queries return a string of items of the form "name:value"
 NUMPARAMS=`getnumparams $NETWORKFILE`
-SUMMARYSTR="$SUMMARYSTR ** ParameterCount:$NUMPARAMS" #put key:value pairs into a string for parsing, separate entries by **
+SUMMARYSTR="$SUMMARYSTR __ ParameterCount:$NUMPARAMS" #put key:value pairs into a string for parsing, separate entries by **
 
 STABLEFCLIST="$DATABASEDIR/StableFCList$NETWORKID.txt" # this file name should match the one in querylibrary.sh by convention
 
@@ -48,7 +48,7 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 	# check if stable FC list calculated
 	if [ ! -f $STABLEFCLIST ]; then
 		getstableFClist
-		SUMMARYSTR="$SUMMARYSTR ** StableFCParameterCount:$(summarystableFCs)"
+		SUMMARYSTR="$SUMMARYSTR __ StableFCParameterCount:$(summarystableFCs)"
 	fi
 
 	# pattern match in stable FCs
@@ -57,7 +57,7 @@ if [[ `ls -A $PATTERNDIR` ]]; then
 		NUM=$NETWORKID"_"$P 
 		MATCHFILE=$DATABASEDIR/Matches$NUM.txt
 		mpiexec --mca mpi_preconnect_mpi 1 -np $NSLOTS -x LD_LIBRARY_PATH $PATTERNMATCH $NETWORKFILE $PATTERNFILE $STABLEFCLIST $MATCHFILE > /dev/null
-		MATCHES=`getcountuniquelines $MATCHFILE`
+		MATCHES=`getcountuniquelines_space $MATCHFILE`
 		# note: grep -o "[0-9]*" appears to be buggy on Mac OS X, hence the more complex sed expression instead
 
 		# dump inputs and results to json

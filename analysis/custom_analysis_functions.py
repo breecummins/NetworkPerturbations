@@ -193,15 +193,22 @@ def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
             print n[1]
             print n[0]
 
-def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_hysteresisresults.json'):
+def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_hysteresis_resetbistab.json'):
     # format: (num_reduced_params,len(hysteresisTrue))
     with open(fname,'r') as f:
         fidict = json.load(f) 
 
-    def makeAllHistograms():
-        figsize = (25,15)
+    for key,value in fidict.iteritems():
+        print key
+        print 'Resettable bistability: {:.1f}%'.format(float(value[3])/value[0]*100)
+        print 'Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100)
+        print set(value[2]).issubset(value[4]),"\n"
+
+
+    def makeHysteresisHistogram():
+        figsize = (20,15)
         xlabel = r"\% of subgraphs in $PG(\neg S)$"
-        axislims = [0,100,0,21]
+        axislims = [0,100,0,10]
         numbins = 15
 
         # hysteresis
@@ -211,7 +218,21 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
         print "\nHysteresis true for {} total networks\n".format(len(percents))
         makeHistogram(percents,numbins,[],xlabel,title,axislims,figsize,labelpad=20)
 
-    makeAllHistograms()
+    def makeResetBistabHistogram():
+        figsize = (20,15)
+        xlabel = r"\% of subgraphs in $PG(\neg S)$"
+        axislims = [0,100,0,10]
+        numbins = 15
+
+        # hysteresis
+        percents = [float(val[3])/val[0]*100 for val in fidict.values() if val[3] > 0]
+        # title = "Nonzero hysteresis, {} total networks".format(len(percents))
+        title=""
+        print "\nResettable bistability true for {} total networks\n".format(len(percents))
+        makeHistogram(percents,numbins,[],xlabel,title,axislims,figsize,labelpad=20)
+
+    makeHysteresisHistogram()
+    makeResetBistabHistogram()
 
     # hysteresis > 0% suggested edges
     list_of_networks = [key for key,val in fidict.iteritems() if val[1] > 0]
@@ -248,14 +269,14 @@ def E2FNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
         print 'Inducibility: {:.1f}%'.format(float(value[2])/value[4]*100)
         print 'Full inducibility: {:.1f}%\n'.format(float(value[3])/value[4]*100)
 
-def E2FNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6Dnetworks/6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4.json'):
+def E2FNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6Dnetworksnegative/6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4_negative.json'):
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
     with open(fname,'r') as f:
         fidict = json.load(f) 
     for key,value in fidict.iteritems():
         print key
-        print 'Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100)
         print 'Resettable bistability: {:.1f}%'.format(float(value[3])/value[0]*100)
+        print 'Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100)
         print set(value[2]).issubset(value[4]),"\n"
 
 def wavepool_9networks(fname='/Users/bcummins/ProjectSimulationResults/wavepool4patternmatch_paper/wavepool_9networks.json'):
@@ -272,6 +293,7 @@ if __name__ == "__main__":
     # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
     # YaoNetworks_fullinducibility()
     # E2FNetworks_fullinducibility('/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_net1.json')
-    # wavepool_9networks(sys.argv[1])
+    wavepool_9networks()
     # YaoNetworks_hysteresis()
-    E2FNetworks_hysteresis()
+    # fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/yeastSTART/5D_2016_11_28_yeastSTART_hysteresis_resetbistab.json'
+    # E2FNetworks_hysteresis(fname)
