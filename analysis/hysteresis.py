@@ -84,6 +84,18 @@ def E2F_net1_analysis(dbfile = "/share/data/CHomP/Projects/DSGRN/DB/data/6D_2016
     with open(savefilename,'w') as f:
         json.dump(result,f)
 
+def E2F_net1_neg_analysis(dbfile = "/share/data/CHomP/Projects/DSGRN/DB/data/6D_2016_08_26_cancerE2Fnetwork1_negative.db",savefilename="6D_2016_08_26_cancerE2F_hysteresis_resetbistab_net1_negative.json",call=hysteresis_counts_only):
+    FP_OFF={"E2F":[0,0],"E2F_Rb":[1,1]}
+    FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
+    database = DSGRN.Database(dbfile)
+    network_spec = database.network.specification()
+    print(network_spec)
+    num,hys,bistab = call(database,"S",FP_OFF,FP_ON,database.network.index("S"))
+    result = { network_spec : (num,hys,bistab) }
+    print result[network_spec]
+    with open(savefilename,'w') as f:
+        json.dump(result,f)
+
 def yeastSTART_analysis(dbfile = "/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/yeastSTART/5D_2016_11_28_yeastSTART.db",savefilename="/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/yeastSTART/5D_2016_11_28_yeastSTART_hysteresis.json",call=hysteresis):
     FP_OFF={"SBF":[0,0],"SBF_Whi5":[1,1]} 
     FP_ON={"SBF":[1,8],"SBF_Whi5":[0,0]}
