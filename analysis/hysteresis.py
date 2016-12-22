@@ -4,15 +4,15 @@ import json,os,time,random,sys
 def hysteresis(database,gene,FP_OFF,FP_ON,gene_index):
     hys_query = DSGRN.HysteresisQuery(database,gene,FP_OFF,FP_ON)
     num_reduced_param = hys_query.GeneQuery.number_of_reduced_parameters()
-    hysteresis_True = [ hys_query.GeneQuery.database.full_parameter_index(rpi,0,gene_index) for rpi in range(num_reduced_param) if hys_query(rpi) ]
-    reset_bistab_True = [ hys_query.GeneQuery.database.full_parameter_index(rpi,0,gene_index) for rpi in range(num_reduced_param) if hys_query.resettable_bistability(rpi) ]
+    hysteresis_True = [ hys_query.GeneQuery.database.full_parameter_index(rpi,0,gene_index) for rpi in xrange(num_reduced_param) if hys_query(rpi) ]
+    reset_bistab_True = [ hys_query.GeneQuery.database.full_parameter_index(rpi,0,gene_index) for rpi in xrange(num_reduced_param) if hys_query.resettable_bistability(rpi) ]
     return num_reduced_param, hysteresis_True, reset_bistab_True
 
 def hysteresis_counts_only(database,gene,FP_OFF,FP_ON,gene_index):
     hys_query = DSGRN.HysteresisQuery(database,gene,FP_OFF,FP_ON)
     num_reduced_param = hys_query.GeneQuery.number_of_reduced_parameters()
     hys_counts, bistab_counts = 0,0
-    for rpi in range(num_reduced_param):
+    for rpi in xrange(num_reduced_param):
         hys_counts += hys_query(rpi)
         bistab_counts += hys_query.resettable_bistability(rpi)
     return num_reduced_param, hys_counts, bistab_counts
@@ -24,7 +24,7 @@ def hysteresis_counts_only_subset(database,gene,FP_OFF,FP_ON,gene_index,subset_s
     print("\nInitializing hysteresis query took {:.02f} hours.\n".format((end-start)/3600.))
     sys.stdout.flush()
     num_reduced_param = hys_query.GeneQuery.number_of_reduced_parameters()
-    subset = random.sample(range(num_reduced_param),subset_size)
+    subset = random.sample(xrange(num_reduced_param),subset_size)
     hys_counts, bistab_counts = 0,0
     start = time.clock()
     for rpi in subset:
@@ -77,12 +77,9 @@ def E2F_nets234_analysis(databasefolder='/Users/bcummins/ProjectSimulationResult
 def E2F_net1_analysis(dbfile = "/share/data/CHomP/Projects/DSGRN/DB/data/6D_2016_08_26_cancerE2Fnetwork1.db",savefilename="6D_2016_08_26_cancerE2F_hysteresis_resetbistab_net1.json",call=hysteresis_counts_only_subset):
     FP_OFF={"E2F":[0,0],"E2F_Rb":[1,1]} 
     FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
-    start = time.clock()
     database = DSGRN.Database(dbfile)
     network_spec = database.network.specification()
-    end = time.clock()
     print(network_spec)
-    print("\nDB initialization took {} seconds.\n".format(int(end-start)))
     sys.stdout.flush()
     num,hys,bistab = call(database,"S",FP_OFF,FP_ON,database.network.index("S"))
     result = { network_spec : (num,hys,bistab) }
