@@ -34,7 +34,7 @@ def hysteresis_counts_only_subset(database,gene,FP_OFF,FP_ON,gene_index,subset_s
             bistab_counts += hys_query.resettable_bistability(rpi)
         end = time.clock()
         times.append(end-start)
-        print("\nHysteresis and resettable bistability searches over {} reduced parameters took {:.2f} seconds.\n".format(subset_size,end-start))
+        print("{:.2f}\n".format(end-start))
         sys.stdout.flush()
     average = sum(times) / len(times)
     print("\nAverage time over {} repetitions of hysteresis/resettable bistability searches over {} reduced parameters: {:.2f} seconds\n".format(repeats,subset_size,average))
