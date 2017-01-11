@@ -1,5 +1,6 @@
 import DSGRN
 import json,os,time,random,sys
+from datetime import datetime
 
 def hysteresis(database,gene,FP_OFF,FP_ON,gene_index):
     hys_query = DSGRN.HysteresisQuery(database,gene,FP_OFF,FP_ON)
@@ -15,6 +16,8 @@ def hysteresis_counts_only(database,gene,FP_OFF,FP_ON,gene_index):
     for rpi in xrange(num_reduced_param):
         hys_counts += hys_query(rpi)
         bistab_counts += hys_query.resettable_bistability(rpi)
+        if not rpi%1000000:
+            print datetime.now(), (rpi,hys_counts,bistab_counts)
     return num_reduced_param, hys_counts, bistab_counts
 
 def hysteresis_counts_only_subset(database,gene,FP_OFF,FP_ON,gene_index,subset_size = 10000,repeats=1000):
@@ -121,4 +124,4 @@ def yeastSTART_analysis(dbfile = "/Users/bcummins/ProjectSimulationResults/E2FNa
 if __name__ == "__main__":
     # Yao_analysis(savefilename="text.json",call=hysteresis_counts_only)
     # yeastSTART_analysis()
-    E2F_net1_analysis()
+    E2F_net1_analysis(savefilename="6D_2016_08_26_cancerE2F_hysteresis_resetbistab_net1.json",call=hysteresis_counts_only)

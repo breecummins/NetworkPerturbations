@@ -64,6 +64,6 @@ The number of reduced parameters to query (10,000) and the number of repetitions
 
 Output was saved to hysteresis_qsub.sh.o*********, where the stars indicate a long integer dependent on the process id. The first line of the output file gives the time in hours for the preprocessing step of searching the database and creating the factor graph. The next 1000 lines each contain a time in seconds for 10,000 reduced parameter queries. The last line records the average of those times.
 
-* Preprocessing step: 4.91 hours
+* Preprocessing step: 4.91	 hours
 * Average time for 10,000 hysteresis and resettable bistability queries: 32.03 seconds
 
