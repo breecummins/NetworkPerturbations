@@ -83,7 +83,7 @@ def E2F_nets234_analysis(databasefolder='/Users/bcummins/ProjectSimulationResult
     FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
     wrapper(databasefolder,FP_OFF,FP_ON,"S",savefilename,call)
 
-def E2F_net1_analysis(dbfile = "/share/data/CHomP/Projects/DSGRN/DB/data/6D_2016_08_26_cancerE2Fnetwork1.db",savefilename="6D_2016_08_26_cancerE2F_hysteresis_resetbistab_net1_subset.json",call=hysteresis_counts_only_subset):
+def E2F_net1_analysis(dbfile = "/share/data/CHomP/Projects/DSGRN/DB/data/6D_2016_08_26_cancerE2Fnetwork1.db",savefilename="6D_2016_08_26_cancerE2F_hysteresis_resetbistab_net1.json",call=hysteresis_counts_only):
     FP_OFF={"E2F":[0,0],"E2F_Rb":[1,1]} 
     FP_ON={"E2F":[1,8],"E2F_Rb":[0,0]}
     database = DSGRN.Database(dbfile)
@@ -122,6 +122,6 @@ def yeastSTART_analysis(dbfile = "/Users/bcummins/ProjectSimulationResults/E2FNa
 
 
 if __name__ == "__main__":
-    # Yao_analysis(savefilename="text.json",call=hysteresis_counts_only)
+    # Yao_analysis(savefilename="test.json",call=hysteresis_counts_only)
     # yeastSTART_analysis()
     E2F_net1_analysis(savefilename="6D_2016_08_26_cancerE2F_hysteresis_resetbistab_net1.json",call=hysteresis_counts_only)
