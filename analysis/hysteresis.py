@@ -16,8 +16,9 @@ def hysteresis_counts_only(database,gene,FP_OFF,FP_ON,gene_index):
     for rpi in xrange(num_reduced_param):
         hys_counts += hys_query(rpi)
         bistab_counts += hys_query.resettable_bistability(rpi)
-        if not rpi%1000000:
+        if not rpi%100000:
             print datetime.now(), (rpi,hys_counts,bistab_counts)
+            sys.stdout.flush()
     return num_reduced_param, hys_counts, bistab_counts
 
 def hysteresis_counts_only_subset(database,gene,FP_OFF,FP_ON,gene_index,subset_size = 10000,repeats=1000):
