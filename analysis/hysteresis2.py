@@ -131,4 +131,4 @@ if __name__ == "__main__":
     # Yao_analysis(savefilename="test.json",call=hysteresis_counts_only)
     # yeastSTART_analysis()
     # E2F_net1_analysis(savefilename="6D_2016_08_26_cancerE2F_hysteresis_resetbistab_net1.json",call=hysteresis_counts_only)
-    E2F_nets234_analysis(databasefolder='6Ddbs/',savefilename='6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4_pos_neg.json',call='hysteresis_counts_only')
+    E2F_nets234_analysis(databasefolder='6Ddbs/',savefilename='6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4_pos_neg.json',call=hysteresis_counts_only)
