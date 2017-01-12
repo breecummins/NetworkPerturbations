@@ -61,6 +61,7 @@ def wrapper(databasefolder,FP_OFF,FP_ON,gene,savefilename,call):
             network_spec = database.network.specification()
             print(db)
             print(network_spec)
+            sys.stdout.flush()
             num,Trueparams,ResetBistab = call(database,gene,FP_OFF,FP_ON,database.network.index(gene))
             if call == hysteresis:
                 results[network_spec] = (num,len(Trueparams),Trueparams,len(ResetBistab),ResetBistab)
@@ -76,6 +77,7 @@ def wrapper(databasefolder,FP_OFF,FP_ON,gene,savefilename,call):
             end = time.clock()
             print("{:.2f}".format(end-start))
             print results[network_spec]
+            sys.stdout.flush()
     with open(savefilename,'w') as f:
         json.dump(results,f)
 
