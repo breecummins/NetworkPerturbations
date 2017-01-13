@@ -10,7 +10,11 @@ def hysteresis(database,gene,FP_OFF,FP_ON,gene_index):
     return num_reduced_param, hysteresis_True, reset_bistab_True
 
 def hysteresis_counts_only(database,gene,FP_OFF,FP_ON,gene_index):
+    start= time.time()
     hys_query = DSGRN.HysteresisQuery(database,gene,FP_OFF,FP_ON)
+    end = time.time()
+    print("\nInitializing hysteresis query took {} min, {} sec wall time.\n".format(int((end-start)/60.),int(end-start)%60)
+    sys.stdout.flush()
     num_reduced_param = hys_query.GeneQuery.number_of_reduced_parameters()
     hys_counts, bistab_counts = 0,0
     for rpi in xrange(num_reduced_param):
@@ -22,21 +26,21 @@ def hysteresis_counts_only(database,gene,FP_OFF,FP_ON,gene_index):
     return num_reduced_param, hys_counts, bistab_counts
 
 def hysteresis_counts_only_subset(database,gene,FP_OFF,FP_ON,gene_index,subset_size = 10000,repeats=1000):
-    start= time.clock()
+    start= time.time()
     hys_query = DSGRN.HysteresisQuery(database,gene,FP_OFF,FP_ON)
-    end = time.clock()
-    print("\nInitializing hysteresis query took {:.02f} hours.\n".format((end-start)/3600.))
+    end = time.time()
+    print("\nInitializing hysteresis query took {:.02f} hours wall time.\n".format((end-start)/3600.))
     sys.stdout.flush()
     num_reduced_param = hys_query.GeneQuery.number_of_reduced_parameters()
     times = []
     for _ in xrange(repeats):
         subset = random.sample(xrange(num_reduced_param),subset_size)
         hys_counts, bistab_counts = 0,0
-        start = time.clock()
+        start = time.time()
         for rpi in subset:
             hys_counts += hys_query(rpi)
             bistab_counts += hys_query.resettable_bistability(rpi)
-        end = time.clock()
+        end = time.time()
         times.append(end-start)
         print("{:.2f}".format(end-start))
         sys.stdout.flush()
@@ -55,7 +59,7 @@ def wrapper(databasefolder,FP_OFF,FP_ON,gene,savefilename,call):
     results = {}
     for db in os.listdir(databasefolder):
         if db[-2:] == 'db':
-            start = time.clock()
+            start = time.time()
             dbfile = os.path.join(databasefolder,db)
             database = DSGRN.Database(dbfile)
             network_spec = database.network.specification()
@@ -74,8 +78,8 @@ def wrapper(databasefolder,FP_OFF,FP_ON,gene,savefilename,call):
                 print (num,len(Trueparams)),"\n"
             else:
                 raise ValueError("call not recognized.")
-            end = time.clock()
-            print("{:.2f}".format(end-start))
+            end = time.time()
+            print("\nFactor graph and queries took {} min, {} sec wall time.\n".format(int((end-start)/60.),int(end-start)%60)
             print results[network_spec]
             sys.stdout.flush()
     with open(savefilename,'w') as f:

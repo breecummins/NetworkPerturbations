@@ -22,9 +22,9 @@ def hysteresis_counts_only(database,gene,FP_OFF,FP_ON,gene_index):
     return num_reduced_param, hys_counts, bistab_counts
 
 def hysteresis_counts_only_subset(database,gene,FP_OFF,FP_ON,gene_index,subset_size = 10000,repeats=1000):
-    start= time.clock()
+    start= time.time()
     hys_query = DSGRN.HysteresisQuery(database,gene,FP_OFF,FP_ON)
-    end = time.clock()
+    end = time.time()
     print("\nInitializing hysteresis query took {:.02f} hours.\n".format((end-start)/3600.))
     sys.stdout.flush()
     num_reduced_param = hys_query.GeneQuery.number_of_reduced_parameters()
@@ -32,11 +32,11 @@ def hysteresis_counts_only_subset(database,gene,FP_OFF,FP_ON,gene_index,subset_s
     for _ in xrange(repeats):
         subset = random.sample(xrange(num_reduced_param),subset_size)
         hys_counts, bistab_counts = 0,0
-        start = time.clock()
+        start = time.time()
         for rpi in subset:
             hys_counts += hys_query(rpi)
             bistab_counts += hys_query.resettable_bistability(rpi)
-        end = time.clock()
+        end = time.time()
         times.append(end-start)
         print("{:.2f}".format(end-start))
         sys.stdout.flush()
