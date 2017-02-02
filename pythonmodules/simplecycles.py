@@ -75,31 +75,45 @@ def make_partial_orders(cycles,names):
             partialorders.append({'graph' : graph_dict, 'graphviz' : intgraph.graphviz()})
     return partialorders
 
+def extract_edge_paths():
+    # need to write function based on paths of the form -m-, ---, M--, etc.
+    pass
+
 def make_labeled_cycles(digraph):
     # graph is nx.DiGraph object
     cycles = nx.simple_cycles(digraph)
     cycles = [cyc+[cyc[0]] for cyc in cycles] #first element is left off of the end in simplecycles() output
-    labeled_cycles = [[digraph.node[c]["label"] for c in cyc] for cyc in cycles]
+    labeled_cycles = [[digraph.edge[u][v]["label"] for (u,v) in zip(cyc[:-1],cyc[1:])] for cyc in cycles]
     return labeled_cycles
 
 def make_morse_digraph(paramgraph,paramind,morseset):
     # paramind, morseset are ints (or longs)
     domaingraph = DSGRN.DomainGraph(paramgraph.parameter(paramind))
+    searchgraph = DSGRN.SearchGraph(domaingraph)
     morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
     morseset_of_interest = morsedecomposition.morseset(morseset)
-    labels = { v : labelstring(domaingraph.label(v),domaingraph.dimension()) for v in morseset_of_interest}
+    MR = DSGRN.MatchingRelation(domaingraph.dimension())
+    # make networkx digraph in order to find simple cycles
     G = nx.DiGraph()
-    for vertex,label in labels.iteritems(): G.add_node(vertex,label=label)
-    edges=[ (i,a) for i in range(domaingraph.digraph().size()) for a in domaingraph.digraph().adjacencies(i) if i in labels and a in labels ]
-    G.add_edges_from(edges)
+    G.add_nodes_from(morseset_of_interest)
+    edges=[ (i,a) for i in morseset_of_interest for a in domaingraph.digraph().adjacencies(i) if a in morseset_of_interest ]
+    edgelabels = { (i,a) : MR.edge_labelstring(searchgraph.event(i,a)) for (i,a) in edges }
+    for edge,label in edgelabels.iteritems(): G.add_edge(edge[0],edge[1],label=label)
     return G
 
-def labelstring(L,D):
+# def domain_label(L,D):
+#     """
+#     Inputs: label L, dimension D
+#     Outputs:"label" output L of DomainGraph.label(domain) is converted into a string with "I", "D", and "?"
+#     """
+#     return ''.join([ "D" if L&(1<<d) else ("I" if L&(1<<(d+D)) else "?") for d in range(0,D) ])
+
+def edge_label(L,D):
     """
     Inputs: label L, dimension D
-    Outputs:"label" output L of DomainGraph is converted into a string with "I", "D", and "?"
+    Outputs:"label" output L of SearchGraph.event(source,target) is converted into a string with "M", "m", and "-"
     """
-    return ''.join([ "D" if L&(1<<d) else ("I" if L&(1<<(d+D)) else "?") for d in range(0,D) ])
+    return ''.join([ "M" if L&(1<<d) else ("m" if L&(1<<(d+D)) else "-") for d in range(0,D) ]) 
 
 def iterate_over_params(networkfile="network.txt",FCfile="StableFClist.txt"):
     # network is a DSGRN.Network object
