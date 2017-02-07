@@ -13,7 +13,7 @@ def hysteresis_counts_only(database,gene,FP_OFF,FP_ON,gene_index):
     start= time.time()
     hys_query = DSGRN.HysteresisQuery(database,gene,FP_OFF,FP_ON)
     end = time.time()
-    print("\nInitializing hysteresis query took {} min, {} sec wall time.\n".format(int((end-start)/60.),int(end-start)%60)
+    print("\nInitializing hysteresis query took {} min, {} sec wall time.\n".format(int((end-start)/60.),int(end-start)%60))
     sys.stdout.flush()
     num_reduced_param = hys_query.GeneQuery.number_of_reduced_parameters()
     hys_counts, bistab_counts = 0,0
@@ -79,7 +79,7 @@ def wrapper(databasefolder,FP_OFF,FP_ON,gene,savefilename,call):
             else:
                 raise ValueError("call not recognized.")
             end = time.time()
-            print("\nFactor graph and queries took {} min, {} sec wall time.\n".format(int((end-start)/60.),int(end-start)%60)
+            print("\nFactor graph and queries took {} min, {} sec wall time.\n".format(int((end-start)/60.),int(end-start)%60))
             print results[network_spec]
             sys.stdout.flush()
     with open(savefilename,'w') as f:
@@ -126,15 +126,16 @@ def yeastSTART_analysis(dbfile = "/Users/bcummins/ProjectSimulationResults/E2FNa
     database = DSGRN.Database(dbfile)
     network_spec = database.network.specification()
     print(network_spec)
+    Bistab = DSGRN.DoubleFixedPointQuery(database,FP_OFF,FP_ON).matches()
     num,Trueparams,ResetBistab = call(database,"S",FP_OFF,FP_ON,database.network.index("S"))
-    result = { network_spec : (num,len(Trueparams),Trueparams,len(ResetBistab),ResetBistab) }
-    print result[network_spec][:2],result[network_spec][3]
+    result = { network_spec : {'reduced params' : num,'num bistable' : len(Bistab), 'num resettable bistable' : len(ResetBistab), 'num hysteresis' : len(Trueparams), 'hysteresis params' : Trueparams, 'reset bistable params' : ResetBistab} }
+    print result[network_spec]['reduced params'], result[network_spec]['num bistable'], result[network_spec]['num resettable bistable'], result[network_spec]['num hysteresis']
     with open(savefilename,'w') as f:
         json.dump(result,f)
 
 
 if __name__ == "__main__":
     # Yao_analysis(savefilename="test.json",call=hysteresis_counts_only)
-    # yeastSTART_analysis()
+    yeastSTART_analysis()
     # E2F_net1_analysis(savefilename="6D_2016_08_26_cancerE2F_hysteresis_resetbistab_net1.json",call=hysteresis_counts_only)
-    E2F_nets234_analysis(databasefolder='6Ddbs/',savefilename='6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4_pos_neg.json',call=hysteresis_counts_only)
+    # E2F_nets234_analysis(databasefolder='6Ddbs/',savefilename='6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4_pos_neg.json',call=hysteresis_counts_only)
