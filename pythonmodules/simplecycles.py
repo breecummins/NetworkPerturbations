@@ -69,7 +69,8 @@ if __name__ == "__main__":
     num = sys.argv[1]
     ns = eval("netspec" + num)
     print "\n" + ns + "\n\n"
-    print findAllOrderedExtrema(networkspec=ns)
+    sys.stdout.flush()
+    # print findAllOrderedExtrema(networkspec=ns)
 
 
 
