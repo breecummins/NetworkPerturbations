@@ -1,5 +1,5 @@
-import networkx as NX
 import DSGRN
+import networkx as NX
 
 def orderedExtrema(names,labeled_cycles):
     # need to write function based on paths of the form -m-, ---, M--, etc.
@@ -70,7 +70,8 @@ if __name__ == "__main__":
     ns = eval("netspec" + num)
     print "\n" + ns + "\n\n"
     sys.stdout.flush()
-    # print findAllOrderedExtrema(networkspec=ns)
+
+    print findAllOrderedExtrema(networkspec=ns)
 
 
 
