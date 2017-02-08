@@ -59,11 +59,17 @@ def findAllOrderedExtrema(networkfile=None,networkspec=None):
     return set(paths)
 
 if __name__ == "__main__":
-    netspec1 = "X : ~Z\nY : ~X\nZ : ~Y"
-    netspec2 = "x1 : ~z1\ny1 : ~x1\nz1 : ~y1\nx2 : ~z2\ny2 : (~x1)(~x2)\nz2 : ~y2"
-    netspec3 = "x1 : ~z1\ny1 : (~x1)(~x2)\nz1 : ~y1\nx2 : ~z2\ny2 : (~x1)(~x2)\nz2 : ~y2"
-    netspec4 = "x1 : ~z1\ny : (~x1)(~x2)\nz1 : ~y\nx2 : ~z2\nz2 : ~y"
-    print findAllOrderedExtrema(networkspec=netspec2)
+    import sys
+
+    netspec0 = "X : ~Z\nY : ~X\nZ : ~Y"
+    netspec1 = "x1 : ~z1\ny1 : ~x1\nz1 : ~y1\nx2 : ~z2\ny2 : (~x1)(~x2)\nz2 : ~y2"
+    netspec2 = "x1 : ~z1\ny1 : (~x1)(~x2)\nz1 : ~y1\nx2 : ~z2\ny2 : (~x1)(~x2)\nz2 : ~y2"
+    netspec3 = "x1 : ~z1\ny : (~x1)(~x2)\nz1 : ~y\nx2 : ~z2\nz2 : ~y"
+
+    num = sys.argv[1]
+    ns = eval("netspec" + num)
+    print "\n" + ns + "\n\n"
+    print findAllOrderedExtrema(networkspec=ns)
 
 
 
