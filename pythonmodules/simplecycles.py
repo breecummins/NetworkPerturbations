@@ -2,29 +2,45 @@ import DSGRN
 import networkx as NX
 import sys, time, itertools, operator
 
-def separateMultipleOrders(names,list_of_extrema):
+def separateMultipleOrders(names,extrema):
+    ''' 
+    If there are two or more maxes in a row, then delete every one but one.
+    Do the same for mins and multiple groups of greater than 1 max or min.
+    This returns a list of sequences with alternating maxes and mins in each variable. 
 
-    def get_inds(l):
+    '''
+    def group_inds(l):
         it  = itertools.groupby(l,operator.itemgetter(1))
-        for key, subiter in it:
-            yield (item[0] for item in subiter)
+        return [ (key,[item[0] for item in subiter ]) for key, subiter in it ]
 
-    new_extrema_lists = []
-    for exlist in list_of_extrema:
-        extrema_inds = []
-        for name in names:
-            nf = filter(lambda x: x[1].startswith(name),enumerate(exlist))
-            ext = zip([(e[0],e[1].split()[1]) for e in nf])
-            inds = tuple(filter(lambda x : len(x) > 1, get_inds(ext)))
-            if inds: extrema_inds.append(inds)
-        for p in itertools.product(inds):
-            #remove extra indices NOT IN p
-            pass
-
-
-
-
-
+    extrema_inds = []
+    for name in names:
+        # get all the extrema for variable name
+        nf = filter(lambda x: x[1].startswith(name),enumerate(extrema))
+        # record the index of each extremum and whether or not it's a max or min
+        ext = [(e[0],e[1].split()[1]) for e in nf]
+        # group by consecutive maxes or consecutive mins and record the bad sequences
+        grouped_inds = group_inds(ext)
+        ginds = [ i[1] for i in grouped_inds]
+        # make sure that consecutive blocks wrap around the sequence
+        if grouped_inds and (grouped_inds[0][0] == grouped_inds[-1][0]):
+            ginds = [ginds[0]+ginds[-1]] + ginds[1:-1]
+        # filter for blocks with more than 1 identical extrema
+        inds = filter(lambda x : len(x) > 1, ginds)
+        if inds: extrema_inds.extend(inds)
+    # if the sequence has alternating maxes and mins to start with, record it as good
+    if not extrema_inds:
+        new_extrema_list = [extrema]
+    # if the sequence has consecutive blocks of identical extrema, find every compatible 
+    # sequence with alternating maxes and mins in each variable
+    else:
+        new_extrema_list = []
+        X = [ x for ext in extrema_inds for x in ext ]
+        for prod in itertools.product(*extrema_inds):
+            #remove extra indices NOT IN prod
+            new = tuple([v for i,v in enumerate(extrema) if (i not in X) or (i in prod)])
+            if new not in new_extrema_list: new_extrema_list.append(new)                 
+    return new_extrema_list
 
 def orderedExtrema(names,labeled_cycles):
     # need to write function based on paths of the form -m-, ---, M--, etc.
@@ -36,8 +52,8 @@ def orderedExtrema(names,labeled_cycles):
             elif "M" in c: extrema.append(names[c.index("M")]+" max")
             elif "m" in c: extrema.append(names[c.index("m")]+" min")
             else: pass  
-        # FIXME: add function to separate orders  
-        allextrema.add(tuple(extrema))
+        new_extrema_list = separateMultipleOrders(names,tuple(extrema))
+        for e in new_extrema_list: allextrema.add( e )
     return allextrema
 
 def findCycles(digraph):
@@ -52,10 +68,10 @@ def makeNXDigraph(domaingraph,nodes=None,edges=None):
     Make networkx digraph in order to use the networkx library to find simple cycles.
 
     '''
-    if not nodes:
+    if nodes is None:
         # get nodes
         nodes = range(domaingraph.digraph().size())
-    if not edges:
+    if edges is None:
         # get edges
         edges=[ (i,a) for i in nodes for a in domaingraph.digraph().adjacencies(i) ]
     # attach labels to edges
@@ -94,17 +110,20 @@ def makeNXDigraph(domaingraph,nodes=None,edges=None):
 def notInCyclicPermutations(x,cycle):
     return x not in [ tuple(list(cycle[n:]) + list(cycle[:n])) for n in range(len(cycle)) ]
 
-def addPaths(extrema,paths):
+def removeCyclicPermutations(extrema,paths):
+    new_paths = paths.copy()
     for e in extrema:
-        # check for cyclic permutations
-        same = [ p for p in paths if len(e)==len(p) and set(e)==set(p) ]
-        if not same:
-            paths.add( e )
+        # check if any existing paths have the same length and set value
+        same_len = [ p for p in new_paths if len(e)==len(p) and set(e)==set(p) ]
+        # if not, then add to path list
+        if not same_len:
+            new_paths.add( e )
+        # if so, then check for cyclic permutations
         else:
             different = True
-            while different and same != []: different = notInCyclicPermutations( e, same.pop() )
-            if different: paths.add( e )
-    return paths
+            while different and same_len: different = notInCyclicPermutations( e, same_len.pop() )
+            if different: new_paths.add( e )
+    return new_paths
 
 
 def findAllOrderedExtrema_Morsesets(networkfile=None,networkspec=None):
@@ -128,8 +147,12 @@ def findAllOrderedExtrema_Morsesets(networkfile=None,networkspec=None):
         for i in range(0,morsedecomposition.poset().size()):
             ms = morsedecomposition.morseset(i)
             if len(ms) > 1:
-                morseedges = [ (i,a) for a in domaingraph.digraph().adjacencies(i) if a in ms ]
-                cycles = findCycles(makeNXDigraph(domaingraph,ms,morseedges))
+                morseedges = [ (j,a) for j in ms for a in domaingraph.digraph().adjacencies(j) if a in ms ]
+                digraph = makeNXDigraph(domaingraph,ms,morseedges)
+                # print "Nodes: {}".format(digraph.number_of_nodes())
+                # print "Edges: {}".format(digraph.size())
+                # print "\n"
+                cycles = findCycles(digraph)
                 # debugging try-except block
                 try: 
                     C = max(len(c)-1 for c in cycles)
@@ -138,7 +161,7 @@ def findAllOrderedExtrema_Morsesets(networkfile=None,networkspec=None):
                         raise ValueError("Nodes in cycle exceeds nodes in Morse set.")
                 except: pass
                 extrema  = orderedExtrema(names,cycles)
-                paths = addPaths(extrema,paths)
+                paths = removeCyclicPermutations(extrema,paths)
 
         # if len(paths) > 10000:
         #     # for p in paths:
@@ -152,6 +175,22 @@ def findAllOrderedExtrema_Morsesets(networkfile=None,networkspec=None):
         #     sys.exit()  
     return set(paths)
 
+def test_multiple_extrema():
+    names = ['x','y','z']
+    extrema = ('x max','y max','z min','y max','x min','y min','z max')
+    # print separateMultipleOrders(names,extrema_list)
+    print set(separateMultipleOrders(names,extrema)) == set([('x max','z min','y max','x min','y min','z max'),('x max','y max','z min','x min','y min','z max')])
+
+    extrema = ('x max','y max','z min','y max','x min','x min', 'y min','z max')
+    # print separateMultipleOrders(names,extrema_list)
+    print set(separateMultipleOrders(names,extrema)) == set([('x max','z min','y max','x min','y min','z max'),('x max','y max','z min','x min','y min','z max')])
+
+
+    extrema = ('x max','y max','z min','y max','x min','x min', 'y min', 'x min', 'z max')
+    # print separateMultipleOrders(names,extrema_list)
+    print set(separateMultipleOrders(names,extrema)) == set([('x max','z min','y max','x min','y min','z max'),('x max','z min','y max','y min','x min','z max'),('x max','y max','z min','x min','y min','z max'),('x max','y max','z min','y min','x min','z max')])
+
+
 if __name__ == "__main__":
     import sys
 
@@ -159,6 +198,7 @@ if __name__ == "__main__":
     netspec1 = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
     netspec2 = "x1 : ~z1 : E\ny1 : (~x1)(~x2) : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
     netspec3 = "x1 : ~z1 : E\ny : (~x1)(~x2) : E\nz1 : ~y : E\nx2 : ~z2 : E\nz2 : ~y : E"
+    netspec4 = "X : (~Z)(Y) : E\nY : ~X : E\nZ : ~Y : E"
 
     num = sys.argv[1]
     ns = eval("netspec" + num)
@@ -168,9 +208,12 @@ if __name__ == "__main__":
     # for c in list(findAllOrderedExtrema_Morsesets(networkspec=ns))[:6]:
     #     print c
 
-    print len(findAllOrderedExtrema_Morsesets(networkspec=ns))
+    orders = findAllOrderedExtrema_Morsesets(networkspec=ns)
+    print len(orders)
+    for o in sorted(list(orders)):
+        print o
 
-
+    # test_multiple_extrema()
 
 
     
