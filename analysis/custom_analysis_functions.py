@@ -1,7 +1,7 @@
 import json
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-mpl.rcParams['font.size'] = 48
+mpl.rcParams['font.size'] = 36
 mpl.rc('text', usetex=True)
 import suggestiongraphs as SG
 import DSGRN, subprocess,sys
@@ -26,7 +26,7 @@ def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims,figsize=None,labe
     plt.title(title)
     plt.axis(axislims)
     plt.grid(True)
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.show()
 
 def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_02(fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_02_wavepool_network1_Dukediscussion_results.json'):
@@ -135,6 +135,78 @@ def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02(network_spec_fi
     makeHistogram(nonzeros,45,extrapoints,xlabel,title,axislims)
     for b in bestones: print b
     getSuggestedEdges(lod[0]["Network"],list_of_networks[1:])
+
+def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPaper(network_spec_file='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/6D_2016_08_02_wavepool_network2_Dukediscussion.txt',fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/6D_2016_08_02_wavepool_network2_Dukediscussion_noregulationswap_results.json'):
+    # with open(network_spec_file,'r') as f:
+    #     network_spec = f.read()
+    with open(fname,'r') as f:
+        lod = json.load(f)
+    # # They are the same
+    # print network_spec
+    print lod[0]["Network"]
+    N = len(lod)
+    percents=[ float(d['StableFCParameterCount'])/int(d['ParameterCount'])*100 for d in lod ]
+    list_of_networks = [ d["Network"] for (p,d) in zip(percents,lod)  if p > 0.00 ]
+    nonzeros = [p for p in percents if p > 1]
+    bestones = [ d for p,d in zip(nonzeros,list_of_networks) if p > 40 ]
+    # extrapoints = [(float(lod[0]['StableFCParameterCount'])/int(lod[0]['ParameterCount']),50)]
+    xlabel = "\% parameters with at least one stable FC"
+    title = ""
+    print "Total # networks: {}".format(N)
+    print "Networks with >0% parameters exhibiting stable FC: {}".format(len(list_of_networks))
+    print "Networks with >1% parameters exhibiting stable FC: {}".format(len(nonzeros))
+    print "Original percentage: {}".format(percents[0])
+    # axislims = [0,100,0,100]
+    # makeHistogram(nonzeros,30,[],xlabel,title,axislims,labelpad=20)
+    print "Networks with >40% parameters exhibiting stable FC: {}".format(len(bestones))
+    # getSuggestedEdges(lod[0]["Network"],list_of_networks[1:])
+
+    f, (ax, ax2) = plt.subplots(2, 1, sharex=True)
+
+    ax2.set_xlabel(xlabel,labelpad=20)
+    ax2.set_ylabel('\# networks')
+
+
+    # plot the same data on both axes
+    ax.hist(percents, 40, normed=0, facecolor='green', alpha=0.75)
+    ax2.hist(percents, 40, normed=0, facecolor='green', alpha=0.75)
+
+    # zoom-in / limit the view to different portions of the data
+    ax.set_ylim(4400,4450)  # outliers only
+    ax2.set_ylim(0, 100)  # most of the data
+
+    # hide the spines between ax and ax2
+    ax.spines['bottom'].set_visible(False)
+    ax2.spines['top'].set_visible(False)
+    ax.xaxis.tick_top()
+    ax.tick_params(labeltop='off')  # don't put tick labels at the top
+    ax2.xaxis.tick_bottom()
+
+    # This looks pretty good, and was fairly painless, but you can get that
+    # cut-out diagonal lines look with just a bit more work. The important
+    # thing to know here is that in axes coordinates, which are always
+    # between 0-1, spine endpoints are at these locations (0,0), (0,1),
+    # (1,0), and (1,1).  Thus, we just need to put the diagonals in the
+    # appropriate corners of each of our axes, and so long as we use the
+    # right transform and disable clipping.
+
+    d = .015  # how big to make the diagonal lines in axes coordinates
+    # arguments to pass to plot, just so we don't keep repeating them
+    kwargs = dict(transform=ax.transAxes, color='k', clip_on=False)
+    ax.plot((-d, +d), (-d, +d), **kwargs)        # top-left diagonal
+    ax.plot((1 - d, 1 + d), (-d, +d), **kwargs)  # top-right diagonal
+
+    kwargs.update(transform=ax2.transAxes)  # switch to the bottom axes
+    ax2.plot((-d, +d), (1 - d, 1 + d), **kwargs)  # bottom-left diagonal
+    ax2.plot((1 - d, 1 + d), (1 - d, 1 + d), **kwargs)  # bottom-right diagonal
+
+    # What's cool about this is that now if we vary the distance between
+    # ax and ax2 via f.subplots_adjust(hspace=...) or plt.subplot_tool(),
+    # the diagonal lines will move accordingly, and stay right at the tips
+    # of the spines they are 'breaking'
+
+    plt.show()
+
 
 def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_fullinducibilityresults.json'):
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
@@ -293,7 +365,8 @@ if __name__ == "__main__":
     # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02()
     # YaoNetworks_fullinducibility()
     # E2FNetworks_fullinducibility('/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_net1.json')
-    wavepool_9networks()
+    # wavepool_9networks()
     # YaoNetworks_hysteresis()
     # fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/yeastSTART/5D_2016_11_28_yeastSTART_hysteresis_resetbistab.json'
     # E2FNetworks_hysteresis(fname)
+    wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPaper()
