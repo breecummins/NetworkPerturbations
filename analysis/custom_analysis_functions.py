@@ -159,6 +159,7 @@ def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPa
     # axislims = [0,100,0,100]
     # makeHistogram(nonzeros,30,[],xlabel,title,axislims,labelpad=20)
     print "Networks with >40% parameters exhibiting stable FC: {}".format(len(bestones))
+    for b in bestones: print b+'\n-----------------------------\n'
     # getSuggestedEdges(lod[0]["Network"],list_of_networks[1:])
 
     f, (ax, ax2) = plt.subplots(2, 1, sharex=True)
@@ -325,7 +326,7 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
 
     # top networks
     for n in percents:
-        if n[0] > 40:
+        if n[0] > 10:
             print "\n"
             print n[1]
             print n[0]
@@ -366,7 +367,7 @@ if __name__ == "__main__":
     # YaoNetworks_fullinducibility()
     # E2FNetworks_fullinducibility('/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_net1.json')
     # wavepool_9networks()
-    # YaoNetworks_hysteresis()
+    YaoNetworks_hysteresis()
     # fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/yeastSTART/5D_2016_11_28_yeastSTART_hysteresis_resetbistab.json'
     # E2FNetworks_hysteresis(fname)
-    wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPaper()
+    # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPaper()
