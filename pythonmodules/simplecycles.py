@@ -144,9 +144,15 @@ def findAllOrderedExtrema_Morsesets(networkfile=None,networkspec=None):
             start = time.time()
         domaingraph = DSGRN.DomainGraph(paramgraph.parameter(paramind))
         morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
+        morsegraph = DSGRN.MorseGraph()
+        morsegraph.assign(domaingraph,morsedecomposition)
+        poset = morsedecomposition.poset()
         for i in range(0,morsedecomposition.poset().size()):
             ms = morsedecomposition.morseset(i)
-            if len(ms) > 1:
+            if len(ms) > 1 and morsegraph.annotation(i)[0] == "FC" and len(poset.children(i)) == 0:
+                # print i
+                # print morsegraph.annotation(i)
+                # print morsegraph.poset()
                 morseedges = [ (j,a) for j in ms for a in domaingraph.digraph().adjacencies(j) if a in ms ]
                 digraph = makeNXDigraph(domaingraph,ms,morseedges)
                 # print "Nodes: {}".format(digraph.number_of_nodes())
