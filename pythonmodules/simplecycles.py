@@ -155,10 +155,15 @@ def findAllOrderedExtrema_Morsesets(networkfile=None,networkspec=None):
                 # print morsegraph.poset()
                 morseedges = [ (j,a) for j in ms for a in domaingraph.digraph().adjacencies(j) if a in ms ]
                 digraph = makeNXDigraph(domaingraph,ms,morseedges)
-                # print "Nodes: {}".format(digraph.number_of_nodes())
-                # print "Edges: {}".format(digraph.size())
+                print "Nodes: {}".format(digraph.number_of_nodes())
+                print "Edges: {}".format(digraph.size())
                 # print "\n"
                 cycles = findCycles(digraph)
+                print "Have cycles."
+                k = 0
+                for c in cycles: k+=1
+                print "Number cycles: {}".format(k)
+                sys.exit()
                 # debugging try-except block
                 try: 
                     C = max(len(c)-1 for c in cycles)
@@ -168,6 +173,8 @@ def findAllOrderedExtrema_Morsesets(networkfile=None,networkspec=None):
                 except: pass
                 extrema  = orderedExtrema(names,cycles)
                 paths = removeCyclicPermutations(extrema,paths)
+                print paths
+                sys.stdout.flush()
 
         # if len(paths) > 10000:
         #     # for p in paths:
@@ -198,8 +205,6 @@ def test_multiple_extrema():
 
 
 if __name__ == "__main__":
-    import sys
-
     netspec0 = "X : ~Z\nY : ~X\nZ : ~Y"
     netspec1 = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
     netspec2 = "x1 : ~z1 : E\ny1 : (~x1)(~x2) : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
