@@ -30,16 +30,19 @@ def checkLinearExtensions(netspec,events,event_ordering):
     poset = [(a+1,b+1) for (a,b) in event_ordering]
     grid = topsort.partial_order_to_grid(poset,len(events))
     all_matches = True
+    cycle_perms = set([])
     for l in topsort.vr_topsort(len(events), grid):
         linext = [(l[i]-1,l[i+1]-1) for i in range(len(l)-1)] # -1 from indices because topsort indexes starting at 1
-        if not hasMatch(events,linext,netspec):
-            all_matches = False
-            print l
-            break
-    return "Has all linear extensions of known order = {}".format(all_matches)
+        if tuple(linext) not in cycle_perms:
+            cycle_perms.update(makeAllCyclicPermutations(linext))
+            if not hasMatch(events,linext,netspec):
+                all_matches = False
+                print l
+                break
+        return "Has all linear extensions of known order = {}".format(all_matches)
 
 def makeAllCyclicPermutations(linext):
-    return [ linext[n:] + linext[:n] for n in range(1,len(linext)) ]
+    return [ tuple(linext[n:] + linext[:n]) for n in range(1,len(linext)) ]
 
 def doubleRepressilatorOrders(netspec):
     events = [("x1","max"),("y1","min"),("z1","max"),("x1","min"),("y1","max"),("z1","min"),
@@ -86,23 +89,27 @@ def isOneWaySubsetTwoWay():
               ("x2","max"),("y2","min"),("z2","max"),("x2","min"),("y2","max"),("z2","min")]
     grid = topsort.partial_order_to_grid([],12)
     all_match = True
+    cycle_perms = set([])
     j = 0
     for l in topsort.vr_topsort(12, grid):
         j += 1
         if not j%1000: print j
         linext = [(l[i]-1,l[i+1]-1) for i in range(len(l)-1)] # -1 from indices because topsort indexes starting at 1
-        if hasMatch(events,linext,netspec_oneway):
-            if not hasMatch(events,linext,netspec_twoway): 
-                print(linext)
-                all_match=False
+        if tuple(linext) not in cycle_perms:
+            cycle_perms.update(makeAllCyclicPermutations(linext))
+            if hasMatch(events,linext,netspec_oneway):
+                if not hasMatch(events,linext,netspec_twoway): 
+                    print(linext)
+                    all_match=False
+                    break
     print "One-way forcing subset of two-way forcing = {}".format(all_match)
     
 
 if __name__ == "__main__":
-    singleRepressilator()
-    decoupledRepressilators()
-    oneWayForcing()
-    twoWayFeedback()
-    sharedNode()
+    # singleRepressilator()
+    # decoupledRepressilators()
+    # oneWayForcing()
+    # twoWayFeedback()
+    # sharedNode()
 
-    # isOneWaySubsetTwoWay()
+    isOneWaySubsetTwoWay()
