@@ -95,7 +95,9 @@ def isOneWaySubsetTwoWay():
         j += 1
         if not j%1000: print j
         linext = [(l[i]-1,l[i+1]-1) for i in range(len(l)-1)] # -1 from indices because topsort indexes starting at 1
-        if tuple(linext) not in cycle_perms:
+        if tuple(linext) in cycle_perms:
+            cycle_perms.remove(tuple(linext))
+        else:
             cycle_perms.update(makeAllCyclicPermutations(linext))
             if hasMatch(events,linext,netspec_oneway):
                 if not hasMatch(events,linext,netspec_twoway): 
