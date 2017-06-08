@@ -1,5 +1,6 @@
 import DSGRN
-import itertools
+import itertools, sys
+import topsort
 
 def hasMatch(events,event_ordering,networkspec):
     network = DSGRN.Network()
@@ -23,51 +24,85 @@ def hasMatch(events,event_ordering,networkspec):
                     continue
     return False
 
+def checkLinearExtensions(netspec,events,event_ordering):
+    # the poset event_ordering is required to be indexed such that every edge (i,j) satisfies i < j
+    # also, indexing starts at 1
+    poset = [(a+1,b+1) for (a,b) in event_ordering]
+    grid = topsort.partial_order_to_grid(poset,len(events))
+    all_matches = True
+    for l in topsort.vr_topsort(len(events), grid):
+        linext = [(l[i]-1,l[i+1]-1) for i in range(len(l)-1)] # -1 from indices because topsort indexes starting at 1
+        if not hasMatch(events,linext,netspec):
+            all_matches = False
+            print l
+            break
+    return "Has all linear extensions of known order = {}".format(all_matches)
+
+def makeAllCyclicPermutations(linext):
+    return [ linext[n:] + linext[:n] for n in range(1,len(linext)) ]
+
+def doubleRepressilatorOrders(netspec):
+    events = [("x1","max"),("y1","min"),("z1","max"),("x1","min"),("y1","max"),("z1","min"),
+              ("x2","max"),("y2","min"),("z2","max"),("x2","min"),("y2","max"),("z2","min")]
+    event_ordering_known = [(0,1),(1,2),(2,3),(3,4),(4,5)] + [(6,7),(7,8),(8,9),(9,10),(10,11)]
+    event_ordering_mixedup = [(0,1),(1,2),(2,3),(3,4),(4,5)] + [(7,6),(6,8),(8,10),(10,9),(9,11)]
+    event_ordering_oppositemix = [(1,0),(0,2),(2,4),(4,3),(3,5)] + [(6,7),(7,8),(8,9),(9,10),(10,11)]
+    print "Matches known order = {}".format(hasMatch(events,event_ordering_known,netspec))
+    print "Matches mixed up order = {}".format(hasMatch(events,event_ordering_mixedup,netspec))
+    print "Matches opposite mixed up order = {}".format(hasMatch(events,event_ordering_oppositemix,netspec))
+    print checkLinearExtensions(netspec,events,event_ordering_known)
+
+def singleRepressilator():
+    print "\nSingle repressilator"
+    netspec = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E"
+    events = [("x1","max"),("y1","min"),("z1","max"),("x1","min"),("y1","max"),("z1","min")]
+    event_ordering_known = [(0,1),(1,2),(2,3),(3,4),(4,5)]
+    event_ordering_mixedup = [(1,0),(0,2),(2,4),(4,3),(3,5)]
+    print "Matches known order = {}".format(hasMatch(events,event_ordering_known,netspec))
+    print "Matches mixed up order = {}".format(hasMatch(events,event_ordering_mixedup,netspec))
+
+def decoupledRepressilators():
+    print "\nDecoupled repressilators"
+    netspec = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : ~x2 : E\nz2 : ~y2 : E"
+    doubleRepressilatorOrders(netspec)
+
+def oneWayForcing():
+    print "\nOne-way forcing"
+    netspec = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
+    doubleRepressilatorOrders(netspec)
+
+def twoWayFeedback():
+    print "\nTwo-way feedback"
+    netspec = "x1 : ~z1 : E\ny1 : (~x1)(~x2) : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
+    doubleRepressilatorOrders(netspec)
+
+def sharedNode():
+    netspec = "x1 : ~z1 : E\ny : (~x1)(~x2) : E\nz1 : ~y : E\nx2 : ~z2 : E\nz2 : ~y : E"
+
+def isOneWaySubsetTwoWay():
+    netspec_oneway = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
+    netspec_twoway = "x1 : ~z1 : E\ny1 : (~x1)(~x2) : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
+    events = [("x1","max"),("y1","min"),("z1","max"),("x1","min"),("y1","max"),("z1","min"),
+              ("x2","max"),("y2","min"),("z2","max"),("x2","min"),("y2","max"),("z2","min")]
+    grid = topsort.partial_order_to_grid([],12)
+    all_match = True
+    j = 0
+    for l in topsort.vr_topsort(12, grid):
+        j += 1
+        if not j%1000: print j
+        linext = [(l[i]-1,l[i+1]-1) for i in range(len(l)-1)] # -1 from indices because topsort indexes starting at 1
+        if hasMatch(events,linext,netspec_oneway):
+            if not hasMatch(events,linext,netspec_twoway): 
+                print(linext)
+                all_match=False
+    print "One-way forcing subset of two-way forcing = {}".format(all_match)
+    
 
 if __name__ == "__main__":
-    import sys
+    singleRepressilator()
+    decoupledRepressilators()
+    oneWayForcing()
+    twoWayFeedback()
+    sharedNode()
 
-    # single repressilator
-    netspec0 = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E"
-    # decoupled repressilators
-    netspec1 = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : ~x2 : E\nz2 : ~y2 : E"
-    # one-way forcing
-    netspec2 = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
-    # two-way feedback
-    netspec3 = "x1 : ~z1 : E\ny1 : (~x1)(~x2) : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
-    # shared node
-    netspec4 = "x1 : ~z1 : E\ny : (~x1)(~x2) : E\nz1 : ~y : E\nx2 : ~z2 : E\nz2 : ~y : E"
-    # non-repressilator example
-    netspec5 = "X : (~Z)(Y) : E\nY : ~X : E\nZ : ~Y : E"
-
-    events0 = [("x1","min"),("x1","max"),("y1","min"),("y1","max"),("z1","min"),("z1","max")]
-    event_ordering0 = [(1,2),(2,5),(5,0),(0,3),(3,4)]
-    # event_ordering0 = [(1,2),(2,0),(0,3)]
-    # event_ordering0 = [(2,5),(5,3),(3,4)]
-
-    events1 = events0 + [("x2","min"),("x2","max"),("y2","min"),("y2","max"),("z2","min"),("z2","max")]
-    event_ordering1 = event_ordering0 + [(7,8),(8,11),(11,6),(6,9),(9,10)]
-    # event_ordering1 = [(7,0),(0,8),(8,3),(3,11),(11,4),(4,6),(6,1),(1,9),(9,2),(2,10),(10,5)]
-    # event_ordering1 = [(7,11),(11,9),(9,6),(6,10),(10,8)]
-    # event_ordering3 = [(7,8),(8,11),(11,6),(6,9),(9,10)]
-
-    num = sys.argv[1]
-    ns = eval("netspec" + num)
-    ev = eval("events"+num)
-    evo = eval("event_ordering"+num)
-    print "\n" + ns + "\n\n"
-    sys.stdout.flush()
-
-    print hasMatch(ev,evo,networkspec=ns)
-
-    # cycles = []
-    # cycle_perms = set([])
-    # for p in itertools.permutations(range(6,12)):
-    #     cycle_perms.update([ p[n:] + p[:n] for n in range(1,len(p)) ])
-    #     if p not in cycle_perms:
-    #         cycles.append(p)
-    # print len(cycles)
-    # for p in cycles:
-    #     evo = tuple([(p[i],p[i+1]) for i in range(len(p)-1)])
-    #     if isMatch(ev,evo,networkspec=ns):
-    #         print evo
+    # isOneWaySubsetTwoWay()
