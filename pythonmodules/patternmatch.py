@@ -1,5 +1,5 @@
 import DSGRN
-import itertools, sys
+import itertools, sys, time
 import topsort
 
 def hasMatch(events,event_ordering,networkspec):
@@ -24,25 +24,24 @@ def hasMatch(events,event_ordering,networkspec):
                     continue
     return False
 
-def checkLinearExtensions(netspec,events,event_ordering):
+def checkLinearExtensionsOfPoset(netspec,events,event_ordering):
     # the poset event_ordering is required to be indexed such that every edge (i,j) satisfies i < j
     # also, indexing starts at 1
     poset = [(a+1,b+1) for (a,b) in event_ordering]
-    grid = topsort.partial_order_to_grid(poset,len(events))
+    N = len(events)
+    grid = topsort.partial_order_to_grid(poset,N)
     all_matches = True
-    cycle_perms = set([])
-    for l in topsort.vr_topsort(len(events), grid):
-        linext = [(l[i]-1,l[i+1]-1) for i in range(len(l)-1)] # -1 from indices because topsort indexes starting at 1
-        if tuple(linext) not in cycle_perms:
-            cycle_perms.update(makeAllCyclicPermutations(linext))
-            if not hasMatch(events,linext,netspec):
-                all_matches = False
-                print l
-                break
-        return "Has all linear extensions of known order = {}".format(all_matches)
-
-def makeAllCyclicPermutations(linext):
-    return [ tuple(linext[n:] + linext[:n]) for n in range(1,len(linext)) ]
+    # j=0
+    for l in topsort.vr_topsort(N, grid):
+        l = [ k-1 for k in l] # -1 to get back to zero indexing
+        linext = [(l[i],l[i+1]) for i in range(N-1)] 
+        if not hasMatch(events,linext,netspec):
+            all_matches = False
+            print l
+            break
+        # j += 1
+        # if not j%1000: print j
+    return "Has all linear extensions of known order = {}".format(all_matches)
 
 def doubleRepressilatorOrders(netspec):
     events = [("x1","max"),("y1","min"),("z1","max"),("x1","min"),("y1","max"),("z1","min"),
@@ -81,31 +80,30 @@ def twoWayFeedback():
 
 def sharedNode():
     netspec = "x1 : ~z1 : E\ny : (~x1)(~x2) : E\nz1 : ~y : E\nx2 : ~z2 : E\nz2 : ~y : E"
-
+    
 def isOneWaySubsetTwoWay():
     netspec_oneway = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
     netspec_twoway = "x1 : ~z1 : E\ny1 : (~x1)(~x2) : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
     events = [("x1","max"),("y1","min"),("z1","max"),("x1","min"),("y1","max"),("z1","min"),
               ("x2","max"),("y2","min"),("z2","max"),("x2","min"),("y2","max"),("z2","min")]
-    grid = topsort.partial_order_to_grid([],12)
-    all_match = True
-    cycle_perms = set([])
+    N = len(events)-1
+    # make all permutations of the last n-1 elements in events (this gets rid of cyclic permutations of all elements)
+    # this method is much faster than using itertools.permutations(1,N+1)
+    grid = topsort.partial_order_to_grid([],N)
+    all_matches = True
     j = 0
-    for l in topsort.vr_topsort(12, grid):
+    start=time.clock()
+    for l in topsort.vr_topsort(N, grid):
+        l = [0]+list(l) # adding 0 on the front ensures that we have no cyclic permutations in order of events
+        linext = [(l[i],l[i+1]) for i in range(N)] 
+        if hasMatch(events,linext,netspec_oneway) and not hasMatch(events,linext,netspec_twoway): 
+            print(l)
+            all_matches=False
+            break
         j += 1
-        if not j%1000: print j
-        linext = [(l[i]-1,l[i+1]-1) for i in range(len(l)-1)] # -1 from indices because topsort indexes starting at 1
-        if tuple(linext) in cycle_perms:
-            cycle_perms.remove(tuple(linext))
-        else:
-            cycle_perms.update(makeAllCyclicPermutations(linext))
-            if hasMatch(events,linext,netspec_oneway):
-                if not hasMatch(events,linext,netspec_twoway): 
-                    print(linext)
-                    all_match=False
-                    break
+        if not j%1000: 
+            print j, time.clock()-start
     print "One-way forcing subset of two-way forcing = {}".format(all_match)
-    
 
 if __name__ == "__main__":
     # singleRepressilator()
