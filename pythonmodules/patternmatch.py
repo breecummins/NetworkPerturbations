@@ -101,9 +101,9 @@ def isOneWaySubsetTwoWay():
             all_matches=False
             break
         j += 1
-        if not j%1000: 
+        if not j%100000: 
             print j, time.clock()-start
-    print "One-way forcing subset of two-way forcing = {}".format(all_match)
+    print "One-way forcing subset of two-way forcing = {}".format(all_matches)
 
 if __name__ == "__main__":
     # singleRepressilator()
