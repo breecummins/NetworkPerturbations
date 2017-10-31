@@ -341,25 +341,139 @@ def makeJSONstring(TSList,TSLabels,n=1,scalingFactors=[1],step=0.01):
 
 def testme():
 	import fileparsers
-	# import matplotlib.pyplot as plt
-	TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileRow('testtimeseries.txt')
-	desiredlabels = ['PF3D7_0100100','PF3D7_0100200','PF3D7_0100300','PF3D7_0100400','PF3D7_0100900','PF3D7_0101000']
-	# desiredlabels = ['PF3D7_0100100','PF3D7_0100200','PF3D7_0100300']
-	ind = timeStepList.index(42)
+	import matplotlib.pyplot as plt
+	TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileRow('/Users/bcummins/ProjectData/malaria/2017/results_Sample08_mal_timeseries.tsv')
+	# desiredlabels = ['PVP01_0000070','PVP01_0000080','PVP01_0000090','PVP01_0000100','PVP01_0000110','PVP01_0000120']
+	desiredlabels = ['PVP01_0000070','PVP01_0000080']
+	ind = timeStepList.index(45)
 	labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind+1]) for node in TSLabels if node in desiredlabels])
-	jsonstr = makeJSONstring(data,labels,n=1,scalingFactors=[0.05],step=0.01)
+	jsonstr = makeJSONstring(data,labels,n=1,scalingFactors=[0.05,0.1,0.5],step=0.01)
 	print jsonstr
-	# ts=timeStepList[:ind+1]
-	# plt.figure()
-	# plt.hold('on')
-	# for d in data:
-		# m,M = min(d),max(d)
-		# nd = [ float(t - m)/(M-m) for t in d ]
-	# 	plt.plot(ts,nd)
-	# plt.legend(desiredlabels)
-	# plt.show()
+	ts=timeStepList[:ind+1]
+	plt.figure()
+	plt.hold('on')
+	for d in data:
+		m,M = min(d),max(d)
+		nd = [ float(t - m)/(M-m) for t in d ]
+		plt.plot(ts,nd)
+	plt.legend(desiredlabels)
+	plt.show()
+
+def malaria1():
+	import fileparsers, glob
+	import matplotlib.pyplot as plt
+	gvstr_base = 'digraph {\n0[label="70 min"];\n1[label="70 max"];\n2[label="80 min"];\n3[label="80 max"];\n'
+	for f in glob.glob('/Users/bcummins/ProjectData/malaria/2017/results_Sample*mal_timeseries.tsv'):
+		pltname = "/Users/bcummins/ProjectData/malaria/2017/pictures/" + f[-27:-18] + "_70_80.pdf"
+		gvnames = ["/Users/bcummins/ProjectData/malaria/2017/pictures/" + f[-27:-18] + "_70_80_"+ c +".gv" for c in ["e05","e10","e50"]]
+		TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileRow(f)
+		# desiredlabels = ['PVP01_0000070','PVP01_0000080','PVP01_0000090','PVP01_0000100','PVP01_0000110','PVP01_0000120']
+		desiredlabels = ['PVP01_0000070','PVP01_0000080']
+		ind = timeStepList.index(45)
+		labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind+1]) for node in TSLabels if node in desiredlabels])
+		jsonstr = makeJSONstring(data,labels,n=1,scalingFactors=[0.05,0.1,0.5],step=0.01)
+		for obj in jsonstr:
+			poset = obj["poset"]
+			gvstr = gvstr_base
+			for k,l in enumerate(poset):
+				if not l:
+					pass
+				else: 
+					for e in l:
+						gvstr += str(k) + " -> " + str(e) + ";\n"
+			gvstr += "}"
+			gvf = gvnames.pop(0)
+			with open(gvf,"w") as gvfobj:
+				gvfobj.write(gvstr)
+		ts=timeStepList[:ind+1]
+		plt.figure()
+		plt.hold('on')
+		for d in data:
+			m,M = min(d),max(d)
+			nd = [ float(t - m)/(M-m) for t in d ]
+			plt.plot(ts,nd)
+		plt.legend(desiredlabels)
+		plt.savefig(pltname)
+
+
+def malaria2():
+	import fileparsers, glob
+	import matplotlib.pyplot as plt
+	gvstr_base = 'digraph {\n0[label="0809100 min"];\n1[label="0809100 max"];\n2[label="0902100 min"];\n3[label="0902100 max"];\n4[label="0000110 min"];\n5[label="0000110 max"];\n6[label="0727100 min"];\n7[label="0727100 max"];\n8[label="1114000 min"];\n9[label="1114000 max"];\n10[label="0309700 min"];\n11[label="0309700 max"];\n12[label="0416100 min"];\n13[label="0416100 max"];\n14[label="1343400 min"];\n15[label="1343400 max"];\n16[label="0721000 min"];\n17[label="0721000 max"];\n18[label="1449900 min"];\n19[label="1449900 max"];\n20[label="1030100 min"];\n21[label="1030100 max"];\n22[label="1108800 min"];\n23[label="1108800 max"];\n24[label="0531500 min"];\n25[label="0531500 max"];\n26[label="1011500 min"];\n27[label="1011500 max"];\n'
+	for f in glob.glob('/Users/bcummins/ProjectData/malaria/2017/results_Sample*mal_timeseries.tsv'):
+		pltname = "/Users/bcummins/ProjectData/malaria/2017/pictures/" + f[-27:-18] + "_14genes.pdf"
+		gvnames = ["/Users/bcummins/ProjectData/malaria/2017/pictures/" + f[-27:-18] + "_14genes_e05.gv"]
+		TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileRow(f)
+		# desiredlabels = ['PVP01_0000070','PVP01_0000080','PVP01_0000090','PVP01_0000100','PVP01_0000110','PVP01_0000120']
+		desiredlabels = ['PVP01_0809100','PVP01_0902100','PVP01_0000110','PVP01_0727100','PVP01_1114000','PVP01_0309700','PVP01_0416100','PVP01_1343400','PVP01_0721000','PVP01_1449900','PVP01_1030100','PVP01_1108800','PVP01_0531500','PVP01_1011500']
+		ind = timeStepList.index(45)
+		labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind+1]) for node in TSLabels if node in desiredlabels])
+		jsonstr = makeJSONstring(data,labels,n=1,scalingFactors=[0.05],step=0.01)
+		for obj in jsonstr:
+			poset = obj["poset"]
+			gvstr = gvstr_base
+			for k,l in enumerate(poset):
+				if not l:
+					pass
+				else: 
+					for e in l:
+						gvstr += str(k) + " -> " + str(e) + ";\n"
+			gvstr += "}"
+			gvf = gvnames.pop(0)
+			with open(gvf,"w") as gvfobj:
+				gvfobj.write(gvstr)
+		ts=timeStepList[:ind+1]
+		plt.figure()
+		plt.hold('on')
+		for d in data:
+			m,M = min(d),max(d)
+			nd = [ float(t - m)/(M-m) for t in d ]
+			plt.plot(ts,nd)
+		plt.legend(desiredlabels,loc='center left', bbox_to_anchor=(1, 0.5))
+		plt.savefig(pltname)
+
+def malaria3():
+	import fileparsers, glob
+	import matplotlib.pyplot as plt
+	gvstr_base = 'digraph {\n0[label="9100 min"];\n1[label="9100 max"];\n2[label="9700 min"];\n3[label="9700 max"];\n4[label="1500 min"];\n5[label="1500 max"];\n'
+	for f in glob.glob('/Users/bcummins/ProjectData/malaria/2017/results_Sample*mal_timeseries.tsv'):
+		pltname = "/Users/bcummins/ProjectData/malaria/2017/pictures/" + f[-27:-18] + "_9100_9700_1500.pdf"
+		gvnames = ["/Users/bcummins/ProjectData/malaria/2017/pictures/" + f[-27:-18] + "_9100_9700_1500"+ c +".gv" for c in ["e05","e10","e50"]]
+		desiredlabels = ['PVP01_0809100','PVP01_0309700','PVP01_0531500']
+		TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileRow(f)
+		ind = timeStepList.index(45)
+		labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind+1]) for node in TSLabels if node in desiredlabels])
+		jsonstr = makeJSONstring(data,labels,n=1,scalingFactors=[0.05,0.1,0.5],step=0.01)
+		for obj in jsonstr:
+			poset = obj["poset"]
+			gvstr = gvstr_base
+			for k,l in enumerate(poset):
+				if not l:
+					pass
+				else: 
+					for e in l:
+						gvstr += str(k) + " -> " + str(e) + ";\n"
+			gvstr += "}"
+			gvf = gvnames.pop(0)
+			with open(gvf,"w") as gvfobj:
+				gvfobj.write(gvstr)
+		ts=timeStepList[:ind+1]
+		plt.figure()
+		plt.hold('on')
+		for d in data:
+			m,M = min(d),max(d)
+			nd = [ float(t - m)/(M-m) for t in d ]
+			plt.plot(ts,nd)
+		plt.legend(desiredlabels)
+		plt.savefig(pltname)
 
 
 
 if __name__ == "__main__":	
-	testme()
+	# testme()
+	# malaria1()
+	malaria3()
+
+
+
+

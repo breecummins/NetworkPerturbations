@@ -7,7 +7,7 @@ import suggestiongraphs as SG
 import DSGRN, subprocess,sys
 
 
-def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims,figsize=None,labelpad=0):
+def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims,figsize=None,labelpad=0,savename=""):
     if figsize:
         plt.figure(figsize=figsize)
     n, bins, patches = plt.hist(data, nbins, normed=0, facecolor='green', alpha=0.75)
@@ -26,7 +26,9 @@ def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims,figsize=None,labe
     plt.title(title)
     plt.axis(axislims)
     plt.grid(True)
-    # plt.tight_layout()
+    plt.tight_layout()
+    if savename:
+        plt.savefig(savename)
     plt.show()
 
 def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_02(fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_02_wavepool_network1_Dukediscussion_results.json'):
@@ -359,6 +361,41 @@ def wavepool_9networks(fname='/Users/bcummins/ProjectSimulationResults/wavepool4
         print d["Network"] + "\n"
         print str(d["ParameterCount"]) + "/" + str(d["StableFCParameterCount"]) + "/" + str(d["StableFCMatchesParameterCount"]) + "\n"
 
+def YaoNetworks_Computations20171027(fname="/Users/bcummins/ProjectSimulationResults/YaoNetworks/20171027computations/Figure3/results/table.csv"):
+    with open(fname,'r') as f:
+        f.readline()
+        networks=[]
+        hys=[]
+        rb=[]
+        time=0
+        for l in f:
+            s=l.split(',')
+            networks.append(s[0])
+            hys.append(float(s[1]))
+            rb.append(float(s[2]))
+            time+=float(s[3])
+    rbpairs = [(r,n) for (r,n) in zip(rb,networks) if r >0]
+    print(" ".join(n for (r,n) in rbpairs if r > 70))
+    hpairs = [(h,n) for (h,n) in zip(hys,networks) if h >0]
+    print(" ".join(n for (h,n) in hpairs if h >= 50))
+    hys,net_hys = zip(*hpairs)
+    # hys = [h for h in hys if h >0]
+    # rb = [r for r in rb if r>0]
+    # print(str(time)+" seconds")
+    # print("Resettable bistability networks: {}".format(len(rb)))
+    # print("Hysteresis networks: {}".format(len(hys)))
+    # figsize = (20,15)
+    # xlabel = r"\% of subgraphs in $PG(\neg S)$"
+    # axislims = [0,100,0,10]
+    # bins = [0,0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+    # title=""
+    # savename='/Users/bcummins/ProjectSimulationResults/YaoNetworks/20171027computations/Figure3_resetbistab_37networks.pdf'
+    # makeHistogram(rb,bins,[],xlabel,title,axislims,figsize,labelpad=20,savename=savename)
+    # savename='/Users/bcummins/ProjectSimulationResults/YaoNetworks/20171027computations/Figure3_hysteresis_21networks.pdf'
+    # makeHistogram(hys,bins,[],xlabel,title,axislims,figsize,labelpad=20,savename=savename)
+
+
+
 if __name__ == "__main__":
     # wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23()
     # wavepool_network1_Dukediscussion_perturbations_suggestiongraphs()
@@ -367,7 +404,8 @@ if __name__ == "__main__":
     # YaoNetworks_fullinducibility()
     # E2FNetworks_fullinducibility('/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_net1.json')
     # wavepool_9networks()
-    YaoNetworks_hysteresis()
+    # YaoNetworks_hysteresis()
+    YaoNetworks_Computations20171027()
     # fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/yeastSTART/5D_2016_11_28_yeastSTART_hysteresis_resetbistab.json'
     # E2FNetworks_hysteresis(fname)
     # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPaper()
