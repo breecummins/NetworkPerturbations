@@ -361,7 +361,7 @@ def wavepool_9networks(fname='/Users/bcummins/ProjectSimulationResults/wavepool4
         print d["Network"] + "\n"
         print str(d["ParameterCount"]) + "/" + str(d["StableFCParameterCount"]) + "/" + str(d["StableFCMatchesParameterCount"]) + "\n"
 
-def YaoNetworks_Computations20171027(fname="/Users/bcummins/ProjectSimulationResults/YaoNetworks/20171027computations/Figure3/results/table.csv"):
+def YaoNetworks_Computations20171027(fname="/Users/bcummins/ProjectSimulationResults/YaoNetworks/20171027computations/Figure3/results_newquery/table.csv"):
     with open(fname,'r') as f:
         f.readline()
         networks=[]
@@ -378,6 +378,10 @@ def YaoNetworks_Computations20171027(fname="/Users/bcummins/ProjectSimulationRes
     print(" ".join(n for (r,n) in rbpairs if r > 70))
     hpairs = [(h,n) for (h,n) in zip(hys,networks) if h >0]
     print(" ".join(n for (h,n) in hpairs if h >= 50))
+    for (h,n) in hpairs:
+        if h >= 50:
+            with open("/Users/bcummins/ProjectSimulationResults/YaoNetworks/20171027computations/Figure3/networks/"+n,'r') as f:
+                print(f.read())
     hys,net_hys = zip(*hpairs)
     # hys = [h for h in hys if h >0]
     # rb = [r for r in rb if r>0]
