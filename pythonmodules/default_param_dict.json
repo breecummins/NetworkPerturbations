@@ -1,0 +1,14 @@
+{
+  "dsgrn" : "../DSGRN/",
+  "queryfile" : "my_query.py",
+  "networkfolder" : "",
+  "networkfile" : "my_network_spec.txt",
+  "nodefile" : "my_node_file.txt",
+  "add_anon_nodes" : "y",
+  "edgefile" : "my_edge_file.txt",
+  "swap_edge_reg" : true,
+  "numperturbations" : 1000,
+  "maxaddspergraph" : 10,
+  "maxparams" : 100000,
+  "time_to_wait" : 300
+}

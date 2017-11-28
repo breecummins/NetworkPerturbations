@@ -14,7 +14,7 @@ def perturbNetwork(params):
     # nodelist : a list of node labels (strings) acceptable to add OR None OR empty list
     # numperturbations : integer > 0; how many perturbations to construct
     # time_to_wait : number of seconds to wait before halting perturbation procedure (avoid infinite while loop)
-    # add_madeup_nodes :  'y' or 'n'; add anonymous nodes to network (no nodelist supplied, but want nodes added)
+    # add_anon_nodes :  'y' or 'n'; add anonymous nodes to network (no nodelist supplied, but want nodes added)
     # maxparams : integer > 0; parameters per database are allowed (eventually this should be deprecated for estimated db time calculation)
     # maxiterations : integer > 0; how many times can a single perturbation be added to a network (failures are possible, overestimate)
 
@@ -36,10 +36,10 @@ def perturbNetwork(params):
         graph = starting_graph.clone()
         # add nodes and edges or just add edges based on params
         # this can fail, in which case None is returned
-        if params['nodelist'] or (not params['edgelist'] and params['add_madeup_nodes'] == 'y'):
-            graph = perturbNetworkWithNodesAndEdges(graph,params['edgelist'],params['nodelist'],params['maxadditionspergraph'],params['swap_edge_reg'])
+        if params['nodelist'] or (not params['edgelist'] and params['add_anon_nodes'] == 'y'):
+            graph = perturbNetworkWithNodesAndEdges(graph,params['edgelist'],params['nodelist'],params['maxaddspergraph'],params['swap_edge_reg'])
         else:
-            graph = perturbNetworkWithEdgesOnly(graph,params['edgelist'],params['maxadditionspergraph'],params['swap_edge_reg']) 
+            graph = perturbNetworkWithEdgesOnly(graph,params['edgelist'],params['maxaddspergraph'],params['swap_edge_reg'])
         if graph is not None:
             # get the perturbed network spec
             network_spec = intervalgraph.createEssentialNetworkSpecFromGraph(graph)

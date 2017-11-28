@@ -5,7 +5,8 @@ REQUIRED:
 dsgrn               =   path to the top-level DSGRN folder
 
 queryfile           =   path to python script that performs desired DSGRN queries;
-                        this includes pattern matching and making posets of extrema if desired
+                        this includes pattern matching and making posets of extrema if desired;
+                        main calling script must be named "query"
 
 
 EXACTLY ONE OF THE TWO FOLLOWING IS REQUIRED:

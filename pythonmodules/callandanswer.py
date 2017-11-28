@@ -150,7 +150,7 @@ def getinfo():
         edgefile = gimme_existing_path_skipOK(raw_input("\nEnter the path to a file with edges to add (leave blank otherwise).  "),isfile=True)
         if edgefile: params['edgefile'] = edgefile
         if 'edgefile' not in params and 'nodefile' not in params:
-            params['add_madeup_nodes'] = gimme_str_from_list(raw_input("\nAdd anonymous nodes to the network (y or n).  "),['y','n'])
+            params['add_anon_nodes'] = gimme_str_from_list(raw_input("\nAdd anonymous nodes to the network (y or n).  "),['y','n'])
         if 'edgefile' in params and 'nodefile' not in params:
             print "\n\nNote: only edges will be added to the existing network (not nodes).\n"
         # allow changes in regulation for the edges in the original network
@@ -161,7 +161,7 @@ def getinfo():
             params['swap_edge_reg'] = True
         # how many perturbations
         params['numperturbations'] = gimme_nonneg_int(raw_input("\nHow many network perturbations do you want? Example: 1000.  " ),strictlypositive=True)
-        params['maxadditionspergraph'] = gimme_nonneg_int(raw_input("\nWhat is the maximum number of edge/node perturbations you will permit per graph? Example: 10. "),strictlypositive=True)
+        params['maxaddspergraph'] = gimme_nonneg_int(raw_input("\nWhat is the maximum number of edge/node perturbations you will permit per graph? Example: 10. "),strictlypositive=True)
         # limit computations
         params['maxparams'] = gimme_nonneg_int(raw_input("\nHow many parameters will you admit per perturbation? Example: 1000000.  "),strictlypositive=True)
         params['time_to_wait'] = gimme_nonneg_int(raw_input("\nHow many seconds will you wait for the network perturbations to complete? Example: 300. "),strictlypositive=True)

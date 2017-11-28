@@ -32,7 +32,7 @@ def makeYaoGraphs():
     params['edgefile'] = edgefile
     params['swap_edge_reg'] = False
     params['numperturbations'] = 144
-    params['maxadditionspergraph'] = 6
+    params['maxaddspergraph'] = 6
     params['maxparams'] = 10000000000
     params['time_to_wait'] = 5
 
@@ -224,9 +224,9 @@ def makeE2FNetwork4WavepoolPerturbations(location='qsub',netfile='/Users/bcummin
     params['dsgrn'] = '../DSGRN'
     params['networkfile'] = netfile
     params['swap_edge_reg'] = False
-    params['add_madeup_nodes'] = 'y'    
+    params['add_anon_nodes'] = 'y'
     params['numperturbations'] = 200
-    params['maxadditionspergraph'] = 2
+    params['maxaddspergraph'] = 2
     params['maxparams'] = 2100000
     params['time_to_wait'] = 120
     params['queryfile'] = './shellscripts/doubleFPqueryscript_E2F_withparamfiles.sh'
