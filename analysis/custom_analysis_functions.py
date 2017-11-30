@@ -375,7 +375,7 @@ def YaoNetworks_Computations20171027(fname="/Users/bcummins/ProjectSimulationRes
             rb.append(float(s[2]))
             time+=float(s[3])
     rbpairs = [(r,n) for (r,n) in zip(rb,networks) if r >0]
-    print(" ".join(n for (r,n) in rbpairs if r > 70))
+    print(" ".join(n for (r,n) in rbpairs if r >70))
     hpairs = [(h,n) for (h,n) in zip(hys,networks) if h >0]
     print(" ".join(n for (h,n) in hpairs if h >= 50))
     for (h,n) in hpairs:
