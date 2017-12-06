@@ -1,5 +1,6 @@
 import intervalgraph as ig
 import itertools
+import fileparsers, json, sys
 
 
 def GrowComponent(ts,epsilon,comp):
@@ -320,7 +321,7 @@ def ConvertToJSON(graph,sumList,TSLabels):
 def makeJSONstring(TSList,TSLabels,n=1,scalingFactors=[1],step=0.01):
     # TSList is a list of time series, each of which is a list of floats
     # Each time series has a label in the corresponding index of TSLabels
-    # n = number of mins/maxes to pull
+    # n = number of (min,max) pairs to locate
     # scalingFactors = a list of scaling factors of maxEps (Must be in [0,1])
     # step (default to 0.01)
     if step <=0:
@@ -467,25 +468,35 @@ def malaria3():
         plt.legend(desiredlabels)
         plt.savefig(pltname)
 
-def malaria4():
-    import fileparsers, glob, json
-    for f in glob.glob('/Users/bcummins/ProjectData/malaria/2017/results_Sample*mal_timeseries.tsv'):
-        print(f)
+def malaria4(infiles=[],outfiles=[],scalingFactors=[0.05]):
+    for in_f, out_f in zip(infiles, outfiles):
+        print(in_f)
         desiredlabels = ['PVP01_0809100','PVP01_0902100','PVP01_0000110','PVP01_0727100','PVP01_1114000','PVP01_0309700',
                          'PVP01_0416100','PVP01_1343400','PVP01_0721000','PVP01_1449900','PVP01_1030100','PVP01_1108800',
                          'PVP01_0531500','PVP01_1011500']
-        TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileRow(f)
+        TSList,TSLabels,timeStepList = fileparsers.parseTimeSeriesFileRow(in_f)
         ind = timeStepList.index(45)
         labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind+1]) for node in TSLabels if node in desiredlabels])
-        jsonstr = makeJSONstring(data,labels,n=1,scalingFactors=[0.05],step=0.01)
+        jsonstr = makeJSONstring(data,labels,n=1,scalingFactors=scalingFactors,step=0.01)
         print(jsonstr[0])
-        json.dump(jsonstr[0],open(f[-27:-18]+"posets_14vivax.json","w"))
+        json.dump(jsonstr[0],open(out_f,"w"))
 
 if __name__ == "__main__":
     # testme()
     # malaria1()
     # malaria3()
-    malaria4()
+    if len(sys.argv) > 1:
+        scalingFactors = sys.argv[1]
+        infiles = sys.argv[2]
+        outfiles = sys.argv[3]
+    else:
+        scalingFactors = [0.10]
+        infiles = ['/Users/bcummins/ProjectData/malaria/2017/results_Sample{:0>2d}_mal_timeseries.tsv'.format(k)
+                   for k in [2,8,9,10,11,13,16,17,18,19]]
+        outfiles = ['/Users/bcummins/ProjectData/malaria/2017/posets/' + infiles[i][-27:-18] +
+                    "posets_14vivax_noise{:.3f}".format(scalingFactors[0]).replace('0.','') + ".json"
+                    for i in range(len(infiles))]
+    malaria4(infiles,outfiles,scalingFactors)
 
 
 
