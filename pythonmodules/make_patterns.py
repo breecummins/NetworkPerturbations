@@ -11,7 +11,6 @@ def makenetworklabelsfromfiles(networkfolder):
              l]))
     return networklabels, uids
 
-
 def parsetimeseries(desiredlabels, timeseriesfile, ts_type, ts_truncation=float(-1)):
     if ts_type == 'col':
         TSList, TSLabels, timeStepList = fileparsers.parseTimeSeriesFileCol(timeseriesfile)
@@ -26,8 +25,7 @@ def parsetimeseries(desiredlabels, timeseriesfile, ts_type, ts_truncation=float(
     labels, data = zip(*[(node, TSList[TSLabels.index(node)][:ind]) for node in TSLabels if node in desiredlabels])
     return labels, data
 
-
-def makepatterns(networkfolder,timeseriesfile,ts_type,ts_truncation,scalingFactors=[0.05,0.1,0.5]):
+def makepatterns(networkfolder,timeseriesfile,ts_type,ts_truncation,scalingFactors=(0.05,0.1,0.5)):
     networklabels, uids = makenetworklabelsfromfiles(networkfolder)
     uniqnetlab = list(set(networklabels))
     desiredlabels = set(itertools.chain.from_iterable(uniqnetlab))
@@ -40,7 +38,8 @@ def makepatterns(networkfolder,timeseriesfile,ts_type,ts_truncation,scalingFacto
     patterns = [uniqpatterns[uniqnetlab.index(nl)] for nl in networklabels]
     return uids, patterns
 
-def savepatterns(uids, patterns, patternfolder,scalingFactors):
+def savepatterns(uids, patterns, patternfolder, scalingFactors):
+    # pattern folder should be in computationsdir from param dict after makejobs.py
     for uid,pats in zip(uids,patterns):
         subdir = os.path.join(patternfolder, uid)
         os.makedirs(subdir)
@@ -48,5 +47,3 @@ def savepatterns(uids, patterns, patternfolder,scalingFactors):
             puid = '{:.{prec}f}'.format(scfc, prec=scfc_padding).replace('.', '_')
             pfile = os.path.join(subdir, "pattern" + puid + ".txt")
             json.dump(pat, open(pfile, 'w'))
-
-# TODO make pattern folder using computations

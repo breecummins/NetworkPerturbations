@@ -1,14 +1,14 @@
 {
-  "queryfile" : "my_query.py",
+  "queryfile" : "example_query.py",
   "computationsdir" : "./",
-  "networkfolder" : "",
-  "networkfile" : "my_network_spec.txt",
+  "networkfile" : "example_networkspec.txt",
+  "makeperturbations" : true,
   "nodefile" : "my_node_file.txt",
-  "add_anon_nodes" : "y",
   "edgefile" : "my_edge_file.txt",
+  "add_anon_nodes" : true,
   "swap_edge_reg" : true,
-  "numperturbations" : 1000,
   "maxaddspergraph" : 10,
+  "numperturbations" : 1000,
   "maxparams" : 100000,
   "time_to_wait" : 300
 }
