@@ -1,6 +1,6 @@
 {
-  "dsgrn" : "../DSGRN/",
   "queryfile" : "my_query.py",
+  "computationsdir" : "./",
   "networkfolder" : "",
   "networkfile" : "my_network_spec.txt",
   "nodefile" : "my_node_file.txt",

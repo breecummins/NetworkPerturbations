@@ -1,12 +1,14 @@
-Keywords in the parameter dictionary.
+Keywords in the parameter dictionary. See default_param_dict.json.
 
 REQUIRED:
 
-dsgrn               =   path to the top-level DSGRN folder
-
 queryfile           =   path to python script that performs desired DSGRN queries;
-                        this includes pattern matching and making posets of extrema if desired;
-                        main calling script must be named "query"
+                        this includes pattern matching and making posets of extrema if desired (see make_patterns.py);
+                        the main calling function inside this script should be named query();
+                        see example_query.py
+
+computationsdir     =   path to location where results are to be stored;
+                        "./" indicates current directory
 
 
 EXACTLY ONE OF THE TWO FOLLOWING IS REQUIRED:

@@ -1,6 +1,6 @@
 import intervalgraph as ig
 import itertools
-import fileparsers, json, sys
+import fileparsers, json, sys, ast
 
 
 def GrowComponent(ts,epsilon,comp):
@@ -486,9 +486,9 @@ if __name__ == "__main__":
     # malaria1()
     # malaria3()
     if len(sys.argv) > 1:
-        scalingFactors = sys.argv[1]
-        infiles = sys.argv[2]
-        outfiles = sys.argv[3]
+        scalingFactors = ast.literal_eval(sys.argv[1])
+        infiles = ast.literal_eval(sys.argv[2])
+        outfiles = ast.literal_eval(sys.argv[3])
     else:
         scalingFactors = [0.10]
         infiles = ['/Users/bcummins/ProjectData/malaria/2017/results_Sample{:0>2d}_mal_timeseries.tsv'.format(k)
