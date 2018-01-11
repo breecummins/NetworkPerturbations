@@ -13,14 +13,13 @@ class Job():
             raise ValueError("Exactly one of networkfolder and networkfile must be specified.")
         # use datetime as unique identifier to avoid overwriting
         datetime = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).strip()
-        computationsdir_datetime = os.path.join(os.path.expanduser(self.params["computationsdir"]),"computations"+datetime)
+        self.computationsdir_datetime = os.path.join(os.path.expanduser(self.params["computationsdir"]),"computations"+datetime)
         # save parameter and query files to computations folder
-        shutil.copyfile(self.paramfile,computationsdir_datetime)
-        shutil.copyfile(self.params["queryfile"],computationsdir_datetime)
+        shutil.copyfile(self.paramfile,self.computationsdir_datetime)
+        shutil.copyfile(self.params["queryfile"],self.computationsdir_datetime)
         #TODO: Record versions/git number of DSGRN and NetworkPerturbations
-        self.params["computationsdir_datetime"] = computationsdir_datetime
-        self.params['resultsdir'] =os.path.join(computationsdir_datetime,"results")
-        os.makedirs(self.params['resultsdir'])
+        self.resultsdir =os.path.join(computationsdir_datetime,"results")
+        os.makedirs(self.resultsdir)
 
     def run(self):
         # read network file
@@ -39,13 +38,13 @@ class Job():
             for network_spec in networks:
                 perturbed_networks.extend(perturb.perturbNetwork(self.params,network_spec))
             perturbed_networks=list(set(perturbed_networks))
-            json.dump(perturbed_networks,open(os.path.join(self.params["computationsdir_datetime"],"networklist.json")))
+            json.dump(perturbed_networks,open(os.path.join(self.computationsdir_datetime,"networklist.json")))
         else:
             # copy networks to computations folder
-            shutil.copyfile(self.paramfile["networkfile"],os.path.join(self.params["computationsdir_datetime"],"networklist.json"))
+            shutil.copyfile(self.paramfile["networkfile"],os.path.join(self.computationsdir_datetime,"networklist.json"))
         query = self.params["queryfile"]
         importlib.import_module(query)
-        query.query(self.params,networks)
+        query.query(networks,self.resultsdir)
 
     def _parsefilesforperturbation(self):
         if 'edgefile' in self.params and self.params["edgefile"].strip():

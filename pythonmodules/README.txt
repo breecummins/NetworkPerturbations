@@ -4,7 +4,8 @@ REQUIRED:
 
 queryfile           =   path to python script that performs desired DSGRN queries;
                         this includes pattern matching and making posets of extrema if desired (see make_patterns.py);
-                        the main calling function inside this script should be named query() (see example_query.py)
+                        the main calling function inside this script should be named query() and take two arguments,
+                        a list of networks and a path to a results directory (see example_query.py)
 
 computationsdir     =   path to location where results are to be stored;
                         "./" indicates current directory
