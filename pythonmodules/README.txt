@@ -8,7 +8,7 @@ queryfile           =   path to python script that performs desired DSGRN querie
                         a list of networks and a path to a results directory (see example_query.py)
 
 computationsdir     =   path to location where results are to be stored;
-                        "./" indicates current directory
+                        empty string "" indicates current directory
 
 networkfile         =   path to a file containing either a single network specification (see example_networkspec.txt),
                         or a comma-separated list of them (see example_networklist.txt)
@@ -20,12 +20,12 @@ makeperturbations   =   true or false (must be lower case, no quotes);
 IF MAKEPERTURBATIONS == TRUE, THE FOLLOWING ARE REQUIRED EXCEPT WHERE NOTED:
 
     nodefile            =   OPTIONAL: path to file containing the names of nodes to add, one line per name;
-                            or empty string or missing keyword if no such file exists
+                            or empty string "" or missing keyword if no such file exists
 
     edgefile            =   OPTIONAL: path to file containing named edges to add, one per line,
                             in the form (node1, node2, "a" or "r"),
                             where "a" means activation and "r" means repression;
-                            or empty string or missing keyword if no such file exists
+                            or empty string "" or missing keyword if no such file exists
 
     add_anon_nodes      =   true or false (must be lower case, no quotes) to add unnamed nodes to the perturbed networks
 
