@@ -23,7 +23,7 @@ def perturbNetwork(params, network_spec):
     random.seed()
 
     # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
-    starting_graph = intervalgraph.getGraphFromNetworkSpec(params['network_spec'])
+    starting_graph = intervalgraph.getGraphFromNetworkSpec(network_spec)
     network_spec = intervalgraph.createEssentialNetworkSpecFromGraph(starting_graph)
     networks = [network_spec]
 
