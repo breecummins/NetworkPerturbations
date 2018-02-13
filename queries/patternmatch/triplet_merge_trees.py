@@ -2,8 +2,10 @@
 # people.csail.mit.edu/smirnov/publications/tmt.pdf
 # Algorithms 1 & 2
 
-def ComputeMergeTree(curve):
+
+def compute_merge_tree(curve):
     '''
+    This code assumes that all function values in the series are distinct.
     :param curve: dict with times keying function values
     :return: triplet merge tree representation --
              a dict with a time keying a tuple of times, T[u] = (s,v),
@@ -49,47 +51,40 @@ def ComputeMergeTree(curve):
     return T
 
 
+def births_only(curve):
+    merge_tree = compute_merge_tree(curve)
+    no_births = [u for u, (s, v) in merge_tree.iteritems() if u == s and u!=v]
+    for u in no_births:
+        merge_tree.pop(u)
+    return merge_tree
+
+
 def test():
     curve = {0:-2, 1:2, 2:0, 3:3, 4:-4, 5:1, 6:-7}
     tmt = {0:(3,6),1:(1,0),2:(1,0),3:(3,6),4:(5,6),5:(5,6),6:(6,6)}
-    T = ComputeMergeTree(curve)
-    print(tmt)
-    print(T)
+    print(tmt == compute_merge_tree(curve))
 
-    import numpy as np
+    import transform_time_series as tts
 
-    def normalize(cur):
-        times = [t for t in cur]
-        vals = np.array([cur[t] for t in times])
-        nvals = (vals - float(np.min(vals)))/(np.max(vals)-np.min(vals)) - 0.5
-        return dict( (t,n) for (t,n) in zip(times,nvals) )
-
-    norm_curve = normalize(curve)
-    print(ComputeMergeTree(norm_curve))
+    norm_curve = tts.normalize(curve)
+    print(tmt == compute_merge_tree(norm_curve))
 
     tMt = {0:(0,3),1:(2,3),2:(2,3),3:(3,3),4:(4,3),5:(4,3),6:(6,3)}
-    norm_curve_rev = dict( (t,-1*n) for (t,n) in norm_curve.iteritems())
-    print("\nmaxes\n")
-    print(tMt)
-    print(ComputeMergeTree(norm_curve_rev))
-    curve_rev = dict( (t,-1*n) for (t,n) in curve.iteritems())
-    print(curve_rev)
-    print(ComputeMergeTree(curve_rev))
+    norm_curve_rev = tts.invert(norm_curve)
+    print(tMt == compute_merge_tree(norm_curve_rev))
 
-
-
-    import matplotlib.pyplot as plt
-
-    # times = [t for t in norm_curve]
-    # vals = np.array([norm_curve[t] for t in times])
-    times_rev = [t for t in curve_rev]
-    vals_rev = np.array([curve_rev[t] for t in times_rev])
-
-    # plt.plot(times,vals,color='r')
-    # plt.hold('on')
-    plt.plot(times_rev,vals_rev,color='b')
-    plt.show()
-
+    # import matplotlib.pyplot as plt
+    #
+    # # times = [t for t in norm_curve]
+    # # vals = np.array([norm_curve[t] for t in times])
+    # times_rev = [t for t in curve_rev]
+    # vals_rev = np.array([curve_rev[t] for t in times_rev])
+    #
+    # # plt.plot(times,vals,color='r')
+    # # plt.hold('on')
+    # plt.plot(times_rev,vals_rev,color='b')
+    # plt.show()
+    #
 
 
 if __name__=="__main__":
