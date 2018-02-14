@@ -1,16 +1,18 @@
-# reference: Dmitriy Smirnov and Dmitriy Morozov Chapter 1 Triplet Merge Trees
-# people.csail.mit.edu/smirnov/publications/tmt.pdf
-# Algorithms 1 & 2
+import pytest
 
 
 def compute_merge_tree(curve):
     '''
     This code assumes that all function values in the series are distinct.
+    This is automatically done in the class Curve.
     :param curve: dict with times keying function values
     :return: triplet merge tree representation --
              a dict with a time keying a tuple of times, T[u] = (s,v),
              where u obtains label v at time s (branch decomposition)
 
+    reference: Dmitriy Smirnov and Dmitriy Morozov Chapter 1 Triplet Merge Trees
+    people.csail.mit.edu/smirnov/publications/tmt.pdf
+    Algorithms 1 & 2
     '''
 
     def finddeepest(u):
@@ -52,6 +54,13 @@ def compute_merge_tree(curve):
 
 
 def births_only(curve):
+    '''
+    Computes merge tree and then removes all intermediate points and keeps only minima.
+    :param curve: dict with times keying function values
+    :return: triplet merge tree representation --
+             a dict with a time keying a tuple of times, T[u] = (s,v),
+             where u obtains label v at time s (branch decomposition)
+    '''
     merge_tree = compute_merge_tree(curve)
     no_births = [u for u, (s, v) in merge_tree.iteritems() if u == s and u!=v]
     for u in no_births:
@@ -60,35 +69,20 @@ def births_only(curve):
 
 
 def test():
-    curve = {0:-2, 1:2, 2:0, 3:3, 4:-4, 5:1, 6:-7}
+    from curve import Curve
+    curve = Curve({0:-2, 1:2, 2:0, 3:3, 4:-4, 5:1, 6:-7})
     tmt = {0:(3,6),1:(1,0),2:(1,0),3:(3,6),4:(5,6),5:(5,6),6:(6,6)}
-    print(tmt == compute_merge_tree(curve))
-
-    import transform_time_series as tts
-
-    norm_curve = tts.normalize(curve)
-    print(tmt == compute_merge_tree(norm_curve))
-
+    assert(tmt == compute_merge_tree(curve.curve))
+    assert(tmt == compute_merge_tree(curve.normalized))
     tMt = {0:(0,3),1:(2,3),2:(2,3),3:(3,3),4:(4,3),5:(4,3),6:(6,3)}
-    norm_curve_rev = tts.invert(norm_curve)
-    print(tMt == compute_merge_tree(norm_curve_rev))
+    assert(tMt == compute_merge_tree(curve.normalized_inverted))
+    curve2 = Curve({0:0, 1:-1, 2:-2, 3:1, 4:3, 5:6, 6:2})
+    tmt2 = {0:(0,2),1:(1,2),2:(2,2),3:(3,2),4:(4,2),5:(5,2),6:(5,2)}
+    assert(tmt2 == compute_merge_tree(curve2.curve))
+    assert(tmt2 == compute_merge_tree(curve2.normalized))
+    tMt2 = {0:(2,5),1:(1,0),2:(2,5),3:(3,5),4:(4,5),5:(5,5),6:(6,5)}
+    assert(tMt2 == compute_merge_tree(curve2.normalized_inverted))
 
-    # import matplotlib.pyplot as plt
-    #
-    # # times = [t for t in norm_curve]
-    # # vals = np.array([norm_curve[t] for t in times])
-    # times_rev = [t for t in curve_rev]
-    # vals_rev = np.array([curve_rev[t] for t in times_rev])
-    #
-    # # plt.plot(times,vals,color='r')
-    # # plt.hold('on')
-    # plt.plot(times_rev,vals_rev,color='b')
-    # plt.show()
-    #
-
-
-if __name__=="__main__":
-    test()
 
 
 

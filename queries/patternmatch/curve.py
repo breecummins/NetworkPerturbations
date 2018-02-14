@@ -1,5 +1,7 @@
 import numpy as np
 import itertools
+import pytest
+
 
 class Curve(object):
 
@@ -59,9 +61,5 @@ class Curve(object):
 def test():
     curve = Curve({0:-2, 1:2, 2:0, 3:1, 4:-2, 5:1, 6:-7})
     new_curve = Curve(curve.curve)
-    print(new_curve.original_curve == new_curve.curve)
-    print(curve.curve == Curve(curve.invert()).invert())
-
-
-if __name__ == "__main__":
-    test()
+    assert(new_curve.original_curve == new_curve.curve)
+    assert(curve.curve == Curve(curve.invert()).invert())
