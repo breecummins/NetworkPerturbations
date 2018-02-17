@@ -35,7 +35,8 @@ def get_poset(all_extrema):
     edges = []
     for j,a in enumerate(ints):
         for k,b in enumerate(ints):
-            if a[1] <= b[0]:
+            # could <= here instead, it's a choice
+            if a[1] < b[0]:
                 edges.append((j,k))
     return names,edges
 
