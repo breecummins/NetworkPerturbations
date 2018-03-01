@@ -398,6 +398,43 @@ def YaoNetworks_Computations20171027(fname="/Users/bcummins/ProjectSimulationRes
     # savename='/Users/bcummins/ProjectSimulationResults/YaoNetworks/20171027computations/Figure3_hysteresis_21networks.pdf'
     # makeHistogram(hys,bins,[],xlabel,title,axislims,figsize,labelpad=20,savename=savename)
 
+def YaoNetworks_Computations20180228(fname="/Users/bcummins/Downloads/2018-02-26-QueryResults/Figure3Results/table.csv"):
+    with open(fname,'r') as f:
+        f.readline()
+        networks=[]
+        hys_part=[]
+        hys_full=[]
+        rby_part=[]
+        rby_full=[]
+        time=0
+        for l in f:
+            s=l.split(',')
+            networks.append(s[0])
+            hys_part.append(float(s[1]))
+            rby_part.append(float(s[2]))
+            hys_full.append(float(s[3]))
+            rby_full.append(float(s[4]))
+            time+=float(s[5])
+    rby_part_nonzero = [r for r in rby_part if r >0]
+    rby_full_nonzero = [r for r in rby_full if r >0]
+    hys_part_nonzero = [r for r in hys_part if r >0]
+    hys_full_nonzero = [r for r in hys_full if r >0]
+    figsize = (15,10)
+    xlabelpr = r"\% of partial paths with resettable bistability"
+    xlabelfr = r"\% of full paths with resettable bistability"
+    xlabelph = r"\% of partial paths with hysteresis"
+    xlabelfh = r"\% of full paths with hysteresis"
+    axislims = [0,100,0,20]
+    bins = [0,5,10,15,20,25,30,35,40,45,50,55,60,65,70,75,80,85,90,95,100]
+    title=""
+    savename='/Users/bcummins/Desktop/Figure3_resetbistab_partial_{}networks.pdf'.format(len(rby_part_nonzero))
+    makeHistogram(rby_part_nonzero,bins,[],xlabelpr,title,axislims,figsize,labelpad=20,savename=savename)
+    savename='/Users/bcummins/Desktop/Figure3_hysteresis_partial_{}networks.pdf'.format(len(hys_part_nonzero))
+    makeHistogram(hys_part_nonzero,bins,[],xlabelph,title,axislims,figsize,labelpad=20,savename=savename)
+    savename='/Users/bcummins/Desktop/Figure3_resetbistab_full_{}networks.pdf'.format(len(rby_full_nonzero))
+    makeHistogram(rby_full_nonzero,bins,[],xlabelfr,title,axislims,figsize,labelpad=20,savename=savename)
+    savename='/Users/bcummins/Desktop/Figure3_hysteresis_full_{}networks.pdf'.format(len(hys_full_nonzero))
+    makeHistogram(hys_full_nonzero,bins,[],xlabelfh,title,axislims,figsize,labelpad=20,savename=savename)
 
 
 if __name__ == "__main__":
@@ -409,7 +446,7 @@ if __name__ == "__main__":
     # E2FNetworks_fullinducibility('/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_net1.json')
     # wavepool_9networks()
     # YaoNetworks_hysteresis()
-    YaoNetworks_Computations20171027()
+    YaoNetworks_Computations20180228()
     # fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/yeastSTART/5D_2016_11_28_yeastSTART_hysteresis_resetbistab.json'
     # E2FNetworks_hysteresis(fname)
     # wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPaper()

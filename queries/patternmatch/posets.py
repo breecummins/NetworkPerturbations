@@ -18,15 +18,46 @@ def get_mins_maxes(name,curve,eps):
     merge_tree_maxs = tmt.births_only(i)
     time_ints_mins = ss.minimal_time_ints(merge_tree_mins,n,eps)
     time_ints_maxs = ss.minimal_time_ints(merge_tree_maxs,i,eps)
+    print(time_ints_mins)
+    print(time_ints_maxs)
+    # get rid of overlapping mins and maxs
+    # FIXME: I think this is wrong, needs testing
+    overlap_mins = set([])
+    overlap_maxs = set([])
     for m,(tm0,tm1) in time_ints_mins.iteritems():
         for M,(tM0,tM1) in time_ints_maxs.iteritems():
             if (m < M and tm1 > tM0) or (M < m and tM1 > tm0):
-                # eps is too big and we have min/max overlap
-                return None
-    labeled_mins = [(v,(name,"min")) for t,v in time_ints_mins.iteritems()]
-    labeled_maxs = [(v,(name,"max")) for t,v in time_ints_maxs.iteritems()]
+                # we have min/max overlap
+                overlap_mins.add(m)
+                overlap_maxs.add(M)
+    for m in overlap_mins:
+        time_ints_mins.pop(m,None)
+    for M in overlap_maxs:
+        time_ints_maxs.pop(M,None)
+    print(time_ints_mins)
+    print(time_ints_maxs)
+    labeled_mins = [(v,(name,"min")) for _,v in time_ints_mins.iteritems()]
+    labeled_maxs = [(v,(name,"max")) for _,v in time_ints_maxs.iteritems()]
     both = sorted(labeled_mins+labeled_maxs)
-    #FIXME: check for alternating max/min (I think this should always be true)
+    print(both)
+    print(both[:-1])
+    # Combine adjoining matching extrema
+    flag = False
+    while not flag:
+        flag = True
+        new = []
+        zb = zip(both[:-1],both[1:])
+        for z in zb:
+            if (z[0][1][-3:]=="min" and z[1][1][-3:]=="min"):
+                new.append(((z[0][0][0],z[1][0][1]),(name,"min")))
+                flag=False
+            elif (z[0][1][-3:]=="max" and z[1][1][-3:]=="max"):
+                new.append(((z[0][0][0],z[1][0][1]),(name,"max")))
+                flag=False
+            else:
+                new.append(z[0])
+        both = sorted(new)
+    print(both)
     return both
 
 
@@ -54,7 +85,7 @@ def main(curves,epsilons):
         all_extrema = []
         for name,curve in curves.iteritems():
             ae = get_mins_maxes(name,curve,eps)
-            if ae:
+            if len(ae) > 1:
                 all_extrema.extend(ae)
             else:
                 print("Warning: Epsilon = {:.3f} is too large to distinguish extrema. No poset returned.".format(eps))

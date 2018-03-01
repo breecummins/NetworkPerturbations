@@ -8,7 +8,7 @@ class Curve(object):
     def __init__(self,curve,perturb=1.e-10):
         '''
         Collection of methods on dictionary representation of function.
-        :param curve: a dictionary representing a function, times key values
+        :param curve: a dictionary representing a function, times keying values
         :param perturb: small perturbation float
        '''
         self.original_curve = curve

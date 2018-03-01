@@ -1,4 +1,4 @@
-import pythonmodules.intervalgraph as ig
+import perturbations.intervalgraph as ig
 import itertools,sys
 
 # This code only works if the order of the variables in the reference network spec is repeated in the perturbed network specs (see lines marked (*))
