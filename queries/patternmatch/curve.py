@@ -8,9 +8,11 @@ class Curve(object):
     def __init__(self,curve,perturb=1.e-10):
         '''
         Collection of methods on dictionary representation of function.
-        :param curve: a dictionary representing a function, times keying values
+        :param curve: a dictionary representing a function, float times keying float values
         :param perturb: small perturbation float
        '''
+        if any((not isinstance(x, (int, long, float))) or (not isinstance(y, (int, long, float))) for x,y in curve.iteritems()):
+            raise ValueError("Curve must be of type {number : number}.")
         self.original_curve = curve
         self.curve = self.make_unique(dict(curve),perturb)
         self.normalized = self.normalize()
@@ -53,9 +55,8 @@ class Curve(object):
             curve=self.curve
         return dict((t,-1*n) for (t,n) in curve.iteritems())
 
-    def get_derivative(self):
-        #FIXME
-        self.derivative = dict()
+    # def get_derivative(self):
+    #     self.derivative = dict()
 
 
 def test():

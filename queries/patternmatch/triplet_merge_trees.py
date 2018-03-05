@@ -5,7 +5,7 @@ def compute_merge_tree(curve):
     '''
     This code assumes that all function values in the series are distinct.
     This is automatically done in the class Curve.
-    :param curve: dict with times keying function values
+    :param curve: dict with float times keying function float values
     :return: triplet merge tree representation --
              a dict with a time keying a tuple of times, T[u] = (s,v),
              where u obtains label v at time s (branch decomposition)
@@ -35,7 +35,7 @@ def compute_merge_tree(curve):
     deepest = dict( (t,t) for t in curve )
     times = sorted([t for t in curve])
     edges = zip(times[:-1],times[1:])
-    sorted_verts = [a for (a,b) in sorted(curve.iteritems(), key=lambda (k,v): v)]
+    sorted_verts = [a for (a,b) in sorted(curve.iteritems(), key=lambda t : t[1])]
     for u in sorted_verts:
         leaves = []
         for e in edges:
@@ -82,6 +82,22 @@ def test():
     assert(tmt2 == compute_merge_tree(curve2.normalized))
     tMt2 = {0:(2,5),1:(1,0),2:(2,5),3:(3,5),4:(4,5),5:(5,5),6:(6,5)}
     assert(tMt2 == compute_merge_tree(curve2.normalized_inverted))
+
+    import numpy as np
+    x = np.arange(-2.5, 5.01, 0.01)
+    y = -0.25 * x ** 4 + 4.0/3 * x ** 3 + 0.5 * x ** 2 - 4.0 * x
+    curve = Curve({t: v for (t, v) in zip(x, y)})
+    B=births_only(curve.curve)
+    C = {}
+    # there is round-off error in the computations
+    # round to 10th decimal place for comparison
+    for b in B.iteritems():
+        C[round(b[0],10)] = (round(b[1][0],10),round(b[1][1],10))
+    tmt = {-2.5: (-2.5, -2.5), 5.0: (4.0, -2.5), 1.0: (-1.0, -2.5)}
+    assert(C == tmt)
+
+
+
 
 
 
