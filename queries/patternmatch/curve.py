@@ -16,7 +16,7 @@ class Curve(object):
         self.original_curve = curve
         self.curve = self.make_unique(dict(curve),perturb)
         self.normalized = self.normalize()
-        self.normalized_inverted = self.invert(self.normalized)
+        self.normalized_reflected = self.reflect(self.normalized)
 
     def make_unique(self,curve,perturb):
         '''
@@ -45,10 +45,10 @@ class Curve(object):
         nvals = (vals - float(np.min(vals))) / (np.max(vals) - np.min(vals)) - 0.5
         return dict((t, n) for (t, n) in zip(times, nvals))
 
-    def invert(self,curve=None):
+    def reflect(self,curve=None):
         '''
-        Sign-invert function values.
-        For epsilon perturbations call self.invert(self.normalize()).
+        Reflect curve over the x-axis.
+        For epsilon perturbations call self.reflect(self.normalize()).
         :return: a dictionary representing a function, times key sign-reversed values
         '''
         if curve is None:
@@ -63,4 +63,4 @@ def test():
     curve = Curve({0:-2, 1:2, 2:0, 3:1, 4:-2, 5:1, 6:-7})
     new_curve = Curve(curve.curve)
     assert(new_curve.original_curve == new_curve.curve)
-    assert(curve.curve == Curve(curve.invert()).invert())
+    assert(curve.curve == Curve(curve.reflect()).reflect())

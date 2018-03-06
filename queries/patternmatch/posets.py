@@ -14,7 +14,7 @@ def get_mins_maxes(name,curve,eps):
              second element is name + extrema type
     '''
     n = curve.normalized
-    i = curve.normalized_inverted
+    i = curve.normalized_reflected
     merge_tree_mins = tmt.births_only(n)
     merge_tree_maxs = tmt.births_only(i)
     time_ints_mins = ss.minimal_time_ints(merge_tree_mins,n,eps)
@@ -51,8 +51,6 @@ def prune_overlap(both):
                 combine(mins)
             else:
                 maxs = [o for o in overlap if o[1][1]=="max"]
-                print(mins)
-                print(maxs)
                 combine(maxs)
         for o in overlap:
             both.remove(o)

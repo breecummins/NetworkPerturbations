@@ -5,7 +5,7 @@ def get_sublevel_sets(births_only_merge_tree,curve,eps):
     '''
     Calculates the sublevel set interval for every minimum in curve that exceeds a threshold.
     :param births_only_merge_tree: merge tree dict with intermediate points removed
-    :param curve: dict with times keying function values
+    :param curve: dict with times keying function values (Curve.curve or Curve.normalized)
     :param eps: float threshold (noise level) For normalized curves, 0 < eps < 1.
     :return: dict of minima birth times keying lifetime intervals
     '''
@@ -33,9 +33,9 @@ def minimal_time_ints(births_only_merge_tree,curve,eps):
     Produce merge tree and remove intervals that overlap by picking deeper min
     (shorter interval). The remaining intervals are the "epsilon minimum intervals."
     :param births_only_merge_tree: merge tree dict with intermediate points removed
-    :param curve: dict with times keying function values
+    :param curve: dict with times keying function values (Curve.curve or Curve.normalized)
     :param eps: float threshold (noise level) For normalized curves, 0 < eps < 1.
-    :return: dict of minima birth times keying lifetime intervals
+    :return: dict of minima birth times each keying the associated (closed) epsilon-minimum interval
     '''
     ti = get_sublevel_sets(births_only_merge_tree,curve,eps)
     stack = [v for v in ti]

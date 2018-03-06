@@ -5,7 +5,7 @@ def compute_merge_tree(curve):
     '''
     This code assumes that all function values in the series are distinct.
     This is automatically done in the class Curve.
-    :param curve: dict with float times keying function float values
+    :param curve: dict with float times keying function float values (Curve.curve or Curve.normalized)
     :return: triplet merge tree representation --
              a dict with a time keying a tuple of times, T[u] = (s,v),
              where u obtains label v at time s (branch decomposition)
@@ -56,7 +56,7 @@ def compute_merge_tree(curve):
 def births_only(curve):
     '''
     Computes merge tree and then removes all intermediate points and keeps only minima.
-    :param curve: dict with times keying function values
+    :param curve: dict with times keying function values (Curve.curve or Curve.normalized)
     :return: triplet merge tree representation --
              a dict with a time keying a tuple of times, T[u] = (s,v),
              where u obtains label v at time s (branch decomposition)
@@ -75,13 +75,13 @@ def test():
     assert(tmt == compute_merge_tree(curve.curve))
     assert(tmt == compute_merge_tree(curve.normalized))
     tMt = {0:(0,3),1:(2,3),2:(2,3),3:(3,3),4:(4,3),5:(4,3),6:(6,3)}
-    assert(tMt == compute_merge_tree(curve.normalized_inverted))
+    assert(tMt == compute_merge_tree(curve.normalized_reflected))
     curve2 = Curve({0:0, 1:-1, 2:-2, 3:1, 4:3, 5:6, 6:2})
     tmt2 = {0:(0,2),1:(1,2),2:(2,2),3:(3,2),4:(4,2),5:(5,2),6:(5,2)}
     assert(tmt2 == compute_merge_tree(curve2.curve))
     assert(tmt2 == compute_merge_tree(curve2.normalized))
     tMt2 = {0:(2,5),1:(1,0),2:(2,5),3:(3,5),4:(4,5),5:(5,5),6:(6,5)}
-    assert(tMt2 == compute_merge_tree(curve2.normalized_inverted))
+    assert(tMt2 == compute_merge_tree(curve2.normalized_reflected))
 
     import numpy as np
     x = np.arange(-2.5, 5.01, 0.01)
