@@ -13,27 +13,7 @@ class Curve(object):
        '''
         if any((not isinstance(x, (int, long, float))) or (not isinstance(y, (int, long, float))) for x,y in curve.iteritems()):
             raise ValueError("Curve must be of type {number : number}.")
-        self.original_curve = curve
-        self.curve = self.make_unique(dict(curve),perturb)
-        self.normalized = self.normalize()
-        self.normalized_reflected = self.reflect(self.normalized)
-
-    def make_unique(self,curve,perturb):
-        '''
-        Alter identical values slightly.
-        :param curve: a dictionary representing a function, times key values
-        :param perturb: small perturbation float
-        :return:
-        '''
-        identical = None
-        for (c,v),(d,w) in itertools.product(curve.iteritems(),curve.iteritems()):
-            if c != d and v == w:
-                identical = c
-                break
-        if identical is not None:
-            curve[identical] += perturb
-            return self.make_unique(curve,perturb)
-        return curve
+        self.curve = curve
 
     def normalize(self):
         '''
@@ -45,22 +25,27 @@ class Curve(object):
         nvals = (vals - float(np.min(vals))) / (np.max(vals) - np.min(vals)) - 0.5
         return dict((t, n) for (t, n) in zip(times, nvals))
 
-    def reflect(self,curve=None):
+    def reflect(self):
         '''
         Reflect curve over the x-axis.
-        For epsilon perturbations call self.reflect(self.normalize()).
         :return: a dictionary representing a function, times key sign-reversed values
         '''
-        if curve is None:
-            curve=self.curve
-        return dict((t,-1*n) for (t,n) in curve.iteritems())
+        return dict((t,-1*n) for (t,n) in self.curve.iteritems())
 
-    # def get_derivative(self):
-    #     self.derivative = dict()
+    def normalize_reflect(self):
+        '''
+        Normalize function in [-0.5,0.5] and reflect over the x-axis.
+        :return: a dictionary representing a normalized function, times key sign-reversed values
+        '''
+        N = self.normalize()
+        return dict((t,-1*n) for (t,n) in N.iteritems())
+
 
 
 def test():
     curve = Curve({0:-2, 1:2, 2:0, 3:1, 4:-2, 5:1, 6:-7})
-    new_curve = Curve(curve.curve)
-    assert(new_curve.original_curve == new_curve.curve)
     assert(curve.curve == Curve(curve.reflect()).reflect())
+    assert(curve.normalize() == Curve(curve.normalize()).normalize())
+    assert(curve.normalize_reflect() == Curve(curve.normalize()).reflect())
+    assert(min([c for k,c in curve.normalize().iteritems()])==-0.5)
+    assert(max([c for k,c in curve.normalize().iteritems()])==0.5)

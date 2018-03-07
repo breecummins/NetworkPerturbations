@@ -13,12 +13,12 @@ def get_mins_maxes(name,curve,eps):
     :return: sorted list of tuples where first element is sublevel set interval and
              second element is name + extrema type
     '''
-    n = curve.normalized
-    i = curve.normalized_reflected
+    n = curve.normalize()
+    r = curve.normalize_reflect()
     merge_tree_mins = tmt.births_only(n)
-    merge_tree_maxs = tmt.births_only(i)
+    merge_tree_maxs = tmt.births_only(r)
     time_ints_mins = ss.minimal_time_ints(merge_tree_mins,n,eps)
-    time_ints_maxs = ss.minimal_time_ints(merge_tree_maxs,i,eps)
+    time_ints_maxs = ss.minimal_time_ints(merge_tree_maxs,r,eps)
     labeled_mins = [(v,(name,"min")) for _,v in time_ints_mins.iteritems()]
     labeled_maxs = [(v,(name,"max")) for _,v in time_ints_maxs.iteritems()]
     both = sorted(labeled_mins+labeled_maxs)
