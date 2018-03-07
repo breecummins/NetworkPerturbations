@@ -70,7 +70,8 @@ def births_only(curve):
 
 def test():
     from curve import Curve
-    # integer curves
+
+    # integer curve 1
     curve = Curve({0:-2, 1:2, 2:0, 3:3, 4:-4, 5:1, 6:-7})
     tmt = {0:(3,6),1:(1,0),2:(1,0),3:(3,6),4:(5,6),5:(5,6),6:(6,6)}
     assert(tmt == compute_merge_tree(curve.curve))
@@ -78,6 +79,8 @@ def test():
     tMt = {0:(0,3),1:(2,3),2:(2,3),3:(3,3),4:(4,3),5:(4,3),6:(6,3)}
     assert(tMt == compute_merge_tree(curve.reflect()))
     assert(tMt == compute_merge_tree(curve.normalize_reflect()))
+
+    # integer curve 2
     curve2 = Curve({0:0, 1:-1, 2:-2, 3:1, 4:3, 5:6, 6:2})
     tmt2 = {0:(0,2),1:(1,2),2:(2,2),3:(3,2),4:(4,2),5:(5,2),6:(5,2)}
     assert(tmt2 == compute_merge_tree(curve2.curve))

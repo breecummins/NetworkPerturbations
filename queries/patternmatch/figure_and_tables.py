@@ -31,28 +31,27 @@ def make_table_values(curve,time,label="minima"):
         time_ints = ss.minimal_time_ints(births_only_merge_tree, curve, eps)
         mins.append(len(time_ints))
         ints.append(time_ints[time])
-    print("Eps     # {}    int at x={}".format(label,time))
+    print("Eps  # {}  int at x={}".format(label,time))
     for (a,b,c) in zip(epsilons,mins,ints):
-        print((a,b,c))
-
+        print(("    ".join(["{:.2f}".format(a),str(b),str(c)])))
 
 print("Smooth curve: minima")
-curve = Curve({ round(t,2) : v for (t,v) in zip(x,y) })
+smooth_curve = Curve({ round(t,2) : round(v,10) for (t,v) in zip(x,y) })
 time = 3.0
-make_table_values(curve.curve,time,"minima")
+make_table_values(smooth_curve.curve,time,"minima")
+
+print("\n\nNoisy curve: minima")
+noisy_curve = Curve({ round(t,2) : round(v,10) for (t,v) in zip(x,z) })
+time = 2.97
+make_table_values(noisy_curve.curve,time,"minima")
 
 print("\n\nSmooth curve: maxima")
 time = 5.0
-make_table_values(curve.reflect(),time,"maxima")
-
-print("\n\nNoisy curve: minima")
-curve = Curve({ round(t,2) : v for (t,v) in zip(x,z) })
-time = 2.97
-make_table_values(curve.curve,time,"minima")
+make_table_values(smooth_curve.reflect(),time,"maxima")
 
 print("\n\nNoisy curve: maxima")
 time = 5.0
-make_table_values(curve.reflect(),time,"maxima")
+make_table_values(noisy_curve.reflect(),time,"maxima")
 
 
 

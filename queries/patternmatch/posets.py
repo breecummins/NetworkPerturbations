@@ -55,7 +55,7 @@ def prune_overlap(both):
         for o in overlap:
             both.remove(o)
         overlap = set([])
-        both.sort()
+    both.sort()
     return both
 
 def get_poset(all_extrema):
@@ -63,20 +63,20 @@ def get_poset(all_extrema):
     edges = []
     for j,a in enumerate(ints):
         for k,b in enumerate(ints):
-            # could <= here instead, it's a choice
-            if a[1] < b[0]:
+            # <= means interpret tuples as open intervals
+            # <  means interpret tuples as closed intervals
+             if a[1] <= b[0]:
                 edges.append((j,k))
     return names,edges
 
 
 def main(curves,epsilons):
     '''
-
+    Construct posets on multiple curves over multiple epsilons.
     :param curves: dict of instances of Curve, each keyed by unique name
     :param epsilons: list of threshold epsilons
-    :return:
+    :return: list of posets, one for each epsilon, unless epsilon gets too large to distinguish extrema
     '''
-    flag="go"
     posets = []
     for eps in sorted(epsilons):
         all_extrema = []
@@ -86,12 +86,8 @@ def main(curves,epsilons):
                 all_extrema.extend(ae)
             else:
                 print("Warning: Epsilon = {:.3f} is too large to distinguish extrema. No poset returned.".format(eps))
-                flag = "stop"
-                break
-        if flag == "stop":
-            break
-        else:
-            posets.append(get_poset(all_extrema))
+                return posets
+        posets.append(get_poset(all_extrema))
     return posets
 
 
@@ -111,14 +107,14 @@ def test():
     def check_output_singles(u,pos,noise_std,eps):
         np.random.seed(0)
         noise = np.random.normal(0,noise_std,u.shape)
-        curve = Curve({ t : v for (t,v) in zip(x,u+noise) })
+        curve = Curve({ round(t,2) : round(v,10) for (t,v) in zip(x,u+noise) })
         assert(pos == get_poset(get_mins_maxes("curve",curve,eps)))
 
     def check_output_doubles(pos,n,eps):
         np.random.seed(0)
         noise = np.random.normal(0,n,y.shape)
-        curvey = Curve({ t : v for (t,v) in zip(x,y+noise) })
-        curvez = Curve({ t : v for (t,v) in zip(x,z+noise) })
+        curvey = Curve({ round(t,2) : round(v,10) for (t,v) in zip(x,y+noise) })
+        curvez = Curve({ round(t,2) : round(v,10) for (t,v) in zip(x,z+noise) })
         assert(pos == main({"y":curvey,"z":curvez},[eps])[0])
 
     epsilons = [0.01,0.05]

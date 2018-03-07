@@ -9,22 +9,18 @@ def get_sublevel_sets(births_only_merge_tree,curve,eps):
     :param eps: float threshold (noise level) For normalized curves, 0 < eps < 1.
     :return: dict of minima birth times keying lifetime intervals
     '''
-    too_small = [u for u,(s,v) in births_only_merge_tree.iteritems() if u!=v and abs(curve[u] - curve[s]) < eps]
-    for u in too_small:
-        births_only_merge_tree.pop(u)
+    big_enough = [u for u,(s,v) in births_only_merge_tree.iteritems() if not(u!=v and abs(curve[u] - curve[s]) < eps)]
     times = sorted([k for k in curve])
     time_intervals = dict()
-    for b in births_only_merge_tree:
+    for b in big_enough:
         i = times.index(b)
+        k = i
+        while k < len(times)-1 and abs(curve[times[k]] - curve[times[i]]) < 2*eps:
+            k += 1
         j = i
-        while j < len(times)-1 and abs(curve[times[j]] - curve[times[i]]) <= 2*eps:
-            j += 1
-        upper = j if abs(curve[times[j]] - curve[times[i]]) <= 2*eps else j-1
-        j = i
-        while j > 0 and abs(curve[times[j]] - curve[times[i]]) <= 2*eps:
+        while j > 0 and abs(curve[times[j]] - curve[times[i]]) < 2*eps:
             j -= 1
-        lower = j if abs(curve[times[j]] - curve[times[i]]) <= 2*eps else j+1
-        time_intervals[b] = (times[lower],times[upper])
+        time_intervals[b] = (times[j],times[k])
     return time_intervals
 
 
@@ -49,19 +45,34 @@ def test():
     import triplet_merge_trees as tmt
     from curve import Curve
 
+    # integer curve 1
     curve = Curve({0:-2, 1:2, 2:0, 3:3, 4:-4, 5:1, 6:-7})
     births_only_merge_tree = tmt.births_only(curve.curve)
-    time_ints = minimal_time_ints(dict(births_only_merge_tree), curve.curve, 0.75)
-    assert(time_ints=={0: (0, 0), 2: (2, 2), 4: (4, 4), 6: (6, 6)})
-    time_ints = minimal_time_ints(dict(births_only_merge_tree), curve.curve, 2)
-    assert(time_ints=={0: (0, 2), 4: (4, 4), 6: (6, 6)})
-    time_ints = minimal_time_ints(dict(births_only_merge_tree), curve.curve, 3)
-    assert(time_ints=={6: (6, 6)})
+    eps = 0.75
+    ti = get_sublevel_sets(births_only_merge_tree,curve.curve,eps)
+    assert(ti == {0: (0, 1), 2: (1, 3), 4: (3, 5), 6: (5, 6)})
+    time_ints = minimal_time_ints(births_only_merge_tree, curve.curve, eps)
+    assert(time_ints=={0: (0, 1), 2: (1, 3), 4: (3, 5), 6: (5, 6)})
+    eps=2
+    ti = get_sublevel_sets(births_only_merge_tree,curve.curve,eps)
+    assert(ti == {0: (0, 1), 2: (0, 4), 4: (3, 5), 6: (5, 6)})
+    time_ints = minimal_time_ints(births_only_merge_tree, curve.curve, eps)
+    assert(time_ints=={0: (0, 1), 4: (3, 5), 6: (5, 6)})
+    eps=3
+    ti = get_sublevel_sets(births_only_merge_tree,curve.curve,eps)
+    assert(ti == {0: (0, 6), 4: (3, 6), 6: (5, 6)})
+    time_ints = minimal_time_ints(births_only_merge_tree, curve.curve, eps)
+    assert(time_ints=={6: (5, 6)})
+
+    # integer curve 2
     curve2 = Curve({0:0, 1:-1, 2:-2, 3:1, 4:3, 5:6, 6:2})
     births_only_merge_tree = tmt.births_only(curve2.curve)
-    time_ints = minimal_time_ints(dict(births_only_merge_tree), curve.curve, 0.75)
-    assert(time_ints == {2: (2, 2), 6: (6, 6)})
-    time_ints = minimal_time_ints(dict(births_only_merge_tree), curve.curve, 1)
-    assert(time_ints == {2: (0, 2), 6: (6, 6)})
-    time_ints = minimal_time_ints(dict(births_only_merge_tree), curve.curve, 3)
-    assert(time_ints == {2: (0, 5), 6: (6, 6)})
+    time_ints = minimal_time_ints(births_only_merge_tree, curve2.curve, 0.75)
+    assert(time_ints == {2: (0, 3), 6: (5, 6)})
+    time_ints = minimal_time_ints(births_only_merge_tree, curve2.curve, 1)
+    assert(time_ints == {2: (0, 3), 6: (5, 6)})
+    eps=3
+    ti = get_sublevel_sets(births_only_merge_tree,curve2.curve,eps)
+    assert(ti == {2: (0, 5), 6: (0, 6)})
+    time_ints = minimal_time_ints(births_only_merge_tree, curve2.curve, eps)
+    assert(time_ints == {2: (0, 5)})
