@@ -1,8 +1,6 @@
 import networkperturbations as perturb
 import fileparsers
 import subprocess, os, json, shutil, ast, importlib,sys
-sys.path.append("../queries")
-# call function from within inputfiles/
 
 class Job():
 
@@ -53,7 +51,7 @@ class Job():
             networks=list(set(perturbed_networks))
             print("\nPerturbations complete; queries beginning.\n")
             sys.stdout.flush()
-        query = importlib.import_module(self.params["querymodule"])
+        query = importlib.import_module("..queries."+self.params["querymodule"],"libnetperturb.perturbations")
         query.query(networks,self.resultsdir,self.params)
 
 

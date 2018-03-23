@@ -47,5 +47,14 @@ IF MAKEPERTURBATIONS == TRUE, THE FOLLOWING ARE REQUIRED EXCEPT WHERE NOTED:
 
 OTHER KEYS ADDED AS NEEDED TO THE DICTIONARY FOR THE CHOSEN QUERY MODULE, WHICH MAY REQUIRE ADDITIONAL ARGUMENTS.
 
-NOTE: Network perturbations will always assume that activating edges are summed together. Activating edges that are
+NOTES:
+
+(1) Users can add query modules to the package libnetperturb.queries for inclusion in parameter files.
+    The required API is:
+
+    newmodule.query(list_of_networks, results_directory_path, parameter_dict)
+
+    See CountFPMatch.py and CountStableFC.py for examples.
+
+(2) Network perturbations will always assume that activating edges are summed together. Activating edges that are
 multiplied will be recast into addition, potentially changing the size of the parameter graph.
