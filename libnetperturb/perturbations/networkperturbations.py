@@ -1,6 +1,6 @@
 import random
 import DSGRN
-import libnetperturb.perturbations.graphtranslations as graphtranslations
+import libnetperturb.perturbations.graphtranslation as graphtranslation
 import time
 
 #####################################################################################################################
@@ -23,8 +23,8 @@ def perturbNetwork(params, network_spec):
     random.seed()
 
     # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
-    starting_graph = graphtranslations.getGraphFromNetworkSpec(network_spec)
-    network_spec = graphtranslations.createEssentialNetworkSpecFromGraph(starting_graph)
+    starting_graph = graphtranslation.getGraphFromNetworkSpec(network_spec)
+    network_spec = graphtranslation.createEssentialNetworkSpecFromGraph(starting_graph)
     networks = [network_spec]
 
     # Set a timer for the while loop, which can be infinite if numperturbations is too large for maxparams
@@ -43,7 +43,7 @@ def perturbNetwork(params, network_spec):
             graph = perturbNetworkWithEdgesOnly(graph,params['edgelist'],params['maxaddspergraph'],params['swap_edge_reg'])
         if graph is not None:
             # get the perturbed network spec
-            network_spec = graphtranslations.createEssentialNetworkSpecFromGraph(graph)
+            network_spec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
 
             # TODO: check for graph isomorphisms in added nodes (only have string matching below). 
             # Can get nodes added in different orders with same edges. Should be rare in general, so not high priority.
@@ -101,7 +101,7 @@ def perturbNetworkWithEdgesOnly(graph,edgelist=None,maxadditions=10,swap_edge_re
     return graph
 
 ################################################################################################
-# The "add" functions take an graphtranslations.Graph instance and return a modified version of it.
+# The "add" functions take an graphtranslation.Graph instance and return a modified version of it.
 # Basic methods of the network perturbation.
 ################################################################################################
 

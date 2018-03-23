@@ -128,7 +128,7 @@ def createEssentialNetworkSpecFromGraph(graph):
     return network_spec
 
 def getGraphFromNetworkSpec(network_spec):
-    # take a network spec and return an graphtranslations.Graph
+    # take a network spec and return an graphtranslation.Graph
     eqns = filter(bool,network_spec.split("\n"))
     nodelist = []
     innodes = []
