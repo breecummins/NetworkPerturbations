@@ -19,8 +19,8 @@ def get_mins_maxes(name,curve,eps):
     merge_tree_maxs = tmt.births_only(r)
     time_ints_mins = ss.minimal_time_ints(merge_tree_mins,n,eps)
     time_ints_maxs = ss.minimal_time_ints(merge_tree_maxs,r,eps)
-    labeled_mins = [(v,(name,"min")) for _,v in time_ints_mins.iteritems()]
-    labeled_maxs = [(v,(name,"max")) for _,v in time_ints_maxs.iteritems()]
+    labeled_mins = [(v,(name,"min")) for _,v in time_ints_mins.items()]
+    labeled_maxs = [(v,(name,"max")) for _,v in time_ints_maxs.items()]
     both = sorted(labeled_mins+labeled_maxs)
     both = prune_overlap(both[:])
     extrema = [b[1][-3:] for b in both]
@@ -37,7 +37,7 @@ def prune_overlap(both):
         M = sorted([o[0][1] for o in sublist])[-1]
         both.append(((m, M), sublist[0][1]))
 
-    z = zip(both[:-1],both[1:])
+    z = list(zip(both[:-1],both[1:]))
     overlap = set([])
     while len(z) > 0:
         (a,b) = z.pop(0)
@@ -80,7 +80,7 @@ def main(curves,epsilons):
     posets = []
     for eps in sorted(epsilons):
         all_extrema = []
-        for name,curve in curves.iteritems():
+        for name,curve in curves.items():
             ae = get_mins_maxes(name,curve,eps)
             if len(ae) > 1:
                 all_extrema.extend(ae)

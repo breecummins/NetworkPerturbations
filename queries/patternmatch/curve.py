@@ -10,7 +10,7 @@ class Curve(object):
         :param curve: a dictionary representing a function, float times keying float values
         :param perturb: small perturbation float
        '''
-        if any((not isinstance(x, (int, long, float))) or (not isinstance(y, (int, long, float))) for x,y in curve.iteritems()):
+        if any((not isinstance(x, (int, float))) or (not isinstance(y, (int, float))) for x,y in curve.items()):
             raise ValueError("Curve must be of type {number : number}.")
         self.curve = curve
 
@@ -29,7 +29,7 @@ class Curve(object):
         Reflect curve over the x-axis.
         :return: a dictionary representing a function, times key sign-reversed values
         '''
-        return dict((t,-1*n) for (t,n) in self.curve.iteritems())
+        return dict((t,-1*n) for (t,n) in self.curve.items())
 
     def normalize_reflect(self):
         '''
@@ -37,7 +37,7 @@ class Curve(object):
         :return: a dictionary representing a normalized function, times key sign-reversed values
         '''
         N = self.normalize()
-        return dict((t,-1*n) for (t,n) in N.iteritems())
+        return dict((t,-1*n) for (t,n) in N.items())
 
 
 
@@ -46,5 +46,5 @@ def test():
     assert(curve.curve == Curve(curve.reflect()).reflect())
     assert(curve.normalize() == Curve(curve.normalize()).normalize())
     assert(curve.normalize_reflect() == Curve(curve.normalize()).reflect())
-    assert(min([c for k,c in curve.normalize().iteritems()])==-0.5)
-    assert(max([c for k,c in curve.normalize().iteritems()])==0.5)
+    assert(min([c for k,c in curve.normalize().items()])==-0.5)
+    assert(max([c for k,c in curve.normalize().items()])==0.5)

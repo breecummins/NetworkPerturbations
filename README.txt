@@ -46,3 +46,6 @@ IF MAKEPERTURBATIONS == TRUE, THE FOLLOWING ARE REQUIRED EXCEPT WHERE NOTED:
                             does not affect queryfile computation time
 
 OTHER KEYS ADDED AS NEEDED TO THE DICTIONARY FOR THE CHOSEN QUERY MODULE, WHICH MAY REQUIRE ADDITIONAL ARGUMENTS.
+
+NOTE: Network perturbations will always assume that activating edges are summed together. Activating edges that are
+multiplied will be recast into addition, potentially changing the size of the parameter graph.

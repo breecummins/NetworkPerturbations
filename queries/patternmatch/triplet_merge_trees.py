@@ -34,8 +34,8 @@ def compute_merge_tree(curve):
     T = dict( (t,(t,t)) for t in curve )
     deepest = dict( (t,t) for t in curve )
     times = sorted([t for t in curve])
-    edges = zip(times[:-1],times[1:])
-    sorted_verts = [a for (a,b) in sorted(curve.iteritems(), key=lambda t : (t[1],t[0]))]
+    edges = list(zip(times[:-1],times[1:]))
+    sorted_verts = [a for (a,b) in sorted(curve.items(), key=lambda t : (t[1],t[0]))]
     for u in sorted_verts:
         leaves = []
         for e in edges:
@@ -62,7 +62,7 @@ def births_only(curve):
              where u obtains label v at time s (branch decomposition)
     '''
     merge_tree = compute_merge_tree(curve)
-    no_births = [u for u, (s, v) in merge_tree.iteritems() if u == s and u!=v]
+    no_births = [u for u, (s, v) in merge_tree.items() if u == s and u!=v]
     for u in no_births:
         merge_tree.pop(u)
     return merge_tree

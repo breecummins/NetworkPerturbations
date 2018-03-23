@@ -40,7 +40,7 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_02(fname='/Users/b
     bestones=[ d for p,d in zip(percents,notzeros) if p > 40 ]
     extrapoints = [(float(lod[0]['SingleFPQueryParameterCount'])/int(lod[0]['ParameterCount']),100)]
     nounicode=dict()
-    for item in d['SingleFPQuery'].iteritems():
+    for item in d['SingleFPQuery'].items():
         nounicode[str(item[0])] = item[1]
     xlabel = "SingleFPQuery: " + str(nounicode)
     title = "% parameters with FP query over {} networks with nonzero %".format(len(notzeros))
@@ -59,7 +59,7 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15(fname='/Users/b
     print(lod[0])
     extrapoints = [(float(lod[0]['SingleFPQueryParameterCount'])/int(lod[0]['ParameterCount']),100)]
     nounicode=dict()
-    for item in d['SingleFPQuery'].iteritems():
+    for item in d['SingleFPQuery'].items():
         nounicode[str(item[0])] = item[1]
     xlabel = "SingleFPQuery: " + str(nounicode)
     title = "% parameters with FP query over {} networks with >1%".format(len(bigpercents))
@@ -78,7 +78,7 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23(fname='/Users/b
     bestones=sorted([ (p,d["Network"]) for p,d in zip(percents,notzeros) if p > 25 ],reverse=True)
     extrapoints = [(float(lod[0]['SingleFPQueryParameterCount'])/int(lod[0]['ParameterCount']),100)]
     nounicode=dict()
-    for item in d['SingleFPQuery'].iteritems():
+    for item in d['SingleFPQuery'].items():
         nounicode[str(item[0])] = item[1]
     xlabel = "SingleFPQuery: " + str(nounicode)
     title = "% parameters with FP query over {} networks with >2%".format(len(bigpercents))
@@ -245,7 +245,7 @@ def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
     makeAllHistograms()
 
     # full inducibility > 0% suggested edges
-    list_of_networks = [key for key,val in fidict.iteritems() if val[3] > 0]
+    list_of_networks = [key for key,val in fidict.items() if val[3] > 0]
     print("{} networks".format(len(list_of_networks)))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
         network_spec = nf.read()
@@ -254,7 +254,7 @@ def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
     print("\n\n")
 
     # full inducibility > 20% suggested edges
-    percents = sorted([(float(val[3])/val[4]*100,key) for key,val in fidict.iteritems()],reverse=True)
+    percents = sorted([(float(val[3])/val[4]*100,key) for key,val in fidict.items()],reverse=True)
     list_of_networks = [ tup[1] for tup in percents if tup[0] > 20]
     print("{} networks".format(len(list_of_networks)))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
@@ -273,7 +273,7 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
     with open(fname,'r') as f:
         fidict = json.load(f) 
 
-    for key,value in fidict.iteritems():
+    for key,value in fidict.items():
         print(key)
         print('Resettable bistability: {:.1f}%'.format(float(value[3])/value[0]*100))
         print('Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100))
@@ -310,7 +310,7 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
     makeResetBistabHistogram()
 
     # hysteresis > 0% suggested edges
-    list_of_networks = [key for key,val in fidict.iteritems() if val[1] > 0]
+    list_of_networks = [key for key,val in fidict.items() if val[1] > 0]
     print("{} networks".format(len(list_of_networks)))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
         network_spec = nf.read()
@@ -319,7 +319,7 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
     print("\n\n")
 
     # hysteresis > 20% suggested edges
-    percents = sorted([(float(val[1])/val[0]*100,key) for key,val in fidict.iteritems()],reverse=True)
+    percents = sorted([(float(val[1])/val[0]*100,key) for key,val in fidict.items()],reverse=True)
     list_of_networks = [ tup[1] for tup in percents if tup[0] > 20]
     print("{} networks".format(len(list_of_networks)))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
@@ -337,7 +337,7 @@ def E2FNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
     with open(fname,'r') as f:
         fidict = json.load(f) 
-    for key,value in fidict.iteritems():
+    for key,value in fidict.items():
         print(key)
         print('Bistability: {:.1f}%'.format(float(value[0])/value[4]*100))
         print('Resettable bistability: {:.1f}%'.format(float(value[1])/value[4]*100))
@@ -348,7 +348,7 @@ def E2FNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/E2FNa
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
     with open(fname,'r') as f:
         fidict = json.load(f) 
-    for key,value in fidict.iteritems():
+    for key,value in fidict.items():
         print(key)
         print('Resettable bistability: {:.1f}%'.format(float(value[3])/value[0]*100))
         print('Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100))
