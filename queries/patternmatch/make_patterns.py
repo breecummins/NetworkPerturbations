@@ -1,6 +1,8 @@
 import fileparsers, ExtremaPO
 import itertools, os, json
 
+#FIXME: port to new DSGRN, new triplet merge tree code, and Python 3
+
 def makenetworklabelsfromfiles(networkfolder):
     networklabels = []
     uids = []

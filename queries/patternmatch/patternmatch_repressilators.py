@@ -2,6 +2,8 @@ import DSGRN
 import itertools, sys, time
 import topsort
 
+#FIXME: port to new DSGRN, new triplet merge tree code, and Python 3
+
 def hasMatch(events,event_ordering,networkspec):
     network = DSGRN.Network()
     network.assign(networkspec)

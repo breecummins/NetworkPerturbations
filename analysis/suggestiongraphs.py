@@ -1,6 +1,8 @@
 import perturbations.intervalgraph as ig
 import itertools,sys
 
+#FIXME: port to new DSGRN, new triplet merge tree code, and Python 3
+
 # This code only works if the order of the variables in the reference network spec is repeated in the perturbed network specs (see lines marked (*))
 # That is, if the reference network spec has variables A, B, C in order, then the new networks must have an order like A, B, C, x3, x4, ...
 
