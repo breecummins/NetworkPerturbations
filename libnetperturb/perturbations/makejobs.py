@@ -1,5 +1,5 @@
-import networkperturbations as perturb
-import fileparsers
+import libnetperturb.perturbations.networkperturbations as perturb
+import libnetperturb.perturbations.fileparsers as fileparsers
 import subprocess, os, json, shutil, ast, importlib,sys
 
 class Job():

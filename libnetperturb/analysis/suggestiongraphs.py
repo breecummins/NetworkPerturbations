@@ -1,4 +1,4 @@
-import perturbations.intervalgraph as ig
+import perturbations.graphtranslations as ig
 import itertools,sys
 
 #FIXME: port to new DSGRN, new triplet merge tree code, and Python 3

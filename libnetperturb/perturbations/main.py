@@ -1,4 +1,4 @@
-from makejobs import Job
+from libnetperturb.perturbations.makejobs import Job
 import sys
 
 paramfile = sys.argv[1]

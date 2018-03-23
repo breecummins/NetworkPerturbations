@@ -1,5 +1,5 @@
-import triplet_merge_trees as tmt
-import sublevel_sets as ss
+import libnetperturb.queries.patternmatch.triplet_merge_trees as tmt
+import libnetperturb.queries.patternmatch.sublevel_sets as ss
 import pytest
 
 

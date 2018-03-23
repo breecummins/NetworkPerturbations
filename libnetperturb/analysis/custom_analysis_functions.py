@@ -4,7 +4,6 @@ import matplotlib as mpl
 mpl.rcParams['font.size'] = 36
 mpl.rc('text', usetex=True)
 import suggestiongraphs as SG
-import DSGRN, subprocess,sys
 
 #FIXME: port to new DSGRN, new triplet merge tree code, and Python 3
 

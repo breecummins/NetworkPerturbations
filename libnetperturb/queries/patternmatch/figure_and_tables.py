@@ -2,9 +2,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 mpl.rcParams.update({'font.size': 22})
-from curve import Curve
-import triplet_merge_trees as tmt
-import sublevel_sets as ss
+from libnetperturb.queries.patternmatch.curve import Curve
+import libnetperturb.queries.patternmatch.triplet_merge_trees as tmt
+import libnetperturb.queries.patternmatch.sublevel_sets as ss
 
 #FIXME: Write README
 
