@@ -34,7 +34,7 @@ def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims,figsize=None,labe
 def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_02(fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_02_wavepool_network1_Dukediscussion_results.json'):
     lod = json.load(open(fname,'r'))
     N = len(lod)
-    print N
+    print(N)
     notzeros=[ d for d in lod  if d['SingleFPQueryParameterCount']>0 ]
     percents=[ float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount'])*100 for d in notzeros ]
     bestones=[ d for p,d in zip(percents,notzeros) if p > 40 ]
@@ -46,17 +46,17 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_02(fname='/Users/b
     title = "% parameters with FP query over {} networks with nonzero %".format(len(notzeros))
     axislims = [0,100,0,500]
     makeHistogram(percents,45,extrapoints,xlabel,title,axislims)
-    print bestones
+    print(bestones)
 
 def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15(fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_15_wavepool_network1_Dukediscussion_noregulationswap_results.json'):
     lod = json.load(open(fname,'r'))
     N = len(lod)
-    print N
+    print(N)
     notzeros=[ d for d in lod  if d['SingleFPQueryParameterCount']>0 ]
     percents=[ float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount'])*100 for d in notzeros ]
     bigpercents=[ p for p in percents if p > 1 ]
     bestones=[ d for p,d in zip(percents,notzeros) if p > 20 ]
-    print lod[0]
+    print(lod[0])
     extrapoints = [(float(lod[0]['SingleFPQueryParameterCount'])/int(lod[0]['ParameterCount']),100)]
     nounicode=dict()
     for item in d['SingleFPQuery'].iteritems():
@@ -65,13 +65,13 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_15(fname='/Users/b
     title = "% parameters with FP query over {} networks with >1%".format(len(bigpercents))
     axislims = [0,100,0,500]
     makeHistogram(bigpercents,45,extrapoints,xlabel,title,axislims)
-    print bestones
+    print(bestones)
 
 def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23(fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json'):
     lod = json.load(open(fname,'r'))
     N = len(lod)
-    # print N
-    # print lod[0]
+    # print(N)
+    # print(lod[0])
     notzeros=[ d for d in lod  if d['SingleFPQueryParameterCount']>0 ]
     percents=[ float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount'])*100 for d in notzeros ]
     bigpercents=[ p for p in percents if p > 2 ]
@@ -85,7 +85,7 @@ def wavepool_network1_Dukediscussion_perturbations_5D_2016_08_23(fname='/Users/b
     axislims = [0,100,0,750]
     # makeHistogram(bigpercents,50,extrapoints,xlabel,title,axislims)
     # for z in bestones:
-    #     print z
+    #     print(z)
     
 def wavepool_network1_Dukediscussion_perturbations_suggestiongraphs(network_spec_file='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_02_wavepool_network1_Dukediscussion.txt', fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/5D_2016_08_23_wavepool_network1_Dukediscussion_noregulationswap_selfedges_results.json'):
     with open(network_spec_file,'r') as f:
@@ -93,29 +93,29 @@ def wavepool_network1_Dukediscussion_perturbations_suggestiongraphs(network_spec
     with open(fname,'r') as f:
         lod = json.load(f)
     list_of_networks = [ d["Network"] for d in lod  if float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount']) > 0.10 ]
-    print "\n\nEdges suggested by all {} networks with greater than {}% SBF, HCM1 high, rest low FP:\n".format(len(list_of_networks),10)
+    print("\n\nEdges suggested by all {} networks with greater than {}% SBF, HCM1 high, rest low FP:\n".format(len(list_of_networks),10))
     getSuggestedEdges(network_spec,list_of_networks)
     list_of_networks = [ d["Network"] for d in lod  if float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount']) > 0.15 ]
-    print "\n\nEdges suggested by all {} networks with greater than {}% SBF, HCM1 high, rest low FP:\n".format(len(list_of_networks),15)
+    print("\n\nEdges suggested by all {} networks with greater than {}% SBF, HCM1 high, rest low FP:\n".format(len(list_of_networks),15))
     getSuggestedEdges(network_spec,list_of_networks)
     list_of_networks = [ d["Network"] for d in lod  if float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount']) > 0.20 ]
-    print "\n\nEdges suggested by all {} networks with greater than {}% SBF, HCM1 high, rest low FP:\n".format(len(list_of_networks),20)
+    print("\n\nEdges suggested by all {} networks with greater than {}% SBF, HCM1 high, rest low FP:\n".format(len(list_of_networks),20))
     getSuggestedEdges(network_spec,list_of_networks)
     list_of_networks = [ d["Network"] for d in lod  if float(d['SingleFPQueryParameterCount'])/int(d['ParameterCount']) > 0.25 ]
-    print "\n\nEdges suggested by all {} networks with greater than {}% SBF, HCM1 high, rest low FP:\n".format(len(list_of_networks),25)
+    print("\n\nEdges suggested by all {} networks with greater than {}% SBF, HCM1 high, rest low FP:\n".format(len(list_of_networks),25))
     getSuggestedEdges(network_spec,list_of_networks)
 
 def getSuggestedEdges(network_spec,list_of_networks):
     if list_of_networks[0] == network_spec:
         list_of_networks = list_of_networks[1:] # FIXME: Actually need graph isomorphism here
     ref_graph,suggestiongraphs = SG.getAllSuggestionGraphs(network_spec,list_of_networks)
-    # print list_of_networks[66]
-    # print suggestiongraphs[66].graphviz()
-    # print list_of_networks[99]
-    # print suggestiongraphs[99].graphviz()
+    # print(list_of_networks[66])
+    # print(suggestiongraphs[66].graphviz())
+    # print(list_of_networks[99])
+    # print(suggestiongraphs[99].graphviz())
     counts, edges = SG.countSuggestedEdges(ref_graph,suggestiongraphs)
     for c,e in zip(counts,edges):
-        print str(e) + ': ' + str(c)
+        print(str(e) + ': ' + str(c))
 
 def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02(network_spec_file='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/6D_2016_08_02_wavepool_network2_Dukediscussion.txt',fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/6D_2016_08_02_wavepool_network2_Dukediscussion_results.json'):
     # with open(network_spec_file,'r') as f:
@@ -123,8 +123,8 @@ def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02(network_spec_fi
     with open(fname,'r') as f:
         lod = json.load(f)
     # # They are the same
-    # print network_spec
-    # print lod[0]["Network"]
+    # print(network_spec)
+    # print(lod[0]["Network"])
     N = len(lod)
     percents=[ float(d['StableFCParameterCount'])/int(d['ParameterCount'])*100 for d in lod ]
     list_of_networks = [ d["Network"] for (p,d) in zip(percents,lod)  if p > 0.00 ]
@@ -135,7 +135,7 @@ def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02(network_spec_fi
     title = "% parameters with at least 1 stable FC over {} networks with >1%".format(len(nonzeros))
     axislims = [0,100,0,100]
     makeHistogram(nonzeros,45,extrapoints,xlabel,title,axislims)
-    for b in bestones: print b
+    for b in bestones: print(b)
     getSuggestedEdges(lod[0]["Network"],list_of_networks[1:])
 
 def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPaper(network_spec_file='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/6D_2016_08_02_wavepool_network2_Dukediscussion.txt',fname='/Users/bcummins/ProjectSimulationResults/wavepool_networkperturbations_paper_data/6D_2016_08_02_wavepool_network2_Dukediscussion_noregulationswap_results.json'):
@@ -144,8 +144,8 @@ def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPa
     with open(fname,'r') as f:
         lod = json.load(f)
     # # They are the same
-    # print network_spec
-    print lod[0]["Network"]
+    # print(network_spec)
+    print(lod[0]["Network"])
     N = len(lod)
     percents=[ float(d['StableFCParameterCount'])/int(d['ParameterCount'])*100 for d in lod ]
     list_of_networks = [ d["Network"] for (p,d) in zip(percents,lod)  if p > 0.00 ]
@@ -154,14 +154,14 @@ def wavepool_network2_Dukediscussion_perturbations_6D_2016_08_02_figureForToolPa
     # extrapoints = [(float(lod[0]['StableFCParameterCount'])/int(lod[0]['ParameterCount']),50)]
     xlabel = "\% parameters with at least one stable FC"
     title = ""
-    print "Total # networks: {}".format(N)
-    print "Networks with >0% parameters exhibiting stable FC: {}".format(len(list_of_networks))
-    print "Networks with >1% parameters exhibiting stable FC: {}".format(len(nonzeros))
-    print "Original percentage: {}".format(percents[0])
+    print("Total # networks: {}".format(N))
+    print("Networks with >0% parameters exhibiting stable FC: {}".format(len(list_of_networks)))
+    print("Networks with >1% parameters exhibiting stable FC: {}".format(len(nonzeros)))
+    print("Original percentage: {}".format(percents[0]))
     # axislims = [0,100,0,100]
     # makeHistogram(nonzeros,30,[],xlabel,title,axislims,labelpad=20)
-    print "Networks with >40% parameters exhibiting stable FC: {}".format(len(bestones))
-    for b in bestones: print b+'\n-----------------------------\n'
+    print("Networks with >40% parameters exhibiting stable FC: {}".format(len(bestones)))
+    for b in bestones: print(b+'\n-----------------------------\n')
     # getSuggestedEdges(lod[0]["Network"],list_of_networks[1:])
 
     f, (ax, ax2) = plt.subplots(2, 1, sharex=True)
@@ -246,17 +246,17 @@ def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
 
     # full inducibility > 0% suggested edges
     list_of_networks = [key for key,val in fidict.iteritems() if val[3] > 0]
-    print "{} networks".format(len(list_of_networks))
+    print("{} networks".format(len(list_of_networks)))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
         network_spec = nf.read()
     getSuggestedEdges(network_spec,list_of_networks)
 
-    print "\n\n"
+    print("\n\n")
 
     # full inducibility > 20% suggested edges
     percents = sorted([(float(val[3])/val[4]*100,key) for key,val in fidict.iteritems()],reverse=True)
     list_of_networks = [ tup[1] for tup in percents if tup[0] > 20]
-    print "{} networks".format(len(list_of_networks))
+    print("{} networks".format(len(list_of_networks)))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
         network_spec = nf.read()
     getSuggestedEdges(network_spec,list_of_networks)
@@ -264,9 +264,9 @@ def YaoNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults
     # top networks
     for n in percents:
         if n[0] > 40:
-            print "\n"
-            print n[1]
-            print n[0]
+            print("\n")
+            print(n[1])
+            print(n[0])
 
 def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNetworks/YaoNetworks_nonessential_hysteresis_resetbistab.json'):
     # format: (num_reduced_params,len(hysteresisTrue))
@@ -274,10 +274,10 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
         fidict = json.load(f) 
 
     for key,value in fidict.iteritems():
-        print key
-        print 'Resettable bistability: {:.1f}%'.format(float(value[3])/value[0]*100)
-        print 'Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100)
-        print set(value[2]).issubset(value[4]),"\n"
+        print(key)
+        print('Resettable bistability: {:.1f}%'.format(float(value[3])/value[0]*100))
+        print('Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100))
+        print(set(value[2]).issubset(value[4]),"\n")
 
 
     def makeHysteresisHistogram():
@@ -290,7 +290,7 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
         percents = [float(val[1])/val[0]*100 for val in fidict.values() if val[1] > 0]
         # title = "Nonzero hysteresis, {} total networks".format(len(percents))
         title=""
-        print "\nHysteresis true for {} total networks\n".format(len(percents))
+        print("\nHysteresis true for {} total networks\n".format(len(percents)))
         makeHistogram(percents,numbins,[],xlabel,title,axislims,figsize,labelpad=20)
 
     def makeResetBistabHistogram():
@@ -303,7 +303,7 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
         percents = [float(val[3])/val[0]*100 for val in fidict.values() if val[3] > 0]
         # title = "Nonzero hysteresis, {} total networks".format(len(percents))
         title=""
-        print "\nResettable bistability true for {} total networks\n".format(len(percents))
+        print("\nResettable bistability true for {} total networks\n".format(len(percents)))
         makeHistogram(percents,numbins,[],xlabel,title,axislims,figsize,labelpad=20)
 
     makeHysteresisHistogram()
@@ -311,17 +311,17 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
 
     # hysteresis > 0% suggested edges
     list_of_networks = [key for key,val in fidict.iteritems() if val[1] > 0]
-    print "{} networks".format(len(list_of_networks))
+    print("{} networks".format(len(list_of_networks)))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
         network_spec = nf.read()
     getSuggestedEdges(network_spec,list_of_networks)
 
-    print "\n\n"
+    print("\n\n")
 
     # hysteresis > 20% suggested edges
     percents = sorted([(float(val[1])/val[0]*100,key) for key,val in fidict.iteritems()],reverse=True)
     list_of_networks = [ tup[1] for tup in percents if tup[0] > 20]
-    print "{} networks".format(len(list_of_networks))
+    print("{} networks".format(len(list_of_networks)))
     with open('/Users/bcummins/ProjectSimulationResults/YaoNetworks/4D_2016_08_24_Yaostarter.txt','r') as nf:
         network_spec = nf.read()
     getSuggestedEdges(network_spec,list_of_networks)
@@ -329,37 +329,37 @@ def YaoNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/YaoNe
     # top networks
     for n in percents:
         if n[0] > 10:
-            print "\n"
-            print n[1]
-            print n[0]
+            print("\n")
+            print(n[1])
+            print(n[0])
 
 def E2FNetworks_fullinducibility(fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6D_2016_08_26_cancerE2F_fullinducibilityresults_nets2_3_4.json'):
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
     with open(fname,'r') as f:
         fidict = json.load(f) 
     for key,value in fidict.iteritems():
-        print key
-        print 'Bistability: {:.1f}%'.format(float(value[0])/value[4]*100)
-        print 'Resettable bistability: {:.1f}%'.format(float(value[1])/value[4]*100)
-        print 'Inducibility: {:.1f}%'.format(float(value[2])/value[4]*100)
-        print 'Full inducibility: {:.1f}%\n'.format(float(value[3])/value[4]*100)
+        print(key)
+        print('Bistability: {:.1f}%'.format(float(value[0])/value[4]*100))
+        print('Resettable bistability: {:.1f}%'.format(float(value[1])/value[4]*100))
+        print('Inducibility: {:.1f}%'.format(float(value[2])/value[4]*100))
+        print('Full inducibility: {:.1f}%\n'.format(float(value[3])/value[4]*100))
 
 def E2FNetworks_hysteresis(fname='/Users/bcummins/ProjectSimulationResults/E2FNaturePaper/6Dnetworksnegative/6D_2016_08_26_cancerE2F_hysteresis_resetbistab_nets2_3_4_negative.json'):
     # format: (len(bistability),len(resettablebistab),len(induc),len(fullinduc),num_factor_graphs)
     with open(fname,'r') as f:
         fidict = json.load(f) 
     for key,value in fidict.iteritems():
-        print key
-        print 'Resettable bistability: {:.1f}%'.format(float(value[3])/value[0]*100)
-        print 'Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100)
-        print set(value[2]).issubset(value[4]),"\n"
+        print(key)
+        print('Resettable bistability: {:.1f}%'.format(float(value[3])/value[0]*100))
+        print('Hysteresis: {:.1f}%'.format(float(value[1])/value[0]*100))
+        print(set(value[2]).issubset(value[4]),"\n")
 
 def wavepool_9networks(fname='/Users/bcummins/ProjectSimulationResults/wavepool4patternmatch_paper/wavepool_9networks.json'):
     with open(fname,'r') as f:
         wd = json.load(f)
     for d in wd:
-        print d["Network"] + "\n"
-        print str(d["ParameterCount"]) + "/" + str(d["StableFCParameterCount"]) + "/" + str(d["StableFCMatchesParameterCount"]) + "\n"
+        print(d["Network"] + "\n")
+        print(str(d["ParameterCount"]) + "/" + str(d["StableFCParameterCount"]) + "/" + str(d["StableFCMatchesParameterCount"]) + "\n"
 
 def YaoNetworks_Computations20171027(fname="/Users/bcummins/ProjectSimulationResults/YaoNetworks/20171027computations/Figure3/results_newquery/table.csv"):
     with open(fname,'r') as f:

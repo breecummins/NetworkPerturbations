@@ -27,8 +27,7 @@ def query(networks,resultsdir,params):
             parameter = parametergraph.parameter(p)
             dg = DSGRN.DomainGraph(parameter)
             md = DSGRN.MorseDecomposition(dg.digraph())
-            mg = DSGRN.MorseGraph()
-            mg.assign(dg, md)
+            mg = DSGRN.MorseGraph(dg, md)
             stable_FC_annotations = [mg.annotation(i)[0] for i in range(0, mg.poset().size())
                                      if is_FC(mg.annotation(i)[0]) and len(mg.poset().children(i)) == 0]
             if len(stable_FC_annotations) > 0:

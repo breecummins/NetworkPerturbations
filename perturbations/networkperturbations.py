@@ -54,7 +54,7 @@ def perturbNetwork(params, network_spec):
                 networks.append(network_spec)
         current_time = time.time()-start_time
     if current_time > params['time_to_wait']:
-        print "Network perturbation timed out. Proceeding with {} perturbations.".format(len(networks))
+        print("Network perturbation timed out. Proceeding with {} perturbations.".format(len(networks)))
     # Return however many networks were made
     return networks
 
@@ -70,10 +70,10 @@ def checkComputability(network_spec,maxparams):
         paramgraph=DSGRN.ParameterGraph(network) 
         smallenough = paramgraph.size() <= int(maxparams)
         if not smallenough:
-            print "\nToo many parameters. Not using network spec: \n {}\n".format(network_spec)    
+            print("\nToo many parameters. Not using network spec: \n {}\n".format(network_spec))
         return smallenough
     except (AttributeError, RuntimeError):
-        print "\nNetwork spec not computable: \n{}\n".format(network_spec)
+        print("\nNetwork spec not computable: \n{}\n".format(network_spec))
         return False
 
 ##############################################################################

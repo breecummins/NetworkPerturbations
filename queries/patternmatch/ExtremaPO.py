@@ -325,7 +325,7 @@ def makeJSONstring(TSList,TSLabels,n=1,scalingFactors=[1],step=0.01):
     # scalingFactors = a list of scaling factors of maxEps (Must be in [0,1])
     # step (default to 0.01)
     if step <=0:
-        print "Changing step size to 0.01."
+        print("Changing step size to 0.01.")
         step = 0.01
 
     sumList = ProcessTS(TSList,n,step)
@@ -349,7 +349,7 @@ def testme():
     ind = timeStepList.index(45)
     labels,data = zip(*[(node,TSList[TSLabels.index(node)][:ind+1]) for node in TSLabels if node in desiredlabels])
     jsonstr = makeJSONstring(data,labels,n=1,scalingFactors=[0.05,0.1,0.5],step=0.01)
-    print jsonstr
+    print(jsonstr)
     ts=timeStepList[:ind+1]
     plt.figure()
     plt.hold('on')

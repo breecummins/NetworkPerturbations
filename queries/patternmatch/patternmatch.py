@@ -37,10 +37,10 @@ def checkLinearExtensionsOfPoset(netspec,events,event_ordering):
         linext = [(l[i],l[i+1]) for i in range(N-1)] 
         if not hasMatch(events,linext,netspec):
             all_matches = False
-            print l
+            print(l)
             break
         # j += 1
-        # if not j%1000: print j
+        # if not j%1000: print(j)
     return "Has all linear extensions of known order = {}".format(all_matches)
 
 def doubleRepressilatorOrders(netspec):
@@ -49,32 +49,32 @@ def doubleRepressilatorOrders(netspec):
     event_ordering_known = [(0,1),(1,2),(2,3),(3,4),(4,5)] + [(6,7),(7,8),(8,9),(9,10),(10,11)]
     event_ordering_mixedup = [(0,1),(1,2),(2,3),(3,4),(4,5)] + [(7,6),(6,8),(8,10),(10,9),(9,11)]
     event_ordering_oppositemix = [(1,0),(0,2),(2,4),(4,3),(3,5)] + [(6,7),(7,8),(8,9),(9,10),(10,11)]
-    print "Matches known order = {}".format(hasMatch(events,event_ordering_known,netspec))
-    print "Matches mixed up order = {}".format(hasMatch(events,event_ordering_mixedup,netspec))
-    print "Matches opposite mixed up order = {}".format(hasMatch(events,event_ordering_oppositemix,netspec))
-    print checkLinearExtensions(netspec,events,event_ordering_known)
+    print("Matches known order = {}".format(hasMatch(events,event_ordering_known,netspec)))
+    print("Matches mixed up order = {}".format(hasMatch(events,event_ordering_mixedup,netspec)))
+    print("Matches opposite mixed up order = {}".format(hasMatch(events,event_ordering_oppositemix,netspec)))
+    print(checkLinearExtensions(netspec,events,event_ordering_known))
 
 def singleRepressilator():
-    print "\nSingle repressilator"
+    print("\nSingle repressilator")
     netspec = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E"
     events = [("x1","max"),("y1","min"),("z1","max"),("x1","min"),("y1","max"),("z1","min")]
     event_ordering_known = [(0,1),(1,2),(2,3),(3,4),(4,5)]
     event_ordering_mixedup = [(1,0),(0,2),(2,4),(4,3),(3,5)]
-    print "Matches known order = {}".format(hasMatch(events,event_ordering_known,netspec))
-    print "Matches mixed up order = {}".format(hasMatch(events,event_ordering_mixedup,netspec))
+    print("Matches known order = {}".format(hasMatch(events,event_ordering_known,netspec)))
+    print("Matches mixed up order = {}".format(hasMatch(events,event_ordering_mixedup,netspec)))
 
 def decoupledRepressilators():
-    print "\nDecoupled repressilators"
+    print("\nDecoupled repressilators")
     netspec = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : ~x2 : E\nz2 : ~y2 : E"
     doubleRepressilatorOrders(netspec)
 
 def oneWayForcing():
-    print "\nOne-way forcing"
+    print("\nOne-way forcing")
     netspec = "x1 : ~z1 : E\ny1 : ~x1 : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
     doubleRepressilatorOrders(netspec)
 
 def twoWayFeedback():
-    print "\nTwo-way feedback"
+    print("\nTwo-way feedback")
     netspec = "x1 : ~z1 : E\ny1 : (~x1)(~x2) : E\nz1 : ~y1 : E\nx2 : ~z2 : E\ny2 : (~x1)(~x2) : E\nz2 : ~y2 : E"
     doubleRepressilatorOrders(netspec)
 
@@ -102,8 +102,8 @@ def isOneWaySubsetTwoWay():
             break
         j += 1
         if not j%100000: 
-            print j, time.clock()-start
-    print "One-way forcing subset of two-way forcing = {}".format(all_matches)
+            print((j, time.clock()-start))
+    print("One-way forcing subset of two-way forcing = {}".format(all_matches))
 
 if __name__ == "__main__":
     # singleRepressilator()

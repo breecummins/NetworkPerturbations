@@ -85,4 +85,4 @@ if __name__ == "__main__":
 	poset = [(1,2), (2,3), (1,5)]
 	grid = partial_order_to_grid(poset,n)
 	for le in vr_topsort(n,grid):
-		print le
+		print(le)

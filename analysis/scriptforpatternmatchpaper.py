@@ -26,4 +26,4 @@ with open(os.path.expanduser('~/ProjectSimulationResults/wavepool4patternmatch_p
     f.write(gv)
 
 morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
-print [ len(morsedecomposition.morseset(i)) for i in range(0,morsedecomposition.poset().size()) ]
+print([ len(morsedecomposition.morseset(i)) for i in range(0,morsedecomposition.poset().size()) ])

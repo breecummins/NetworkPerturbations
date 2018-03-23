@@ -265,9 +265,9 @@ def getGraphFromNetworkSpec(network_spec):
 #   json.dump(output, fp)
 
 # # Output in graphviz format
-# #print HasseDiagram.graphviz()
+# #print(HasseDiagram.graphviz())
 
 # P = Poset(HasseDiagram)
 # PG = PosetToPatternGraph(P)
-# print PG.graphviz()
+# print(PG.graphviz())
 

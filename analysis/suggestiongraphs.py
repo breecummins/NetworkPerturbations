@@ -89,11 +89,11 @@ if __name__=='__main__':
 
     othernets = ['SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1 + x6) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (CdH1 + x7) : E\nx6 : (CdH1) : E\nx7 : (~x6) : E\n', 'SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (CdH1 + x6) : E\nx6 : (~CdH1) : E\n', 'SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF)(~SWI5) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (CdH1)(~HCM1) : E\n', 'SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1)(~x6) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (SWI5 + CdH1) : E\nx6 : (HCM1) : E\n', 'SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1 + x6) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (YOX1 + CdH1) : E\nx6 : (~HCM1) : E\n','SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : (SBF) : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : (NDD1) : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : (CdH1)(~x6) : E\nx6 : (CdH1) : E\n']
     ref_graph, suggestiongraphs = getAllSuggestionGraphs(network_spec,[newnet]+othernets)
-    print ref_graph.graphviz()
+    print(ref_graph.graphviz())
     counts,edges = countSuggestedEdges(ref_graph,suggestiongraphs)
     for (s,n) in zip(suggestiongraphs,[newnet]+othernets):
-        print n
-        print s.graphviz()
+        print(n)
+        print(s.graphviz())
 
-    print counts
-    print edges
+    print(counts)
+    print(edges)
