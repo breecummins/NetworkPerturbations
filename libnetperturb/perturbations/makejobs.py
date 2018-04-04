@@ -1,8 +1,6 @@
-import networkperturbations as perturb
-import fileparsers
+import libnetperturb.perturbations.networkperturbations as perturb
+import libnetperturb.perturbations.fileparsers as fileparsers
 import subprocess, os, json, shutil, ast, importlib,sys
-sys.path.append("../queries")
-# call function from within inputfiles/
 
 class Job():
 
@@ -10,7 +8,7 @@ class Job():
         self.paramfile = paramfile
         self.params = json.load(open(paramfile))
         # use datetime as unique identifier to avoid overwriting
-        datetime = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).strip()
+        datetime = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).decode(sys.stdout.encoding).strip()
         computationsdir_datetime = os.path.join(os.path.expanduser(self.params["computationsdir"]),"computations"+datetime)
         os.makedirs(computationsdir_datetime)
         self.inputfilesdir = os.path.join(computationsdir_datetime,"inputfiles")
@@ -53,7 +51,7 @@ class Job():
             networks=list(set(perturbed_networks))
             print("\nPerturbations complete; queries beginning.\n")
             sys.stdout.flush()
-        query = importlib.import_module(self.params["querymodule"])
+        query = importlib.import_module("..queries."+self.params["querymodule"],"libnetperturb.perturbations")
         query.query(networks,self.resultsdir,self.params)
 
 

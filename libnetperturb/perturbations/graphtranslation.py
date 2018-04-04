@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
-import subprocess, copy, json
-from collections import defaultdict
+import copy
 
 ################################
 # Directed Acyclic Graph Class #
@@ -90,79 +89,6 @@ class Graph:
     for (u,v) in self.edges(): gv += indices[u] + ' -> ' + indices[v] + ' [label="' + self.edge_label(u,v) + '"];\n'
     return gv + '}\n'
 
-###############################
-# Partially Ordered Set Class #
-###############################
-
-class Poset:
-  def __init__(self, graph):
-    """  Create a Poset P from a DAG G such that x <= y in P iff there is a path from x to y in G """
-    self.vertices_ = set(graph.vertices())
-    self.descendants_ = graph.transitive_closure()
-    self.ancestors_ = self.descendants_.transpose()
-    self.children_ = graph.transitive_reduction()
-    self.parents_ = self.children_.transpose()
-  def vertices(self):
-    """ Return the set of elements in the poset """
-    return self.vertices_
-  def parents(self, v):
-    """ Return the immediate predecessors of v in the poset """
-    return self.parents_.adjacencies(v)
-  def children(self, v):
-    """ Return the immediate successors of v in the poset """
-    return self.children_.adjacencies(v)
-  def ancestors(self, v):
-    """ Return the set { u : u < v } """
-    return self.ancestors_.adjacencies(v)
-  def descendants(self, v):
-    """ Return the set { u : v < u } """
-    return self.descendants_.adjacencies(v)
-  def less(self, u, v):
-    """ Return True if u < v, False otherwise """
-    return u in self.ancestors(v)
-  def maximal(self, subset):
-    """ Return the set of elements in "subset" which are maximal """
-    return frozenset({ u for u in subset if not any ( self.less(u,v) for v in subset ) })
-
-###################################
-# Poset-to-PatternGraph Algorithm #
-###################################
-
-def PosetToPatternGraph(poset):
-  """ Generate from poset the Hasse diagram of the poset of down-sets of "poset" ordered by inclusion """
-  pattern_graph = Graph()
-  recursion_stack = [poset.maximal(poset.vertices())]
-  while recursion_stack:
-    clique = recursion_stack.pop()
-    for v in clique:
-      parent_clique = poset.maximal(clique.difference([v]).union(poset.parents(v)))
-      if parent_clique not in pattern_graph.vertices():
-        recursion_stack.append (parent_clique)
-      pattern_graph.add_edge (parent_clique,clique, str(v))
-  return pattern_graph
-
-###################################
-# Create Interval Graph from Data #
-###################################
-
-def IntervalGraph(events):
-  """ Generate a labelled interval graph from a list of "events". 
-      An "event" is a two-element list [label, interval],
-      where interval is two-element list of floats. e.g. ["X", [1.0, 3.4] ]
-      Each event becomes a vertex in the graph and there is an edge
-      from u to v whenever the interval associated with u is disjoint
-      from and bounded above by the interval associated with v
-  """
-  N = len(events)
-  G = Graph()
-  for i in range(0, N):
-    G.add_vertex(i,events[i][0])
-  for i in range(0, N):
-    for j in range(0, N):
-      if events[i][1][1] <= events[j][1][0] and i!=j:
-        G.add_edge(i,j)
-  return G
-
 
 ##################################################
 # Translation to and from network specifications
@@ -202,7 +128,7 @@ def createEssentialNetworkSpecFromGraph(graph):
     return network_spec
 
 def getGraphFromNetworkSpec(network_spec):
-    # take a network spec and return an intervalgraph.Graph
+    # take a network spec and return an graphtranslation.Graph
     eqns = filter(bool,network_spec.split("\n"))
     nodelist = []
     innodes = []
@@ -225,49 +151,3 @@ def getGraphFromNetworkSpec(network_spec):
             innode = nodelist.index(ie)
             graph.add_edge(innode,outnode,label=reg)
     return graph
-
-# ##############
-# # 7D Example #
-# ##############
-
-# # Names of genes in order given in network spec file
-# genes = ["FKH1", "SPT2", "PLM2", "WTM2", "SWI4", "NDD1", "HCM1" ]
-
-# # Location of extreme
-# data = {}
-# data["FKH1"] = [[10.0,20.0], [40.0,50.0], [80.0,90.0], [115.0,125.0]]    #MIN
-# data["SPT2"] = [[10.0,90.0], [95.0, 150.0]]                              #MIN
-# data["PLM2"] = [[10.0,15.0], [25.0,35.0], [70.0,80.0], [95.0,105.0]]     #MIN
-# data["WTM2"] = [[25.0,35.0], [65.0,75.0], [100.0,110.0], [145.0,150.0]]  #MIN
-# data["SWI4"] = [[15.0,25.0], [50.0,60.0], [120.0,130.0], [145.0,150.0]]  #MAX
-# data["NDD1"] = [[10.0,15.0], [35.0,45.0], [75.0,85.0], [105.0,115.0]]    #MIN
-# data["HCM1"] = [[20.0,30.0], [60.0,70.0], [95.0,105.0], [140.0,150.0] ]  #MAX
-
-# # List of min/max events
-# events = [ [gene, datum] for gene in genes for datum in data[gene] ]
-
-# # Final state label:
-# #  2*D bits, the ith bit is 1 if the final state is decreasing in variable i
-# #        the (i+D)th bit is 1 if the final state is increasing in variable i
-# label = 0b10100000101111   # variables 0,1,2,3,5 decreasing, variables 4,6 increasing
-
-# # Create the interval graph
-# G = IntervalGraph(events)
-
-# # Produce a JSON file suitable for the C++ pattern matching program
-# HasseDiagram = G.transitive_reduction();
-# output = {}
-# output["poset"] = [ list(HasseDiagram.adjacencies(i)) for i in HasseDiagram.vertices() ]
-# output["events"] = [ genes.index(HasseDiagram.vertex_label(i)) for i in HasseDiagram.vertices() ]
-# output["label"] = label
-# output["dimension"] = len(genes)
-# with open('pattern.json', 'w') as fp:
-#   json.dump(output, fp)
-
-# # Output in graphviz format
-# #print HasseDiagram.graphviz()
-
-# P = Poset(HasseDiagram)
-# PG = PosetToPatternGraph(P)
-# print PG.graphviz()
-
