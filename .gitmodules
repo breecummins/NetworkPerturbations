@@ -1,0 +1,3 @@
+[submodule "min_interval_posets"]
+	path = min_interval_posets
+	url = https://github.com/breecummins/min_interval_posets.git

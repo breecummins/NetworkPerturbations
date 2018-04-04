@@ -1,5 +1,5 @@
 import DSGRN
-import itertools, sys, time
+import time
 import topsort
 
 #FIXME: port to new DSGRN, new triplet merge tree code, and Python 3
