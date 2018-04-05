@@ -94,20 +94,3 @@ def parseNodeFile(fname):
                 wordlist=l.replace(',',' ').split()
                 nodelist.append(wordlist[0])
     return nodelist
-
-
-if __name__ == '__main__':
-    pass
-    # parseRankedGenes("datafiles/wrair-fpkm-p1_malaria_s19_DLxJTK_50putativeTFs.txt")
-    # makeYeastRankedGenes()
-    # source,target,type_reg,lem_score = parseLEMfile()
-    # for k,(s,t,l) in enumerate(zip(source,target,lem_score)):
-    #     if s == 'PF3D7_1139300' and t == 'PF3D7_1337100':
-    #         print(l)
-    #         print(k)
-    #         print(len(source))
-
-    # source,target,type_reg,sqrtloss_root=parseLEMfile_sqrtlossdroot()
-    # for k,(s,t,l) in enumerate(zip(source,target,sqrtloss_root)):
-    #     if k < 20:
-    #         print((s,t,l))

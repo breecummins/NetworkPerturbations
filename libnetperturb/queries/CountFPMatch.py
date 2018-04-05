@@ -16,9 +16,6 @@ def query(networks,resultsdir,params):
     network spec, which is dumped to a json file.
     '''
     bounds = dict(params["bounds"])
-    rname = os.path.join(resultsdir,"FP_parameter_match_counts.json")
-    if os.path.exists(rname):
-        os.rename(rname,rname+".old")
 
     def is_FP(annotation):
         return annotation.startswith("FP")
@@ -45,5 +42,9 @@ def query(networks,resultsdir,params):
             if any([is_FP_match(bounds_ind,a) for a in stable_FP_annotations]):
                 count+=1
         resultsdict[net] = str(count)+"/"+str(parametergraph.size())
-        json.dump(resultsdict,open(rname,'w'))
+
+    rname = os.path.join(resultsdir,"FP_parameter_match_counts.json")
+    if os.path.exists(rname):
+        os.rename(rname,rname+".old")
+    json.dump(resultsdict,open(rname,'w'))
 

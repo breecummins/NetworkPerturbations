@@ -10,10 +10,6 @@ def query(networks,resultsdir,params):
     :return: Writes count of parameters with a stable FC to a dictionary keyed by
     network spec, which is dumped to a json file.
     '''
-    rname = os.path.join(resultsdir,"Stable_FC_parameter_counts.json")
-    if os.path.exists(rname):
-        os.rename(rname,rname+".old")
-
     def is_FC(annotation):
         return annotation.startswith("FC")
 
@@ -33,5 +29,9 @@ def query(networks,resultsdir,params):
             if len(stable_FC_annotations) > 0:
                 count+=1
         resultsdict[net] = str(count)+"/"+str(parametergraph.size())
-        json.dump(resultsdict,open(rname,'w'))
+
+    rname = os.path.join(resultsdir,"Stable_FC_parameter_counts.json")
+    if os.path.exists(rname):
+        os.rename(rname,rname+".old")
+    json.dump(resultsdict,open(rname,'w'))
 
