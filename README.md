@@ -44,8 +44,7 @@ If makeperturbations == true, the following are required except where noted:
     maxparams           =   Maximum number of parameters (integer) allowed for DSGRN computations
 
     time_to_wait        =   Maximum time in seconds (integer) allowed to calculate perturbed networks;
-                            intended as a fail-safe when there are not enough computable networks in the neighborhood;
-                            does not affect queryfile computation time
+                            intended as a fail-safe when there are not enough computable networks in the neighborhood
 
 Other keys added as needed to the dictionary for the chosen query module, which may require additional arguments.
 
