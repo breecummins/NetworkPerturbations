@@ -10,19 +10,19 @@ See example parameter files in the examples folder. The keywords in the json par
 
 REQUIRED:
 
-querymodule         =   module name from queries that has the query to be performed
+    querymodule         =   module name from queries that has the query to be performed
 
-computationsdir     =   path to location where results are to be stored;
+    computationsdir     =   path to location where results are to be stored;
                         empty string "" indicates current directory
 
-networkfile         =   path to a file containing either a single network specification (see example_networkspec.txt),
+    networkfile         =   path to a file containing either a single network specification (see example_networkspec.txt),
                         or a comma-separated list of them (see example_networklist.txt)
 
-makeperturbations   =   true or false (must be lower case, no quotes);
+    makeperturbations   =   true or false (must be lower case, no quotes);
                         false = perform the query only for the network specifications provided in the list;
                         true = for every network spec in the list, make perturbations using the parameters below
 
-IF MAKEPERTURBATIONS == TRUE, THE FOLLOWING ARE REQUIRED EXCEPT WHERE NOTED:
+If makeperturbations == true, the following are required except where noted:
 
     nodefile            =   OPTIONAL: path to file containing the names of nodes to add, one line per name;
                             or empty string "" or missing keyword if no such file exists
@@ -48,7 +48,7 @@ IF MAKEPERTURBATIONS == TRUE, THE FOLLOWING ARE REQUIRED EXCEPT WHERE NOTED:
                             intended as a fail-safe when there are not enough computable networks in the neighborhood;
                             does not affect queryfile computation time
 
-OTHER KEYS ADDED AS NEEDED TO THE DICTIONARY FOR THE CHOSEN QUERY MODULE, WHICH MAY REQUIRE ADDITIONAL ARGUMENTS.
+Other keys added as needed to the dictionary for the chosen query module, which may require additional arguments.
 
 NOTES:
 
@@ -57,6 +57,6 @@ NOTES:
 
     newmodule.query(list_of_networks, results_directory_path, parameter_dict)
 
-    See CountFPMatch.py and CountStableFC.py for examples.
+See queries/CountFPMatch.py, queries/CountStableFC.py, and queries/patternmatch.py for examples.
 
 (2) Network perturbations will always assume that activating edges are summed together. Activating edges that are multiplied will be recast into addition, potentially changing the size of the parameter graph.
