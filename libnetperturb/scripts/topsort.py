@@ -32,7 +32,7 @@ def partial_order_to_grid(poset, n):
     '''poset is given in 2tuples of indexes into a list containing a linear extension
     as the indicies are into a list containing a valid topological sort,
     i must be < j for every (i,j) in the poset'''
-    grid = [[False for j in xrange(n + 1)] + [True] for i in xrange(n + 2)]
+    grid = [[False for j in range(n + 1)] + [True] for i in range(n + 2)]
     for i, j in poset:
         assert i < j
         grid[i][j] = True
@@ -63,8 +63,8 @@ def vr_topsort(n, m):
 
     # The algorithm was written with list indicies starting at 1,
     # so this implementation does the same. http://xkcd.com/163/
-    loc = range(n + 1)
-    p = range(n + 2)
+    loc = list(range(n + 1))
+    p = list(range(n + 2))
     yield p[1:n + 1]
     i = 1
     k = 1

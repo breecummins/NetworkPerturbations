@@ -3,8 +3,19 @@ import itertools,sys
 
 #FIXME: port to new NetworkPerturbations and Python 3
 
-# This code only works if the order of the variables in the reference network spec is repeated in the perturbed network specs (see lines marked (*))
-# That is, if the reference network spec has variables A, B, C in order, then the new networks must have an order like A, B, C, x3, x4, ...
+# This code only works if the order of the variables in the reference network spec is
+# repeated in the perturbed network specs (see lines marked (*))
+# That is, if the reference network spec has variables A, B, C in order, then the new
+# networks must have an order like A, B, C, x3, x4, ...
+
+
+def getSuggestedEdges(network_spec,list_of_networks):
+    if list_of_networks[0] == network_spec:
+        list_of_networks = list_of_networks[1:] # FIXME: Actually need graph isomorphism here
+    ref_graph, suggestiongraphs = getAllSuggestionGraphs(network_spec,list_of_networks)
+    counts, edges = countSuggestedEdges(ref_graph,suggestiongraphs)
+    return counts, edges
+
 
 def getAllSuggestionGraphs(network_spec,list_of_networks):
     ref_graph = ig.getGraphFromNetworkSpec(network_spec)
@@ -22,6 +33,7 @@ def getAllSuggestionGraphs(network_spec,list_of_networks):
         suggestion_graphs.append(_computeSuggestionGraph(new_graph,oldnodes,newnodesselfedges))
     return ref_graph,suggestion_graphs
 
+
 def _computeSuggestionGraph(reduced_graph,oldnodes,newnodesselfedges):
     rownodes = oldnodes+newnodesselfedges
     suggestion_graph = ig.Graph()
@@ -33,6 +45,7 @@ def _computeSuggestionGraph(reduced_graph,oldnodes,newnodesselfedges):
             sgn = regs[0] if len(set(regs)) == 1 else 'b'
             suggestion_graph.add_edge(rn,node,label=sgn) # (*) variable order dependence
     return suggestion_graph
+
 
 def _condenseEdges(path,terminals,oldnodes,graph):
     # recursive
@@ -46,6 +59,7 @@ def _condenseEdges(path,terminals,oldnodes,graph):
         for c in graph.adjacencies(path[-1]):
             _condenseEdges(path+[c],terminals,oldnodes,graph)
     return terminals
+
 
 def countSuggestedEdges(ref_graph,suggestiongraphs):
     N = len(ref_graph.vertices())
@@ -76,6 +90,7 @@ def countSuggestedEdges(ref_graph,suggestiongraphs):
     counts, edges = _sort_by_list(counts,edges,reverse=True)
     return counts,edges
 
+
 def _sort_by_list(X,Y,reverse=True):
     # sort Y by the sorted order of X
     newX, newY = [], []
@@ -83,6 +98,7 @@ def _sort_by_list(X,Y,reverse=True):
         newX.append(x)
         newY.append(y)
     return newX,newY
+
 
 if __name__=='__main__':
     network_spec = "SBF : (SBF + SWI5)(~YOX1) : E\nHCM1 : SBF : E\nNDD1 : (HCM1)(~CdH1) : E\nSWI5 : NDD1 : E\nYOX1 : (SBF)(~CdH1) : E\nCdH1 : CdH1 : E"
