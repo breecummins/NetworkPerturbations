@@ -1,7 +1,5 @@
-import perturbations.graphtranslation as ig
-import itertoolswm
-
-#FIXME: port to new NetworkPerturbations and Python 3
+import libnetperturb.perturbations.graphtranslation as gt
+import itertools
 
 # This code only works if the order of the variables in the reference network spec is
 # repeated in the perturbed network specs (see lines marked (*))
@@ -18,12 +16,12 @@ def getSuggestedEdges(network_spec,list_of_networks):
 
 
 def getAllSuggestionGraphs(network_spec,list_of_networks):
-    ref_graph = ig.getGraphFromNetworkSpec(network_spec)
+    ref_graph = gt.getGraphFromNetworkSpec(network_spec)
     first = str(ref_graph.graphviz())
     oldnodes = sorted(list(ref_graph.vertices())) # graph.vertices() is a set of integers from 0 to N
     suggestion_graphs = []
     for n in list_of_networks:
-        new_graph = ig.getGraphFromNetworkSpec(n) 
+        new_graph = gt.getGraphFromNetworkSpec(n)
         for v in oldnodes: 
             for c in ref_graph.adjacencies(v): 
                 new_graph.remove_edge(v,c)  # (*) variable order dependence
@@ -36,7 +34,7 @@ def getAllSuggestionGraphs(network_spec,list_of_networks):
 
 def _computeSuggestionGraph(reduced_graph,oldnodes,newnodesselfedges):
     rownodes = oldnodes+newnodesselfedges
-    suggestion_graph = ig.Graph()
+    suggestion_graph = gt.Graph()
     for rn in rownodes:
         suggestion_graph.add_vertex(rn)
         terminals = sorted(_condenseEdges([rn],[],oldnodes,reduced_graph))

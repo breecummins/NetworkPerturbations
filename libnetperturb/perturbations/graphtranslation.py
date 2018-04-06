@@ -82,12 +82,14 @@ class Graph:
         for (u, v) in self.edges():
             gv += indices[u] + ' -> ' + indices[v] + ' [label="' + self.edge_label(u,v) + '"];\n'
         return gv + '}\n'
-    # def transpose(self):
-    #   """ Return a new graph with edge direction reversed. """
-    #   G = Graph ()
-    #   for v in self.vertices(): G.add_vertex(v,self.vertex_label(v))
-    #   for (u,v) in self.edges(): G.add_edge(v,u,self.edge_label(u,v))
-    #   return G
+
+    def transpose(self):
+        """ Return a new graph with edge direction reversed. """
+        G = Graph()
+        for v in self.vertices(): G.add_vertex(v, self.vertex_label(v))
+        for (u, v) in self.edges(): G.add_edge(v, u, self.edge_label(u, v))
+        return G
+
     # def transitive_closure(self):
     #   """ Return a new graph which is the transitive closure """
     #   G = self.clone ()
