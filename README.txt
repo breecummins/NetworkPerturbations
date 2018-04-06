@@ -1,9 +1,12 @@
-Main script is main.py. Call from within inputfiles as
+This module accepts a network in DSGRN network specification format, generates a collection of networks in the neighborhood of the first, perhaps constrained by certain nodes and edges, and performs a DSGRN query on every parameter of every network.
 
-python ../perturbations/main.py <params.json>
+Dependencies: Python 3.6, numpy, DSGRN (https://github.com/shaunharker/DSGRN) and dependencies
 
+Calling script is libnetperturb/perturbations/main.py:
 
-Keywords in the json parameter dictionary. See examples in inputfiles/ for format.
+python main.py <params.json>
+
+See example parameter files in the examples folder. The keywords in the json parameter dictionary are given as follows.
 
 REQUIRED:
 
