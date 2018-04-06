@@ -4,7 +4,7 @@ Dependencies: Python 3.6, numpy, DSGRN (https://github.com/shaunharker/DSGRN) an
 
 Calling script is libnetperturb/perturbations/main.py:
 
-python main.py <params.json>
+    python main.py <params.json>
 
 See the parameter files in the examples folder. The keywords in the json parameter dictionary are given as follows.
 
