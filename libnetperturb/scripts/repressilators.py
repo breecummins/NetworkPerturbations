@@ -2,7 +2,7 @@ import DSGRN
 import time
 import topsort
 
-#FIXME: port to new DSGRN, new triplet merge tree code, and Python 3
+#FIXME: port to new DSGRN, new NetworkPerturbations, and Python 3
 
 def hasMatch(events,event_ordering,networkspec):
     network = DSGRN.Network()

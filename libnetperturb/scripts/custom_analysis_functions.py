@@ -5,7 +5,7 @@ mpl.rcParams['font.size'] = 36
 mpl.rc('text', usetex=True)
 import suggestiongraphs as SG
 
-#FIXME: port to new DSGRN, new triplet merge tree code, and Python 3
+#FIXME: port to new NetworkPerturbations and Python 3
 
 def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims,figsize=None,labelpad=0,savename=""):
     if figsize:

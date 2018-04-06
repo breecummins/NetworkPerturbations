@@ -4,7 +4,7 @@ import libnetperturb.perturbations.graphtranslation as graphtranslation
 import time
 
 #####################################################################################################################
-# Library for perturbing networks. The method perturbNetworks is expected to be the only externally called function.
+# Library for perturbing networks.
 #####################################################################################################################
 
 def perturbNetwork(params, network_spec):
@@ -154,6 +154,8 @@ def addNodeAndConnectingEdges(graph,edgelist=None,nodelist=None,swap_edge_reg=Tr
     #   if edgelist, choose random in- and out-edges from a (filtered) list
     #   if no edgelist, choose in- and out-edges randomly without a list
     # if no nodelist, make up a name for a new node (and add random edges sans edgelist)
+
+    #TODO: Allow possibility for no in-edges, maybe add empty edge to list
 
     networknodenames = getNetworkLabels(graph)
     N = len(networknodenames)
