@@ -1,5 +1,5 @@
 import perturbations.graphtranslation as ig
-import itertools,sys
+import itertoolswm
 
 #FIXME: port to new NetworkPerturbations and Python 3
 
