@@ -1,6 +1,6 @@
 import DSGRN
-import sys, json, os
-sys.path.append('../min_interval_posets')
+import sys, json, os, ast
+sys.path.append('../../min_interval_posets')
 from min_interval_posets import libposets
 from libnetperturb.perturbations import fileparsers
 
@@ -13,24 +13,35 @@ def query(networks,resultsdir,params):
     :param networks: list of network specification strings in DSGRN format
     :param resultsdir: path to directory where results file(s) will be stored
     :param params: A dictionary containing the keys
-        "timeseriesfname" : path to a file containing the time series data from which to make posets
         "epsilons" : list of floats 0 <= x <= 1, one poset will be made for each x
-        "tsfile_is_row_format" : True if the time series file is in row format; False if in column format (see fileparsers.py)
         "matchingfunction" : a string containing the name of one of the matching functions in this module
         "count" : True or False, whether to count all params or shortcut at first success
+        Then, one can either specify posets directly, or extract posets from timeseries data.
+        Include either
+        "posets" : list of tuples of epsilon with a DSGRN formatted poset:
+                    [(eps1,poset1), (eps2,poset2),...]
+        or the two keys
+       "timeseriesfname" : path to a file containing the time series data from which to make posets
+        "tsfile_is_row_format" : True if the time series file is in row format; False if in column format (see fileparsers.py)
 
-    :return: Writes True (pattern match for the poset) or False (no pattern match) or parameter count (# successful matches)
-    for each epsilon to a dictionary keyed by network spec, which is dumped to a json file.
+    :return: Writes True (pattern match for the poset) or False (no pattern match) or
+        parameter count (# successful matches) plus the number of parameters, for each
+         epsilon to a dictionary keyed by network spec, which is dumped to a json file:
+         { networkspec : (eps, result, num params) }
     '''
-    posets = createPosetsFromData(params['timeseriesfname'],params['epsilons'],params['tsfile_is_row_format'])
+    #TODO: customize posets to networks (different numbers of nodes require different posets)
+    if "posets" not in params:
+        posets = createPosetsFromData(params['timeseriesfname'],params['epsilons'],params['tsfile_is_row_format'])
+    else:
+        posets = ast.literal_eval(params["posets"])
     results = {}
     for networkspec in networks:
         network = DSGRN.Network(networkspec)
         ER = []
         for (eps,(events,event_ordering)) in posets:
             paramgraph, patterngraph = getGraphs(events, event_ordering, network)
-            R = locals()[params['matchingfunction']](paramgraph, patterngraph, params['count'])
-            ER.append((eps,R))
+            R = globals()[params['matchingfunction']](paramgraph, patterngraph, params['count'])
+            ER.append((eps,R,paramgraph.size()))
         results[networkspec] = ER
     rname = os.path.join(resultsdir,"pattern_matches.json")
     if os.path.exists(rname):

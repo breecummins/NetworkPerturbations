@@ -15,6 +15,7 @@ class Job():
         os.makedirs(self.inputfilesdir)
         # save parameter file to computations folder
         shutil.copy(self.paramfile,self.inputfilesdir)
+        shutil.copy(self.params["networkfile"], self.inputfilesdir)
         #TODO: Record versions/git number of DSGRN and NetworkPerturbations
         self.resultsdir =os.path.join(computationsdir_datetime,"results")
         os.makedirs(self.resultsdir)

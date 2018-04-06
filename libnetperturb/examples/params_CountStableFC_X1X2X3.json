@@ -8,7 +8,7 @@
   "add_anon_nodes" : false,
   "swap_edge_reg" : true,
   "maxaddspergraph" : 3,
-  "numperturbations" : 3,
+  "numperturbations" : 6,
   "maxparams" : 100000,
   "time_to_wait" : 30
 }
