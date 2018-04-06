@@ -59,5 +59,4 @@ NOTES:
 
     See CountFPMatch.py and CountStableFC.py for examples.
 
-(2) Network perturbations will always assume that activating edges are summed together. Activating edges that are
-multiplied will be recast into addition, potentially changing the size of the parameter graph.
+(2) Network perturbations will always assume that activating edges are summed together. Activating edges that are multiplied will be recast into addition, potentially changing the size of the parameter graph.
