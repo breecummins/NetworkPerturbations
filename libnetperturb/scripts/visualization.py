@@ -7,7 +7,7 @@ mpl.rc('text', usetex=True)
 def makeHistogram(data,nbins,extrapoints,xlabel,title,axislims,figsize=None,labelpad=0,savename=""):
     if figsize:
         plt.figure(figsize=figsize)
-    plt.hist(data, nbins, normed=0, facecolor='green', alpha=0.75)
+    plt.hist(data, nbins, normed=0, facecolor='green', alpha=0.75, edgecolor='black', linewidth=1.2)
     plt.hold('on')
     N=len(extrapoints)
     if N > 1:
