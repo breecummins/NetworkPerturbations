@@ -2,7 +2,7 @@ import DSGRN
 import sys, json, os, ast
 sys.path.append('../../min_interval_posets')
 from min_interval_posets import libposets
-from libnetperturb.perturbations import fileparsers
+import pandas
 
 def query(networks,resultsdir,params):
     '''
@@ -49,22 +49,43 @@ def query(networks,resultsdir,params):
     json.dump(results,open(rname,'w'))
 
 
+def extractdata(filename):
+    file_type = filename.split(".")[-1]
+    if file_type == "tsv":
+        df = pandas.read_csv(open(filename),delim_whitespace=True)
+    elif file_type == "csv":
+        df = pandas.read_csv(open(filename))
+    else:
+        raise ValueError("File type not recognized. Require .tsv or .csv.")
+    return list(df)[1:],df.values
+
+def readrow(filename):
+    times,data = extractdata(filename)
+    times = [float(n) for n in times]
+    names = data[:,0]
+    if len(set(names)) < len(names):
+        raise ValueError("Non-unique names in time series file.")
+    curves = [libposets.curve.Curve(data[k,1:],times,True) for k in range(data.shape[0])]
+    # plt.plot(times,data[0,1:],marker="o")
+    # plt.show()
+    return dict(zip(names,curves))
+
+def readcol(filename):
+    names,data = extractdata(filename)
+    if len(set(names)) < len(names):
+        raise ValueError("Non-unique names in time series file.")
+    times = data[:,0]
+    curves = [libposets.curve.Curve(data[1:,k],times,True) for k in range(data.shape[1])]
+    return dict(zip(names,curves))
+
+
 def createPosetsFromData(timeseriesfname,epsilons,row):
     '''
     Use min_interval_posets submodule to make a poset from a time series data file. See query for inputs.
     :return: list of (epsilon, poset) tuples
     '''
-    if row:
-        data,labels,times = fileparsers.parseTimeSeriesFileRow(timeseriesfname)
-    else:
-        data, labels, times = fileparsers.parseTimeSeriesFileCol(timeseriesfname)
-    if len(set(labels)) < len(labels):
-        raise("Non-unique names in time series file.")
-    curves = {}
-    for (L,D) in zip(labels,data):
-        curves[L] = libposets.curve.Curve({t : d} for (t,d) in zip(times,D)).normalize()
-    posets = libposets.posets.main(curves, epsilons)
-    return posets
+    curves = readrow(timeseriesfname) if row else readcol(timeseriesfname)
+    return libposets.posets.main(curves, epsilons)
 
 
 def getGraphs(events,event_ordering,network):
