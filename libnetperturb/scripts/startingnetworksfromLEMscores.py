@@ -1,6 +1,7 @@
 import libnetperturb.perturbations.graphtranslation as gt
 import numpy as np
 from scipy.sparse.csgraph import connected_components
+import pandas as pd
 
 
 #FIXME: Relax so that nodes with no in-edges are allowed
@@ -46,36 +47,32 @@ def strongly_connected_components(graph):
     return grouped_components
 
 
-def parse_lem_file(threshold, fname):
-    # returns the source, target, type of regulation, and LEM score sorted by increasing sqrt loss/root score (LEM score). Smaller scores are higher ranking.
-    # file format must be:
-    # 1) optional comment lines denoted by #
-    # 2) optional line of column headers in which column 2 does not have the header "="
-    # 3) all following lines are data that begin with TARGET_GENE = TYPE_REG(SOURCE_GENE)
-    # 4) sqrt loss / root score is the last numerical score (and word) on each data line
+def parse_lem_file(threshold, fname, delimiter="\s+",comment="#"):
+    # returns the source, target, type of regulation, and LEM score sorted by increasing normalized loss (LEM score).
+    # Smaller scores are higher ranking.
+    # Comment lines are denoted by "#", or change default argument for comment
+    # Columns are whitespace delimited, or change default argument for delimiter
+    # file format must have the following columns:
+    # model:  TARGET_GENE = TYPE_REG(SOURCE_GENE)
+    # norm_loss: numerical score
+    df = pd.read_csv(fname,sep=delimiter,comment=comment)
+    models = list(df["model"].values)
+    LEM_score = list(df["norm_loss"].values)
     source=[]
     type_reg=[]
     target=[]
-    sqrtloss_root=[]
-    with open(fname,'r') as f:
-        for l in f.readlines():
-            if l[0] == '#':
-                continue
-            wordlist=l.split()
-            if wordlist[1] != "=":
-                continue
-            sqlr = float(wordlist[-1])
-            if sqlr<threshold:
-                target.append(wordlist[0])
-                sqrtloss_root.append(sqlr)
-                two_words=wordlist[2].split('(')
-                type_reg.append(two_words[0])
-                source.append(two_words[1][:-1])
-    [_, source, target, type_reg] = gt.sort_by_list(sqrtloss_root, [source,target,type_reg], reverse=False)
-    return source, target, type_reg
+    for m in models:
+        first = m.split("=")
+        source.append(first[0])
+        second = m.split("(")
+        type_reg.append(second[0])
+        target.append(second[1][:-1])
+    [LEM_score, source, target, type_reg] = gt.sort_by_list(LEM_score, [source,target,type_reg], reverse=False)
+    ind = next(k for k,l in enumerate(LEM_score) if l < threshold)
+    return source[ind:], target[ind:], type_reg[ind:]
 
 
 if __name__ == "__main__":
-    lemfile = "wrair2015_v2_fpkm-p1_s19_90tfs_top25_dljtk_lem_scores.txt"
-    threshold = 0.2
+    lemfile = "all_scores_rep_0.tsv"
+    threshold = 0.5
     print(generate_lem_networks(threshold, lemfile))
