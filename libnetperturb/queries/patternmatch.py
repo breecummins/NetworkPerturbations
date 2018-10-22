@@ -1,8 +1,10 @@
 import DSGRN
 import sys, json, os, ast
 sys.path.append('../../min_interval_posets')
-from min_interval_posets import libposets
-import pandas
+from min_interval_posets.libposets import curve
+from min_interval_posets.libposets import posets as make_posets
+import pandas as pd
+from copy import deepcopy
 
 def query(networks,resultsdir,params):
     '''
@@ -22,21 +24,33 @@ def query(networks,resultsdir,params):
                     [(eps1,poset1), (eps2,poset2),...]
         or the two keys
        "timeseriesfname" : path to a file containing the time series data from which to make posets
-        "tsfile_is_row_format" : True if the time series file is in row format; False if in column format (see fileparsers.py)
+        "tsfile_is_row_format" : True if the time series file is in row format (times are in the first row); False if in
+        column format (times are in the first column)
 
     :return: Writes True (pattern match for the poset) or False (no pattern match) or
         parameter count (# successful matches) plus the number of parameters, for each
          epsilon to a dictionary keyed by network spec, which is dumped to a json file:
          { networkspec : (eps, result, num params) }
     '''
-    #TODO: customize posets to networks (different numbers of nodes require different posets)
     if "posets" not in params:
-        posets = createPosetsFromData(params['timeseriesfname'],params['epsilons'],params['tsfile_is_row_format'])
+        curves = readrow(params['timeseriesfname']) if params['tsfile_is_row_format'] else readcol(params['timeseriesfname'])
+        all_posets = []
+        all_names = []
+        #
     else:
         posets = ast.literal_eval(params["posets"])
     results = {}
     for networkspec in networks:
         network = DSGRN.Network(networkspec)
+        if "posets" not in params:
+            names = set(list(network.name(k) for k in range(network.size())))
+            if names not in all_names:
+                posets = createPosetsFromData(names, curves, params['epsilons'])
+                all_posets.append(posets)
+                all_names.append(names)
+            else:
+                ind = all_names.index(names)
+                posets = all_posets[ind]
         ER = []
         for (eps,(events,event_ordering)) in posets:
             paramgraph, patterngraph = getGraphs(events, event_ordering, network)
@@ -52,12 +66,13 @@ def query(networks,resultsdir,params):
 def extractdata(filename):
     file_type = filename.split(".")[-1]
     if file_type == "tsv":
-        df = pandas.read_csv(open(filename),delim_whitespace=True)
+        df = pd.read_csv(open(filename),delim_whitespace=True)
     elif file_type == "csv":
-        df = pandas.read_csv(open(filename))
+        df = pd.read_csv(open(filename))
     else:
         raise ValueError("File type not recognized. Require .tsv or .csv.")
     return list(df)[1:],df.values
+
 
 def readrow(filename):
     times,data = extractdata(filename)
@@ -65,27 +80,30 @@ def readrow(filename):
     names = data[:,0]
     if len(set(names)) < len(names):
         raise ValueError("Non-unique names in time series file.")
-    curves = [libposets.curve.Curve(data[k,1:],times,True) for k in range(data.shape[0])]
-    # plt.plot(times,data[0,1:],marker="o")
-    # plt.show()
+    curves = [curve.Curve(data[k,1:],times,True) for k in range(data.shape[0])]
     return dict(zip(names,curves))
+
 
 def readcol(filename):
     names,data = extractdata(filename)
     if len(set(names)) < len(names):
         raise ValueError("Non-unique names in time series file.")
     times = data[:,0]
-    curves = [libposets.curve.Curve(data[1:,k],times,True) for k in range(data.shape[1])]
+    curves = [curve.Curve(data[1:,k],times,True) for k in range(data.shape[1])]
     return dict(zip(names,curves))
 
 
-def createPosetsFromData(timeseriesfname,epsilons,row):
+def createPosetsFromData(names,curves,epsilons):
     '''
-    Use min_interval_posets submodule to make a poset from a time series data file. See query for inputs.
+    Use min_interval_posets submodule to make a poset from time series curves. See query for inputs.
     :return: list of (epsilon, poset) tuples
+
     '''
-    curves = readrow(timeseriesfname) if row else readcol(timeseriesfname)
-    return libposets.posets.main(curves, epsilons)
+    subset_curves = deepcopy(curves)
+    for name in curves:
+        if name not in names:
+            subset_curves.pop(name)
+    return make_posets.eps_posets(subset_curves, epsilons)
 
 
 def getGraphs(events,event_ordering,network):

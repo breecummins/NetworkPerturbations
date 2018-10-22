@@ -4,7 +4,7 @@ from scipy.sparse.csgraph import connected_components
 import pandas as pd
 
 
-def generate_lem_networks(lemfile, column, delimiter=None,comment="#"):
+def generate_lem_networks(lemfile, column, delimiter=None,comment="#",save2file="temp.txt"):
     '''
 
     :param lemfile: file name with lem scores; full path required if not in local folder
@@ -31,7 +31,11 @@ def generate_lem_networks(lemfile, column, delimiter=None,comment="#"):
             if e[0] in comp and e[1] in comp:
                 sg.add_edge(comp.index(e[0]),comp.index(e[1]),label=graph.edge_label(*e))
         networks.append(gt.createEssentialNetworkSpecFromGraph(sg))
-    return networks
+    if save2file:
+        with open(save2file,"w") as f:
+            f.write(str(networks))
+    else:
+        return networks
 
 
 def makegraph(genes,source,target,type_reg):
@@ -119,7 +123,7 @@ def parse_lem_file(fname,column,delimiter=None,comment="#"):
 if __name__ == "__main__":
     lemfile = "all_scores_rep_0.tsv"
     # print(parse_lem_file(lemfile,("norm_loss","<",0.4)))
-    print(generate_lem_networks(lemfile,("norm_loss","<",0.4)))
+    # print(generate_lem_networks(lemfile,("norm_loss","<",0.4)))
 
     # print(parse_lem_file(lemfile,("pld","<",0.1)))
     print(generate_lem_networks(lemfile,("pld",">",0.01)))
