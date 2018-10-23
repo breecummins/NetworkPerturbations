@@ -15,7 +15,8 @@ REQUIRED:
     computationsdir     =   path to location where results are to be stored; empty string "" indicates current directory
 
     networkfile         =   path to a file containing either a single network specification
-                            or a comma-separated list of them
+                            or a list of them (comma-separated and surrounded by square
+                            brackets, saved as plain text)
 
     makeperturbations   =   true or false (must be lowercase, no quotes);
                             false = perform the query only for the network specifications provided in the list;
@@ -46,7 +47,7 @@ If makeperturbations == true, the following are required except where noted:
     time_to_wait        =   Maximum time in seconds (integer) allowed to calculate perturbed networks;
                             intended as a fail-safe when there are not enough computable networks in the neighborhood
 
-Other keys added as needed to the dictionary for the chosen query module, which may require additional arguments.
+Other keys added to the dictionary as needed for the chosen query module, which may require additional arguments.
 
 NOTES:
 
@@ -62,5 +63,5 @@ Results are saved to a file within the results_directory_path. See the queries f
 
 (4) In order to run tests to confirm the code is working as expected, do
 
-    cd tests/
+    cd libnetperturb/tests
     pytest

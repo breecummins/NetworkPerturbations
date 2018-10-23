@@ -36,7 +36,6 @@ def query(networks,resultsdir,params):
         curves = readrow(params['timeseriesfname']) if params['tsfile_is_row_format'] else readcol(params['timeseriesfname'])
         all_posets = []
         all_names = []
-        #
     else:
         posets = ast.literal_eval(params["posets"])
     results = {}
@@ -53,6 +52,7 @@ def query(networks,resultsdir,params):
                 posets = all_posets[ind]
         ER = []
         for (eps,(events,event_ordering)) in posets:
+            #TODO: In order for cycle matches to work correctly, the last extremum on each time series with an odd number of extrema must be removed
             paramgraph, patterngraph = getGraphs(events, event_ordering, network)
             R = globals()[params['matchingfunction']](paramgraph, patterngraph, params['count'])
             ER.append((eps,R,paramgraph.size()))
@@ -97,7 +97,6 @@ def createPosetsFromData(names,curves,epsilons):
     '''
     Use min_interval_posets submodule to make a poset from time series curves. See query for inputs.
     :return: list of (epsilon, poset) tuples
-
     '''
     subset_curves = deepcopy(curves)
     for name in curves:
