@@ -34,8 +34,7 @@ def generate_lem_networks(lemfile, column, delimiter=None,comment="#",save2file=
     if save2file:
         with open(save2file,"w") as f:
             f.write(str(networks))
-    else:
-        return networks
+    return networks
 
 
 def makegraph(genes,source,target,type_reg):
@@ -122,10 +121,7 @@ def parse_lem_file(fname,column,delimiter=None,comment="#"):
 
 if __name__ == "__main__":
     lemfile = "all_scores_rep_0.tsv"
-    # print(parse_lem_file(lemfile,("norm_loss","<",0.4)))
-    # print(generate_lem_networks(lemfile,("norm_loss","<",0.4)))
-
-    # print(parse_lem_file(lemfile,("pld","<",0.1)))
+    print(generate_lem_networks(lemfile,("norm_loss","<",0.4)))
     print(generate_lem_networks(lemfile,("pld",">",0.01)))
 
 
