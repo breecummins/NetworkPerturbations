@@ -1,4 +1,4 @@
-import libnetperturb.perturbations.graphtranslation as gt
+import NetworkPerturbations.perturbations.graphtranslation as gt
 import itertools
 
 # This code only works if the order of the variables in the reference network spec is

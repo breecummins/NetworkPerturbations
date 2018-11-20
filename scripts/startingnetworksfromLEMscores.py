@@ -1,4 +1,4 @@
-import libnetperturb.perturbations.graphtranslation as gt
+import NetworkPerturbations.perturbations.graphtranslation as gt
 import numpy as np
 from scipy.sparse.csgraph import connected_components
 import pandas as pd
