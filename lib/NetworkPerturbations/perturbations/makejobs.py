@@ -52,7 +52,7 @@ class Job():
             networks=list(set(perturbed_networks))
             print("\nPerturbations complete; queries beginning.\n")
             sys.stdout.flush()
-        query = importlib.import_module("..queries."+self.params["querymodule"],"libnetperturb.perturbations")
+        query = importlib.import_module("..queries."+self.params["querymodule"],"NetworkPerturbations.perturbations")
         query.query(networks,self.resultsdir,self.params)
         print("\nQueries complete.\n")
 

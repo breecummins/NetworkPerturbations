@@ -2,11 +2,11 @@ This module accepts a network in DSGRN network specification format, generates a
 
 Dependencies: Python 3.6, numpy, DSGRN (https://github.com/shaunharker/DSGRN) and dependencies
 
-Calling script is libnetperturb/perturbations/main.py:
+Calling script is scripts/main.py:
 
     python main.py <params.json>
 
-See the parameter files in the examples folder. The keywords in the json parameter dictionary are given as follows.
+See the parameter files in the `tests` folder. The keywords in the json parameter dictionary are given as follows.
 
 REQUIRED:
 
@@ -63,5 +63,5 @@ Results are saved to a file within the results_directory_path. See the queries f
 
 (4) In order to run tests to confirm the code is working as expected, do
 
-    cd libnetperturb/tests
+    cd tests
     pytest
