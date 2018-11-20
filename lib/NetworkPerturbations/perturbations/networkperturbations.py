@@ -1,6 +1,6 @@
 import random
 import DSGRN
-import libnetperturb.perturbations.graphtranslation as graphtranslation
+import NetworkPerturbations.perturbations.graphtranslation as graphtranslation
 import time
 
 #####################################################################################################################

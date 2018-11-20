@@ -1,6 +1,6 @@
 import DSGRN
 import sys, json, os, ast
-sys.path.append('../../min_interval_posets')
+sys.path.append('../../../min_interval_posets')
 from min_interval_posets.libposets import curve
 from min_interval_posets.libposets import posets as make_posets
 import pandas as pd
