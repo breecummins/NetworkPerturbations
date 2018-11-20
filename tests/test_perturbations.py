@@ -1,6 +1,6 @@
 from NetworkPerturbations.perturbations.makejobs import Job
 import NetworkPerturbations.perturbations.graphtranslation as gt
-import subprocess,os,json,glob
+import subprocess,os,json,glob,sys
 
 def run(paramfile):
     job = Job(paramfile)
@@ -9,14 +9,15 @@ def run(paramfile):
     resultsfile = glob.glob(os.path.join(compdir,"results/*"))[0]
     results = json.load(open(resultsfile,'r'))
     subprocess.call("rm -r " + compdir, shell=True)
-    networkspec = open("networkspec_X1X2X3.txt").read()
+    netfile = "networkspec_X1X2X3.txt"
+    networkspec = open(netfile).read()
     G = gt.getGraphFromNetworkSpec(networkspec)
     networkspec = gt.createEssentialNetworkSpecFromGraph(G)
     return results, networkspec
 
 
 def test_countFP():
-    paramfile = "params_CountFPMatch_X1X2X3.json"
+    paramfile =  "params_CountFPMatch_X1X2X3.json"
     results, networkspec = run(paramfile)
     assert(len(results)==4)
     assert(networkspec in results)
