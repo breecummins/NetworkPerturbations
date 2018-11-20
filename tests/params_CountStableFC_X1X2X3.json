@@ -1,0 +1,14 @@
+{
+  "querymodule" : "CountStableFC",
+  "computationsdir" : "",
+  "networkfile" : "networkspec_X1X2X3.txt",
+  "makeperturbations" : true,
+  "nodefile" : "nodefile_X1X2X3.txt",
+  "edgefile" : "edgefile_X1X2X3.txt",
+  "add_anon_nodes" : false,
+  "swap_edge_reg" : true,
+  "maxaddspergraph" : 3,
+  "numperturbations" : 6,
+  "maxparams" : 100000,
+  "time_to_wait" : 30
+}
