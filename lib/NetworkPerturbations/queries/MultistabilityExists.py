@@ -1,5 +1,7 @@
 import DSGRN
 import os, json, progressbar
+from multiprocessing import Pool
+from functools import partial
 
 def query(networks,resultsdir,params):
     '''
@@ -21,27 +23,41 @@ def query(networks,resultsdir,params):
 
     included_bounds = [dict(b) for b in params["included_bounds"]]
     excluded_bounds = [dict(b) for b in params["excluded_bounds"]]
-    results = []
-    for n in progressbar.ProgressBar()(range(0, len(networks))):
-        netspec = networks[n]
-        network = DSGRN.Network(netspec)
-        parametergraph = DSGRN.ParameterGraph(network)
-        for p in range(parametergraph.size()):
-            parameter = parametergraph.parameter(p)
-            dg = DSGRN.DomainGraph(parameter)
-            md = DSGRN.MorseDecomposition(dg.digraph())
-            mg = DSGRN.MorseGraph(dg, md)
-            stable_FP_annotations = [mg.annotation(i)[0] for i in range(0, mg.poset().size())
-                                     if is_FP(mg.annotation(i)[0]) and len(mg.poset().children(i)) == 0]
-            included = all_included(network,included_bounds,stable_FP_annotations)
-            excluded = all_excluded(network, excluded_bounds, stable_FP_annotations)
-            if included and excluded:
-                results.append(netspec)
-                break
+    pool = Pool()  # Create a multiprocessing Pool
+    output = pool.map(partial(compute_for_network,included_bounds,excluded_bounds,len(networks)),enumerate(networks))
+    results = list(filter(None,output))
     rname = os.path.join(resultsdir,"Networks_With_Multistable_FP.json")
     if os.path.exists(rname):
         os.rename(rname,rname+".old")
     json.dump(results,open(rname,'w'))
+
+
+def compute_for_network(included_bounds,excluded_bounds,N,tup):
+    (k, netspec) = tup
+    print("Network {} of {}".format(k+1, N))
+    network = DSGRN.Network(netspec)
+    parametergraph = DSGRN.ParameterGraph(network)
+    for p in progressbar.ProgressBar()(range(parametergraph.size())):
+        if have_match(network, parametergraph.parameter(p), included_bounds, excluded_bounds):
+            return netspec
+    return None
+
+
+def have_match(network,parameter,included_bounds,excluded_bounds):
+    stable_FP_annotations = DSGRN_Computation(parameter)
+    included = all_included(network, included_bounds, stable_FP_annotations)
+    excluded = all_excluded(network, excluded_bounds, stable_FP_annotations)
+    if included and excluded:
+        return True
+    return False
+
+
+def DSGRN_Computation(parameter):
+    dg = DSGRN.DomainGraph(parameter)
+    md = DSGRN.MorseDecomposition(dg.digraph())
+    mg = DSGRN.MorseGraph(dg, md)
+    return [mg.annotation(i)[0] for i in range(0, mg.poset().size()) if is_FP(mg.annotation(i)[0]) and len(mg.poset(
+        ).children(i)) == 0]
 
 
 def is_FP(annotation):

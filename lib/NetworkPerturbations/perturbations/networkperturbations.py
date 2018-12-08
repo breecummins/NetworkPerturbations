@@ -64,7 +64,11 @@ def perturbNetwork(params, network_spec, randomseed=None):
     # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
     starting_graph = graphtranslation.getGraphFromNetworkSpec(network_spec)
     network_spec = graphtranslation.createEssentialNetworkSpecFromGraph(starting_graph)
-    networks = [network_spec]
+    if checkComputability(network_spec,params['maxparams']):
+        networks = [network_spec]
+    else:
+        networks = []
+        print("Starting network will not be analyzed.")
 
     # rename nodelist
     if params["nodelist"]:
@@ -124,7 +128,7 @@ def perturbNetwork(params, network_spec, randomseed=None):
             current_time = time.time()-start_time
 
     if current_time >= params['time_to_wait']:
-        print("Network perturbation timed out. Proceeding with {} perturbations.".format(len(networks)))
+        print("Network perturbation timed out. Proceeding with {} networks.".format(len(networks)))
     # Return however many networks were made
     return networks
 
