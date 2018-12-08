@@ -7,64 +7,123 @@ import time
 # Library for perturbing networks.
 #####################################################################################################################
 
-def perturbNetwork(params, network_spec):
-    # network_spec is a DSGRN format json string
-    # params is a dictionary with the following key,value pairs:
-    # edgelist : a list of ("source","target","regulation") tuples OR None OR empty list
-    # nodelist : a list of node labels (strings) acceptable to add OR None OR empty list
-    # add_anon_nodes :  True or False; add anonymous nodes to network
-    # swap_edge_reg :  True or False; swapping the type of regulation on original network is allowed
-    # minaddspergraph : (optional, default = 1) integer > 0 minimum number of node/edge perturbations allowed per graph
-    # maxaddspergraph : integer > 0; maximum number of node/edge perturbations allowed per graph
-    # maxinedges : (optional, default = None, no max, but uncomputable networks will be filtered out),
-    #               integer > 0; maximum number of inedges allowed per node
-    # numperturbations : integer > 0; how many perturbations to construct
-    # time_to_wait : number of seconds to wait before halting perturbation procedure (avoid infinite while loop)
-    # maxparams : integer > 0; parameters per database are allowed (eventually this should be deprecated for estimated db time calculation)
+def perturbNetwork(params, network_spec, randomseed=None):
+    '''
+    Get a list of essential DSGRN network specifications perturbed around an essential seed network given parameters
+    in params (see below).
+    Additions of edges and/or nodes, and swapped regulations ONLY.
+    Duplicate networks are possible because there is no graph isomorphism checking.
+    To get subnetworks of the seed network, construct the DSGRN database of the seed network in non-essential mode.
 
-    # reset random seed for every run
-    random.seed()
+    :param params: params is a dictionary with the following key,value pairs
+        "nodelist" : a list of node labels (strings) acceptable to add OR None OR empty list
+        "add_anon_nodes" : True or False; add anonymous nodes to network
+                            NOTE: Ignored if params["nodelist"] is nonempty
+        "edgelist" : a list of ("source","target","regulation") tuples OR None OR empty list
+                   NOTE: negative self-loops are removed before perturbation
+                   NOTE: Ignored when adding nodes if params["nodelist"] is empty -- i.e., when adding anonymous nodes,
+                         any inedge or outedge to and from the anonymous node may be added. When adding just an edge,
+                         params["edgelist"] will be respected.
+        "swap_edge_reg" :  True or False; swapping the type of regulation on original network is allowed or not
+                          NOTE: If swap_edge_reg is False and an edgelist is supplied with swapped edges, then these
+                          edges are filtered out of the list.
+        "minaddspergraph" : (optional, default = 1)
+                            integer > 0, minimum number of node/edge perturbations allowed per graph
+        "maxaddspergraph" : integer > 0, maximum number of node/edge perturbations allowed per graph
+        "maxinedges" : (optional, default = None, no max, but uncomputable networks will be filtered out),
+                      integer > 0, maximum number of inedges allowed per node
+        "numperturbations" : integer > 0, how many perturbations to construct
+        "time_to_wait" : number of seconds to wait before halting perturbation procedure (avoid infinite while loop)
+        "maxparams" : integer > 0, parameters per database allowed (eventually this should be deprecated for estimated
+                      computation time)
+    :param network_spec: DSGRN network specification string
+    :param randomseed: optional random seed, by default generated new each run
+    :return: list of essential DSGRN network specification strings
 
-    # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
-    starting_graph = graphtranslation.getGraphFromNetworkSpec(network_spec)
-    network_spec = graphtranslation.createEssentialNetworkSpecFromGraph(starting_graph)
-    networks = [network_spec]
+    '''
 
-    # Set a timer for the while loop, which can be infinite if numperturbations is too large for maxparams
-    start_time = time.time()
-    current_time = 0.0
+    #######################
+    # Set up
+    #######################
 
+    # set random seed
+    if randomseed is None:
+        # reset random seed for every run
+        random.seed()
+    else:
+        # set seed to supplied value
+        random.seed(randomseed)
+
+    # set defaults
     if "minaddspergraph" not in params:
         params["minaddspergraph"] = 1
 
     if "maxinedges" not in params:
         params["maxinedges"] = None
 
-    # now make perturbations
-    while (len(networks) < params['numperturbations']+1) and (current_time < params['time_to_wait']): 
+    # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
+    starting_graph = graphtranslation.getGraphFromNetworkSpec(network_spec)
+    network_spec = graphtranslation.createEssentialNetworkSpecFromGraph(starting_graph)
+    networks = [network_spec]
+
+    # rename nodelist
+    if params["nodelist"]:
+        nodelist = params["nodelist"][:]
+    else:
+        nodelist = []
+
+    # filter edgelist for allowable edges
+    if params["edgelist"]:
+        edgelist = params["edgelist"][:]
+        # remove negative self-regulation
+        for e in params["edgelist"]:
+            if e[0] == e[1] and e[2] == "r":
+                edgelist.remove(e)
+        # if swapping regulation is not allowed, filter edgelist
+        if not params["swap_edge_reg"]:
+            graph_edges = [(v, a, starting_graph.edge_label(v, a)) for v in starting_graph.vertices() for a in
+                           starting_graph.adjacencies(v)]
+            edgelist = list(set(edgelist).difference(graph_edges))
+        if not edgelist:
+            raise ValueError("Perturbations not performed. Edgelist has only negative self-regulation or swapped "
+                             "regulation.")
+    else:
+        edgelist = []
+
+
+    ########################
+    # Perform perturbations
+    ########################
+
+
+    # Set a timer for the while loop, which can be infinite if numperturbations is too large for maxparams
+    start_time = time.time()
+    current_time = 0.0
+
+    while (len(networks) < params['numperturbations']+1) and (current_time < params['time_to_wait']):
         # explicitly copy so that original graph is unchanged
         graph = starting_graph.clone()
+        # choose a random number of graph additions or swaps
+        numadds = random.randrange(params["minaddspergraph"], params["maxaddspergraph"] + 1)
         # add nodes and edges or just add edges based on params
-        # this can fail, in which case None is returned
-        if params['nodelist'] or (not params['edgelist'] and params['add_anon_nodes']):
-            graph = perturbNetworkWithNodesAndEdges(graph,params['edgelist'],params['nodelist'], params["minaddspergraph"],params['maxaddspergraph'],params['swap_edge_reg'])
+        if nodelist or params["add_anon_nodes"]:
+            graph = perturbNetworkWithNodesAndEdges(graph,edgelist,nodelist,params["swap_edge_reg"],numadds)
         else:
-            graph = perturbNetworkWithEdgesOnly(graph,params['edgelist'],params["minaddspergraph"],params['maxaddspergraph'],params['swap_edge_reg'])
-
-        if params["maxinedges"] is None or all([ len([ u for u in graph.vertices() if v in graph.adjacencies(u)]) <= params["maxinedges"] for v in graph.vertices()]):
+            graph = perturbNetworkWithEdgesOnly(graph,edgelist,params["swap_edge_reg"],numadds)
+        # filter out networks that have a node with too many inedges
+        if not params["maxinedges"] or all([ len(graph.inedges(v)) <= params["maxinedges"] for v in graph.vertices()]):
             # get the perturbed network spec
             network_spec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
 
-            # TODO: check for graph isomorphisms in added nodes (only have string matching below).
-            # Can get nodes added in different orders with same edges. Should be rare in general, so not high priority.
-            # BUT it might be more common than you'd think, since we filter given a maximum number of parameters.
+            # TODO: check for graph isomorphisms in added nodes (only have string matching below). Can get nodes
+            #  added in different orders with same edges.
 
-            # check that network spec is all of unique (in string match, not isomorphism), small enough, and computable, then add to list
+            # check that network spec does not string match another, is small enough, and is DSGRN computable
             if (network_spec not in networks) and checkComputability(network_spec,params['maxparams']):
                 networks.append(network_spec)
             current_time = time.time()-start_time
 
-    if current_time > params['time_to_wait']:
+    if current_time >= params['time_to_wait']:
         print("Network perturbation timed out. Proceeding with {} perturbations.".format(len(networks)))
     # Return however many networks were made
     return networks
@@ -91,20 +150,18 @@ def checkComputability(network_spec,maxparams):
 # Stochastic numbers of additional edges and/or nodes to perturb the network.
 ##############################################################################
 
-def perturbNetworkWithNodesAndEdges(graph,edgelist,nodelist,minadditions,maxadditions,swap_edge_reg):
-    keepgoing = random.randrange(minadditions,maxadditions+1)
-    while keepgoing > 0:
-        keepgoing -= 1
+def perturbNetworkWithNodesAndEdges(graph,edgelist,nodelist,swap_edge_reg,numadds):
+    while numadds > 0:
+        numadds -= 1
         if random.randrange(2):
             graph = addEdge(graph,edgelist,swap_edge_reg)
         else:
             graph = addNodeAndConnectingEdges(graph,edgelist,nodelist)
     return graph
 
-def perturbNetworkWithEdgesOnly(graph,edgelist,minadditions,maxadditions,swap_edge_reg):
-    keepgoing = random.randrange(minadditions,maxadditions+1)
-    while keepgoing > 0:
-        keepgoing -= 1
+def perturbNetworkWithEdgesOnly(graph,edgelist,swap_edge_reg,numadds):
+    while numadds > 0:
+        numadds -= 1
         graph = addEdge(graph,edgelist,swap_edge_reg)
     return graph
 
@@ -126,7 +183,7 @@ def addEdge(graph,edgelist,swap_edge_reg):
     # get info from graph
     networknodenames = getNetworkLabels(graph)
     N = len(networknodenames)
-    graph_edges = [(v,a,graph.edge_label(v,a)) for v in graph.vertices() for a in graph.adjacencies(v)]    
+    graph_edges = [(v,a,graph.edge_label(v,a)) for v in graph.vertices() for a in graph.adjacencies(v)]
     
     # make a new edge and add it to the graph
     # exclude trivial graphs because no edges can be added or swapped
@@ -139,8 +196,7 @@ def addEdge(graph,edgelist,swap_edge_reg):
     # buyer beware -- negative self-loops not removed
     elif edgelist:
         edgelist = [ tuple(getVertexFromLabel(graph,e[:2])+[e[2]]) for e in edgelist if set(e[:2]).issubset(networknodenames) ]
-        if swap_edge_reg: edgelist = list(set(edgelist).difference(graph_edges))
-        else: edgelist = [ e for e in edgelist if e[1] not in graph.adjacencies(e[0]) ]
+        edgelist = list(set(edgelist).difference(graph_edges))
         newedge = getRandomListElement(edgelist)
         if newedge is None: pass
         else: graph.add_edge(*newedge)

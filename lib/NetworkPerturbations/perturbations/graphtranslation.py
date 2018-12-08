@@ -66,8 +66,12 @@ class Graph:
         return [(u, v) for u in self.vertices() for v in self.adjacencies(u)]
 
     def adjacencies(self, v):
-        """ Return the set of adjacencies of v, i.e. { u : v -> u } """
+        """ Return the set of adjacencies (outedges) of v, i.e. { u : v -> u } """
         return self.adjacency_lists_[v]
+
+    def inedges(self,v):
+        """ Return the inedges of v, i.e. { u : u -> v } """
+        return [u for u in self.vertices_ if v in self.adjacency_lists_[u]]
 
     def clone(self):
         """ Return a copy of this graph """
