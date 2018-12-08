@@ -24,14 +24,6 @@ REQUIRED:
 
 If makeperturbations == true, the following are required except where noted:
 
-    nodefile            =   OPTIONAL: path to file containing the names of nodes to add, one line per name;
-                            or empty string "" or missing keyword if no such file exists
-
-    edgefile            =   OPTIONAL: path to file containing named edges to add, one per line,
-                            in the form TARGET_NODE = TYPE_REG(SOURCE_NODE),
-                            where TYPE_REG  is a (activation) or r (repression);
-                            or empty string "" or missing keyword if no such file exists
-
     add_anon_nodes      =   true or false (must be lowercase, no quotes) to add unnamed nodes to the perturbed networks
 
     swap_edge_reg       =   true or false (must be lowercase, no quotes) to allow the sign of regulation to be swapped
@@ -46,6 +38,14 @@ If makeperturbations == true, the following are required except where noted:
 
     time_to_wait        =   Maximum time in seconds (integer) allowed to calculate perturbed networks;
                             intended as a fail-safe when there are not enough computable networks in the neighborhood
+
+    nodefile            =   OPTIONAL: path to file containing the names of nodes to add, one line per name;
+                            or empty string "" or missing keyword if no such file exists
+
+    edgefile            =   OPTIONAL: path to file containing named edges to add, one per line,
+                            in the form TARGET_NODE = TYPE_REG(SOURCE_NODE),
+                            where TYPE_REG  is a (activation) or r (repression);
+                            or empty string "" or missing keyword if no such file exists
 
 Other keys added to the dictionary as needed for the chosen query module, which may require additional arguments.
 
