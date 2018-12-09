@@ -15,27 +15,30 @@ def perturbNetwork(params, network_spec, randomseed=None):
     Duplicate networks are possible because there is no graph isomorphism checking.
     To get subnetworks of the seed network, construct the DSGRN database of the seed network in non-essential mode.
 
-    :param params: params is a dictionary with the following key,value pairs
+    :param params: params is a dictionary with the following key,value pairs. Every one has a default,
+                   so any of these parameters are optional.
         "nodelist" : a list of node labels (strings) acceptable to add OR None OR empty list
-        "add_anon_nodes" : True or False; add anonymous nodes to network
-                            NOTE: Ignored if params["nodelist"] is nonempty
+                    default : []
         "edgelist" : a list of ("source","target","regulation") tuples OR None OR empty list
+                    default : []
                    NOTE: negative self-loops are removed before perturbation
                    NOTE: Ignored when adding nodes if params["nodelist"] is empty -- i.e., when adding anonymous nodes,
                          any inedge or outedge to and from the anonymous node may be added. When adding just an edge,
                          params["edgelist"] will be respected.
-        "swap_edge_reg" :  True or False; swapping the type of regulation on original network is allowed or not
-                          NOTE: If swap_edge_reg is False and an edgelist is supplied with swapped edges, then these
-                          edges are filtered out of the list.
-        "minaddspergraph" : (optional, default = 1)
-                            integer > 0, minimum number of node/edge perturbations allowed per graph
-        "maxaddspergraph" : integer > 0, maximum number of node/edge perturbations allowed per graph
-        "maxinedges" : (optional, default = None, no max, but uncomputable networks will be filtered out),
-                      integer > 0, maximum number of inedges allowed per node
+        "probabilities" : {"node_add" : float, "node_remove" : float, "edge_add" : float, "edge_remove" : float}
+                          default: {"node_add" : 0.30, "node_remove" : 0.05, "edge_add" : 0.50, "edge_remove" : 0.15}
+                          NOTE: will be normalized if it does not sum to 1
+                          NOTE: setting any probability to zero will ensure the operation does not occur
+        "range_operations" : [int,int] minimum to maximum number of node/edge perturbations allowed per graph
+                             default : [1,25]
         "numperturbations" : integer > 0, how many perturbations to construct
+                            default: 1000
         "time_to_wait" : number of seconds to wait before halting perturbation procedure (avoid infinite while loop)
+                        default : 30
         "maxparams" : integer > 0, parameters per database allowed (eventually this should be deprecated for estimated
                       computation time)
+                      default : 100,000
+        "filters" : default = None, not yet implemented, list of filter functions to be satisfied
     :param network_spec: DSGRN network specification string
     :param randomseed: optional random seed, by default generated new each run
     :return: list of essential DSGRN network specification strings
@@ -46,6 +49,12 @@ def perturbNetwork(params, network_spec, randomseed=None):
     # Set up
     #######################
 
+    # set defaults
+    params = set_defaults(params)
+
+    # remove negative self-regulation from edgelist
+    params["edgelist"] = filter_edgelist(params["edgelist"])
+
     # set random seed
     if randomseed is None:
         # reset random seed for every run
@@ -53,13 +62,6 @@ def perturbNetwork(params, network_spec, randomseed=None):
     else:
         # set seed to supplied value
         random.seed(randomseed)
-
-    # set defaults
-    if "minaddspergraph" not in params:
-        params["minaddspergraph"] = 1
-
-    if "maxinedges" not in params:
-        params["maxinedges"] = None
 
     # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
     starting_graph = graphtranslation.getGraphFromNetworkSpec(network_spec)
@@ -69,30 +71,6 @@ def perturbNetwork(params, network_spec, randomseed=None):
     else:
         networks = []
         print("Starting network will not be analyzed.")
-
-    # rename nodelist
-    if params["nodelist"]:
-        nodelist = params["nodelist"][:]
-    else:
-        nodelist = []
-
-    # filter edgelist for allowable edges
-    if params["edgelist"]:
-        edgelist = params["edgelist"][:]
-        # remove negative self-regulation
-        for e in params["edgelist"]:
-            if e[0] == e[1] and e[2] == "r":
-                edgelist.remove(e)
-        # if swapping regulation is not allowed, filter edgelist
-        if not params["swap_edge_reg"]:
-            graph_edges = [(v, a, starting_graph.edge_label(v, a)) for v in starting_graph.vertices() for a in
-                           starting_graph.adjacencies(v)]
-            edgelist = list(set(edgelist).difference(graph_edges))
-        if not edgelist:
-            raise ValueError("Perturbations not performed. Edgelist has only negative self-regulation or swapped "
-                             "regulation.")
-    else:
-        edgelist = []
 
 
     ########################
@@ -122,6 +100,8 @@ def perturbNetwork(params, network_spec, randomseed=None):
             # TODO: check for graph isomorphisms in added nodes (only have string matching below). Can get nodes
             #  added in different orders with same edges.
 
+            # TODO: Implement filters (e.g. is_connected, is_feed_forward, constrained_inedges, ...)
+
             # check that network spec does not string match another, is small enough, and is DSGRN computable
             if (network_spec not in networks) and checkComputability(network_spec,params['maxparams']):
                 networks.append(network_spec)
@@ -131,6 +111,41 @@ def perturbNetwork(params, network_spec, randomseed=None):
         print("Network perturbation timed out. Proceeding with {} networks.".format(len(networks)))
     # Return however many networks were made
     return networks
+
+
+##########################################################################################
+# Set up functions
+##########################################################################################
+
+def set_defaults(params):
+    if "nodelist" not in params:
+        params["nodelist"] = []
+    if "edgelist" not in params:
+        params["edgelist"] = []
+    if "probabilites" not in params:
+        params["probabilites"] = {"node_add" : 0.30, "node_remove" : 0.05, "edge_add" : 0.50, "edge_remove" : 0.15}
+    if "range_operations" not in params:
+        params["range_operations"] = [1,25]
+    if "numperturbations" not in params:
+        params["numperturbations"] = 1000
+    if "time_to_wait" not in params:
+        params["time_to_wait"] = 30
+    if "maxparams" not in params:
+        params["maxparams"] = 100000
+    if "filters" not in params:
+        params["filters"] = None
+    return params
+
+def filter_edgelist(edgelist):
+    # filter edgelist to remove negative self-loops
+    el = edgelist[:]
+    for e in edgelist:
+        if e[0] == e[1] and e[2] == "r":
+            el.remove(e)
+    return el
+
+
+
 
 
 ##########################################################################################
