@@ -11,11 +11,12 @@ def run():
     params = {
         "edgelist" : fp.parseEdgeFile("../tests/edgefile_X1X2X3.txt"),
         "nodelist" : fp.parseNodeFile("../tests/nodefile_X1X2X3.txt"),
-        "probabilities" : {"addNode" : 0.30, "removeNode" : 0.00, "addEdge" : 0.70, "removeEdge" : 0.00},
+        "probabilities" : {"addNode" : 0.50, "removeNode" : 0.00, "addEdge" : 0.50, "removeEdge" : 0.00},
         "range_operations" : [1,3],
         "numperturbations": 3,
         "maxparams": 5000,
-        "time_to_wait": 5
+        "time_to_wait": 5,
+        "filters":[{"constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 3}}]
     }
 
     networks = netper.perturbNetwork(params,network_spec)

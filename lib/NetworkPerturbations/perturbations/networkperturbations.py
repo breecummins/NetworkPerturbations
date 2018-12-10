@@ -1,5 +1,4 @@
-import random, time, itertools
-from functools import partial
+import random, time, itertools, sys
 import DSGRN
 import NetworkPerturbations.perturbations.graphtranslation as graphtranslation
 import NetworkPerturbations.perturbations.filters as filters
@@ -24,6 +23,7 @@ def perturbNetwork(params, network_spec):
                           default: {"addNode" : 0.30, "removeNode" : 0.05, "addEdge" : 0.50, "removeEdge" : 0.15}
                           NOTE: setting any probability to zero will ensure the operation does not occur
                           NOTE: will be normalized if it does not sum to 1
+                          NOTE: every added node is also given an inedge and an outedge as part of the operation
         "range_operations" : [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive
                              default : [1,25]
         "numperturbations" : integer > 0, how many perturbations to construct
@@ -48,11 +48,9 @@ def perturbNetwork(params, network_spec):
     networks = []
 
     while (len(networks) < params['numperturbations']) and (current_time < params['time_to_wait']):
-        # choose a random number of graph additions or swaps
-        numadds = random.randrange(*params["range_operations"])
         # add nodes and edges or just add edges based on params
         # explicitly copy so that original graph is unchanged
-        graph = choose_operations(starting_graph.clone(),params,numadds)
+        graph = perform_operations(starting_graph.clone(),params)
          # get the perturbed network spec
         netspec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
 
@@ -67,12 +65,12 @@ def perturbNetwork(params, network_spec):
             isgood = True
             if params["filters"]:
                 for fil in params["filters"]:
-                    for f,kwargs in fil.items():
-                        g = eval("filters."+f)
-                        isgood, message = g(graph, kwargs)
-                        if not isgood:
-                            print(message + " Not using network spec: \n{}\n".format(network_spec))
-                            break
+                    f,kwargs = list(fil.items())[0]
+                    g = eval("filters."+f)
+                    isgood, message = g(graph, kwargs)
+                    if not isgood:
+                        print(message + " Not using network spec: \n{}\n".format(netspec))
+                        break
             if isgood:
                 networks.append(netspec)
         current_time = time.time()-start_time
@@ -133,7 +131,7 @@ def filter_edgelist(edgelist):
 
 
 def make_probability_vector(probabilities):
-    probs = [probabilities[k] for k in ["addNode","removeNode","addEdge","removeEdge"]]
+    probs = [probabilities[k] for k in ["addNode","addEdge","removeEdge","removeNode"]]
     cs =  list(itertools.accumulate(probs))
     return [c/cs[-1] for c in cs]
 
@@ -149,7 +147,7 @@ def checkComputability(network_spec,maxparams):
         paramgraph=DSGRN.ParameterGraph(network) 
         smallenough = paramgraph.size() <= int(maxparams)
         if not smallenough:
-            print("\nToo many parameters. Not using network spec: \n {}\n".format(network_spec))
+            print("\nToo many parameters. Not using network spec: \n{}\n".format(network_spec))
         return smallenough
     except (AttributeError, RuntimeError):
         print("\nNetwork spec not computable: \n{}\n".format(network_spec))
@@ -159,85 +157,134 @@ def checkComputability(network_spec,maxparams):
 # Stochastic numbers of additional edges and/or nodes to perturb the network.
 ##############################################################################
 
-def choose_operations(graph,params,numadds):
-    probs = params["probabilities"]
-    while numadds > 0:
-        numadds -= 1
-        p = random.uniform(0.0, 1.0)
-        if p <= probs[0]:
-            graph = addNode(graph,params["nodelist"])
-        elif p <= probs[1]:
-            graph = removeNode(graph)
-        elif p <= probs[2]:
-            graph = addEdge(graph,params["edgelist"])
-        else:
-            graph = removeEdge(graph)
+
+def perform_operations(graph,params):
+    # choose the number of each type of operation
+    numops = choose_operations(params)
+    # apply operations in the proper order
+    graph, nodes = addNodes(graph, params["nodelist"],numops[0])
+    graph = addConnectingEdges(graph,nodes,params["edgelist"])
+    graph = addEdges(graph,params["edgelist"],numops[1])
+    graph = removeEdges(graph,numops[2])
+    graph = removeNodes(graph,numops[3])
     return graph
 
+
+def choose_operations(params):
+    # choose a random number of graph additions or swaps
+    numadds = random.randrange(*params["range_operations"])
+    # generate operations with probabilities as given in params
+    probs = sorted([random.uniform(0.0, 1.0) for _ in range(numadds)])
+    numops=[0,0,0,0]
+    for j in range(4):
+        p = params["probabilities"][j]
+        while probs and probs[0] <= p:
+            numops[j]+=1
+            probs.pop(0)
+    return numops
 
 ################################################################################################
 # Basic add and remove methods of the network perturbation.
 ################################################################################################
 
-def removeEdge(graph):
-    graph.remove_edge(*random.choice(graph.edges()))
+def removeEdges(graph,numedges):
+    for _ in range(numedges):
+        graph.remove_edge(*random.choice(graph.edges()))
     return graph
 
-def removeNode(graph):
-    graph.remove_vertex(random.choice(graph.vertices()))
+def removeNodes(graph,numnodes):
+    for _ in range(numnodes):
+        graph.remove_vertex(random.choice(graph.vertices()))
     return graph
 
-def addEdge(graph,edgelist):
+def addEdges(graph,edgelist,numedges):
     # if no edgelist, then a random edge is added to the network
     # if edgelist is specified, a random choice is made from the filtered edgelist 
     # (repressing self-loops removed)
 
-    # get info from graph
     networknodenames = getNetworkLabels(graph)
     N = len(networknodenames)
-    graph_edges = [(v, a, graph.edge_label(v, a)) for v in graph.vertices() for a in graph.adjacencies(v)]
 
-    # choose an edge from the list
-    if edgelist:
-        el = [ tuple(getVertexFromLabel(graph,e[:2])+[e[2]]) for e in edgelist if set(e[:2]).issubset(networknodenames) ]
-        el = list(set(el).difference(graph_edges))
-        newedge = getRandomListElement(el)
-    # otherwise produce random edge that is not a negative self-loop
-    else:
-        newedge = None
-        if N > 1 or (N == 1 and not graph_edges):
-            newedge = getRandomEdge(N)
-            while newedge in graph_edges or (newedge[0]==newedge[1] and newedge[2]=='r'):
+    for _ in range(numedges):
+        # get info from graph
+        graph_edges = [(v, a, graph.edge_label(v, a)) for v in graph.vertices() for a in graph.adjacencies(v)]
+
+        # choose an edge from the list
+        if edgelist:
+            el = [ tuple(getVertexFromLabel(graph,e[:2])+[e[2]]) for e in edgelist if set(e[:2]).issubset(networknodenames) ]
+            el = list(set(el).difference(graph_edges))
+            newedge = getRandomListElement(el)
+        # otherwise produce random edge that is not a negative self-loop
+        else:
+            newedge = None
+            if N > 1 or (N == 1 and not graph_edges):
                 newedge = getRandomEdge(N)
-    if newedge:
-        graph.add_edge(*newedge)
+                while newedge in graph_edges or (newedge[0]==newedge[1] and newedge[2]=='r'):
+                    newedge = getRandomEdge(N)
+        if newedge:
+            graph.add_edge(*newedge)
     return graph
 
 
-def addNode(graph,nodelist,edgelist):
-    # if nodelist, choose random node from nodelist
-    # if no nodelist, make up a name for a new node
-
+def addConnectingEdges(graph,nodes,edgelist):
+    # add connecting edges for newly added nodes
     networknodenames = getNetworkLabels(graph)
     N = len(networknodenames)
 
-    if not nodelist:
-        # make unique node name
-        newnodelabel = 'x'+str(N)
-        c=1
-        while newnodelabel in networknodenames:
-            newnodelabel = 'x'+str(N+c)
-            c+=1
-    else:
-        # filter nodelist to get only new nodes
-        nl = [ n for n in nodelist if n not in networknodenames ]
-        newnodelabel = getRandomListElement(nl)
-
-    # add to graph
-    if newnodelabel:
-        graph.add_vertex(N,label=newnodelabel)
-
+    for n in nodes:
+        # choose an edge from the list
+        if edgelist:
+            # get in-edge
+            el_in = [e for e in edgelist if n == e[1] and e[0] in networknodenames]
+            e = getRandomListElement(el_in)
+            newinedge = tuple(getVertexFromLabel(graph,e[:2])+[e[2]])
+            # get out-edge
+            el_out = [e for e in edgelist if n == e[0] and e[1] in networknodenames]
+            e = getRandomListElement(el_out)
+            newoutedge = tuple(getVertexFromLabel(graph, e[:2]) + [e[2]])
+        # otherwise produce random edges that are not negative self-loops
+        else:
+            # can always add activating self-loop
+            newinedge = (getRandomNode(N),n,getRandomReg())
+            if newinedge[0] == newinedge[1] and newinedge[2] == 'r':
+                newinedge[2] = "a"
+            newoutedge = (n,getRandomNode(N), getRandomReg())
+            if newoutedge[0] == newoutedge[1] and newoutedge[2] == 'r':
+                newoutedge[2] = "a"
+        if newinedge:
+            graph.add_edge(*newinedge)
+        if newoutedge:
+            graph.add_edge(*newoutedge)
     return graph
+
+
+def addNodes(graph,nodelist,numnodes):
+    # if nodelist, choose numnodes random nodes from nodelist
+    # if no nodelist, make up names for new nodes
+
+    nodes = []
+    for _ in range(numnodes):
+        networknodenames = getNetworkLabels(graph)
+        N = len(networknodenames)
+
+        if not nodelist:
+            # make unique node name
+            newnodelabel = 'x'+str(N)
+            c=1
+            while newnodelabel in networknodenames:
+                newnodelabel = 'x'+str(N+c)
+                c+=1
+        else:
+            # filter nodelist to get only new nodes
+            nl = [ n for n in nodelist if n not in networknodenames ]
+            newnodelabel = getRandomListElement(nl)
+
+        # add to graph
+        if newnodelabel:
+            graph.add_vertex(N,label=newnodelabel)
+            nodes.append(newnodelabel)
+
+    return graph, nodes
 
 ##################################################################################################
 # Helper functions to access graph labels and produce random choices.

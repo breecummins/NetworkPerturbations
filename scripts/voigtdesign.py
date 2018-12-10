@@ -7,20 +7,13 @@ import json
 
 
 def run():
-    network_spec1 = "C : C : E\nB : B : E\nA : A : E\nx : A : E\ny : B : E\nz : C : E\nt : : E\nYFP : : E\nD : D + " \
+    network_spec = "C : C : E\nB : B : E\nA : A : E\nx : A : E\ny : B : E\nz : C : E\nYFP : : E\nD : D + " \
                     "YFP : E"
-    network_spec2 = "C : C : E\nB : B : E\nA : A : E\nx : A : E\ny : B : E\nz : C : E\nt : : E\nu : : E\nYFP : : " \
-                    "E\nD : D + " \
-                    "YFP : E"
-    network_spec3 = "C : C : E\nB : B : E\nA : A : E\nx : A : E\ny : B : E\nz : C : E\nt : : E\nu : : E\nv : : E\nYFP : : E\nD : D + " \
-                    "YFP : E"
-    network_spec4 = "C : C : E\nB : B : E\nA : A : E\nx : A : E\ny : B : E\nz : C : E\nt : : E\nu : : E\nv : : E\nw : : E\nYFP : : E\nD : D +YFP : E"
-
     params = {
         "edgelist" : fp.parseEdgeFile("VoigtEdgeFileShort.txt"),
         "nodelist" : fp.parseNodeFile("VoigtNodeFile.txt"),
-        "probabilities" : {"addNode" : 0.00, "removeNode" : 0.00, "addEdge" : 1.00, "removeEdge" : 0.00},
-        "range_operations" : [8,16],
+        "probabilities" : {"addNode" : 0.5, "removeNode" : 0.00, "addEdge" : 0.5, "removeEdge" : 0.00},
+        "range_operations" : [4,16],
         "numperturbations" : 10000,
         "time_to_wait" : 10,
         "maxparams" : 10000,
@@ -46,7 +39,7 @@ def run():
                              {"C": [2, 7], "B": [2, 7], "A": [2, 7], "YFP": [0, 0]}]
     }
 
-    networks = netper.perturbNetwork(params,network_spec4)
+    networks = netper.perturbNetwork(params,network_spec)
     filtered_networks = []
     for ns in networks:
         graph = gt.getGraphFromNetworkSpec(ns)
