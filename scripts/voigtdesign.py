@@ -15,9 +15,9 @@ def run():
         "probabilities" : {"addNode" : 0.5, "removeNode" : 0.00, "addEdge" : 0.5, "removeEdge" : 0.00},
         "range_operations" : [4,16],
         "numperturbations" : 10000,
-        "time_to_wait" : 10,
+        "time_to_wait" : 600,
         "maxparams" : 10000,
-        "filters" : [{"constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 3}}]
+        "filters" : [{"constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 2}}]
     }
 
     query_params = {
@@ -52,8 +52,8 @@ def run():
     print("Number of filtered networks: {}".format(len(filtered_networks)))
     print("Saving feed-forward networks.")
     json.dump(filtered_networks,open("temp/all_networks_tested.json","w"))
-    # print("Searching for truth tables...")
-    # ME.query(filtered_networks,"temp",query_params)
+    print("Searching for truth tables...")
+    ME.query(filtered_networks,"temp",query_params)
 
 if __name__ == "__main__":
     run()

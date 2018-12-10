@@ -33,53 +33,34 @@ def perturbNetwork(params, network_spec):
         "maxparams" : integer > 0, parameters per database allowed (eventually this should be deprecated for estimated
                       computation time)
                       default : 100000
-        "filters" : default = None, not yet implemented, list of filter functions to be satisfied
+        "filters" : default = None, list of dictionaries of filter functions to be satisfied from filters.py,
+                    format: [{"function_name1" : kwargs_dict_1}, {"function_name2" : kwargs_dict_2}, ...]
     :param network_spec: DSGRN network specification string
     :return: list of essential DSGRN network specification strings
 
     '''
 
+
+    # Initialize
     params, starting_graph = setup(params,network_spec)
-    # print(graphtranslation.createEssentialNetworkSpecFromGraph(starting_graph))
-
-    # Set a timer for the while loop, which can be infinite if numperturbations is too large for maxparams
-    start_time = time.time()
-    current_time = 0.0
     networks = []
+    start_time = time.time()
 
-    while (len(networks) < params['numperturbations']) and (current_time < params['time_to_wait']):
-        # add nodes and edges or just add edges based on params
-        # explicitly copy so that original graph is unchanged
+    while (len(networks) < params['numperturbations']) and (time.time()-start_time < params['time_to_wait']):
+        # add nodes and edges or just add edges based on params and get the network spec for the new graph
         graph = perform_operations(starting_graph.clone(),params)
-         # get the perturbed network spec
         netspec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
-
-        # TODO: check for graph isomorphisms in added nodes (only have string matching below). Can get nodes
-        #  added in different orders with same edges.
-
-        # TODO: Implement filters (e.g. is_connected, is_feed_forward, constrained_inedges, ...)
-
         # check that network spec does not string match another, is small enough, is DSGRN computable,
         # and satisfies user-supplied filters
+        # TODO: check for graph isomorphisms, or at least alphabetize netspec for string matching
         if (netspec not in networks) and checkComputability(netspec,params['maxparams']):
-            isgood = True
-            if params["filters"]:
-                for fil in params["filters"]:
-                    f,kwargs = list(fil.items())[0]
-                    g = eval("filters."+f)
-                    isgood, message = g(graph, kwargs)
-                    if not isgood:
-                        print(message + " Not using network spec: \n{}\n".format(netspec))
-                        break
-            if isgood:
+            if other_filtering(graph,params,netspec):
                 networks.append(netspec)
-        current_time = time.time()-start_time
 
-    # inform user of the number of networks produced
-    if current_time >= params['time_to_wait']:
+    # inform user of the number of networks produced and return however many networks were made
+    if time.time()-start_time >= params['time_to_wait']:
         print("Process timed out.")
     print("Proceeding with {} networks.".format(len(networks)))
-    # Return however many networks were made
     return networks
 
 
@@ -138,6 +119,7 @@ def make_probability_vector(probabilities):
 
 ##########################################################################################
 # Check that database is both computable (logic files present) and as small as requested
+# and satisfies user-supplied filters
 ##########################################################################################
 
 def checkComputability(network_spec,maxparams):
@@ -152,6 +134,19 @@ def checkComputability(network_spec,maxparams):
     except (AttributeError, RuntimeError):
         print("\nNetwork spec not computable: \n{}\n".format(network_spec))
         return False
+
+
+def other_filtering(graph,params,netspec):
+    if params["filters"]:
+        for fil in params["filters"]:
+            f, kwargs = list(fil.items())[0]
+            g = eval("filters." + f)
+            isgood, message = g(graph, kwargs)
+            if not isgood:
+                print("\n" + message + " Not using network spec: \n{}\n".format(netspec))
+                return False
+    return True
+
 
 ##############################################################################
 # Stochastic numbers of additional edges and/or nodes to perturb the network.
@@ -202,27 +197,32 @@ def addEdges(graph,edgelist,numedges):
     # if edgelist is specified, a random choice is made from the filtered edgelist 
     # (repressing self-loops removed)
 
+    # get info from graph
     networknodenames = getNetworkLabels(graph)
     N = len(networknodenames)
+    edges = set([(v, a, graph.edge_label(v, a)) for (v, a) in graph.edges()])
+    if edgelist:
+        el = list(set([tuple(getVertexFromLabel(graph, e[:2]) + [e[2]]) for e in edgelist if set(e[:2]).issubset(
+            networknodenames)]).difference(edges))
 
+    # add edges
     for _ in range(numedges):
-        # get info from graph
-        graph_edges = [(v, a, graph.edge_label(v, a)) for v in graph.vertices() for a in graph.adjacencies(v)]
-
         # choose an edge from the list
         if edgelist:
-            el = [ tuple(getVertexFromLabel(graph,e[:2])+[e[2]]) for e in edgelist if set(e[:2]).issubset(networknodenames) ]
-            el = list(set(el).difference(graph_edges))
             newedge = getRandomListElement(el)
+            if newedge:
+                el.remove(newedge)
+                graph.add_edge(*newedge)
         # otherwise produce random edge that is not a negative self-loop
         else:
             newedge = None
-            if N > 1 or (N == 1 and not graph_edges):
+            if N > 1 or (N == 1 and not edges):
                 newedge = getRandomEdge(N)
-                while newedge in graph_edges or (newedge[0]==newedge[1] and newedge[2]=='r'):
+                while newedge in edges or (newedge[0]==newedge[1] and newedge[2]=='r'):
                     newedge = getRandomEdge(N)
-        if newedge:
-            graph.add_edge(*newedge)
+            if newedge:
+                edges.append(newedge)
+                graph.add_edge(*newedge)
     return graph
 
 
