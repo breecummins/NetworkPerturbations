@@ -34,6 +34,15 @@ class Graph:
         self.adjacency_lists_[u].discard(v)
         self.edge_labels_[u].pop(v, None)
 
+    def remove_vertex(self, u):
+        """ Remove the node u and all edges from the graph """
+        self.vertices_.discard(u)
+        self.adjacency_lists_.pop(u, None)
+        self.vertex_labels_.pop(u, None)
+        self.edge_labels_.pop(u, None)
+        for v in self.vertices():
+            self.adjacency_lists_[v].discard(u)
+
     def vertex_label(self, v):
         """ Return the label on the vertex v """
         return self.vertex_labels_[v]
