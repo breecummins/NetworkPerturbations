@@ -21,3 +21,15 @@ def is_feed_forward(graph,kwargs):
     if any(len(s) > 1 for s in scc):
         return False, "Contains cycles."
     return True, ""
+
+
+def is_strongly_connected(graph,kwargs):
+    # kwargs = {}, here only for API compliance
+    # return bool (True if satisfied) and string containing error message
+    G = nx.DiGraph()
+    G.add_edges_from(graph.edges())
+    scc = list(nx.strongly_connected_components(G))
+    # throw out graphs with more than one scc
+    if len(scc) > 1:
+        return False, "More than one strongly connected component."
+    return True, ""

@@ -46,6 +46,9 @@ def perturbNetwork(params, network_spec):
     networks = []
     start_time = time.time()
 
+    print([(v,starting_graph.vertex_label(v)) for v in starting_graph.vertices()])
+    print(starting_graph.edges())
+
     while (len(networks) < params['numperturbations']) and (time.time()-start_time < params['time_to_wait']):
         # add nodes and edges or just add edges based on params and get the network spec for the new graph
         graph = perform_operations(starting_graph.clone(),params)
@@ -72,7 +75,8 @@ def setup(params,network_spec):
     # set defaults
     params = set_defaults(params)
     # remove negative self-regulation from edgelist
-    params["edgelist"] = filter_edgelist(params["edgelist"])
+    if params["edgelist"]:
+        params["edgelist"] = filter_edgelist(params["edgelist"])
     # make sure probabilities are normalized and take the cumsum
     params["probabilities"] = make_probability_vector(params["probabilities"])
     # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
