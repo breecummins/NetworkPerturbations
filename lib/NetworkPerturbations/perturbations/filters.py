@@ -19,7 +19,7 @@ def is_feed_forward(graph,kwargs):
     scc = nx.strongly_connected_components(G)
     # throw out graphs with non-trivial cycles
     if any(len(s) > 1 for s in scc):
-        return False, "Contains cycles."
+        return False, "Not feed-forward."
     return True, ""
 
 
@@ -31,5 +31,5 @@ def is_strongly_connected(graph,kwargs):
     scc = list(nx.strongly_connected_components(G))
     # throw out graphs with more than one scc
     if len(scc) > 1:
-        return False, "More than one strongly connected component."
+        return False, "Not strongly connected."
     return True, ""
