@@ -15,7 +15,7 @@ def run():
         "numperturbations" : 3000,
         "time_to_wait" : 900,
         "maxparams" : 10000,
-        "filters" : [{"constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 2}}, {"is_feed_forward" : {}}]
+        "filters" : {"constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 2}, "is_feed_forward" : {}}
     }
 
     query_params = {
@@ -52,8 +52,8 @@ def run():
         if len(net) == 1:
             print("\nOriginal network passes FP search.")
 
-    perturb()
-    # check_original()
+    # perturb()
+    check_original()
 
 if __name__ == "__main__":
     run()

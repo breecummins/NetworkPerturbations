@@ -3,7 +3,6 @@ import NetworkPerturbations.perturbations.fileparsers as fp
 from pprint import pprint
 from NetworkPerturbations.queries.CountFPMatch import query
 import DSGRN
-import random
 
 def run():
     network_spec = "X1 : (X1)(~X3)\nX2 : X1\nX3 : X1 + X2"
@@ -16,7 +15,7 @@ def run():
         "numperturbations": 3,
         "maxparams": 5000,
         "time_to_wait": 5,
-        "filters":[{"constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 3}}]
+        "filters":{"constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 3}}
     }
 
     networks = netper.perturbNetwork(params,network_spec)
@@ -38,7 +37,7 @@ def run2():
             "numperturbations": 3,
             "maxparams": 5000,
             "time_to_wait": 5,
-            "filters": [{"is_strongly_connected": {}}]
+            "filters": {"is_strongly_connected": {}}
         }
 
         networks = netper.perturbNetwork(params, network_spec)

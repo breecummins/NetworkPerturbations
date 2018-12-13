@@ -1,6 +1,8 @@
 import random, time, itertools, sys
 import DSGRN
 import NetworkPerturbations.perturbations.graphtranslation as graphtranslation
+from functools import partial
+from inspect import getmembers, isfunction
 import NetworkPerturbations.perturbations.filters as filters
 
 #####################################################################################################################
@@ -33,8 +35,8 @@ def perturbNetwork(params, network_spec):
         "maxparams" : integer > 0, parameters per database allowed (eventually this should be deprecated for estimated
                       computation time)
                       default : 100000
-        "filters" : default = None, list of dictionaries of filter functions to be satisfied from filters.py,
-                    format: [{"function_name1" : kwargs_dict_1}, {"function_name2" : kwargs_dict_2}, ...]
+        "filters" : default = None, dictionary of filter function name strings from filters.py keying input dictionaries with the needed keyword arguments for each function
+                    format: {"function_name1" : kwargs_dict_1, "function_name2" : kwargs_dict_2, ... }
     :param network_spec: DSGRN network specification string
     :return: list of essential DSGRN network specification strings
 
@@ -45,9 +47,6 @@ def perturbNetwork(params, network_spec):
     params, starting_graph = setup(params,network_spec)
     networks = []
     start_time = time.time()
-
-    print([(v,starting_graph.vertex_label(v)) for v in starting_graph.vertices()])
-    print(starting_graph.edges())
 
     while (len(networks) < params['numperturbations']) and (time.time()-start_time < params['time_to_wait']):
         # add nodes and edges or just add edges based on params and get the network spec for the new graph
@@ -103,6 +102,13 @@ def set_defaults(params):
         params["maxparams"] = 100000
     if "filters" not in params:
         params["filters"] = None
+    else:
+        names = list(params["filters"].keys())
+        funcs = [o for o in getmembers(filters) if isfunction(o[1]) and o[0] in names]
+        not_implemented = set(names).difference([o[0] for o in funcs])
+        if not_implemented:
+            raise ValueError("\nFilter(s) {} not implemented in filters.py. Please correct the name or add a function.\n".format(not_implemented))
+        params["filters"] = [partial(o[1],kwargs=params["filters"][o[0]]) for o in funcs]
     return params
 
 
@@ -143,9 +149,7 @@ def checkComputability(network_spec,maxparams):
 def other_filtering(graph,params,netspec):
     if params["filters"]:
         for fil in params["filters"]:
-            f, kwargs = list(fil.items())[0]
-            g = eval("filters." + f)
-            isgood, message = g(graph, kwargs)
+            isgood, message = fil(graph)
             if not isgood:
                 print("\n" + message + " Not using network spec: \n{}\n".format(netspec))
                 return False

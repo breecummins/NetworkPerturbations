@@ -1,7 +1,7 @@
 import networkx as nx
 
 
-def constrained_inedges(graph,kwargs):
+def constrained_inedges(graph,kwargs={}):
     # kwargs = { "min_inedges" : integer, "max_inedges" : integer }
     # return bool (True if satisfied) and string containing error message
     for u in graph.vertices():
@@ -11,7 +11,7 @@ def constrained_inedges(graph,kwargs):
     return True, ""
 
 
-def is_feed_forward(graph,kwargs):
+def is_feed_forward(graph,kwargs={}):
     # kwargs = {}, here only for API compliance
     # return bool (True if satisfied) and string containing error message
     G = nx.DiGraph()
@@ -23,7 +23,7 @@ def is_feed_forward(graph,kwargs):
     return True, ""
 
 
-def is_strongly_connected(graph,kwargs):
+def is_strongly_connected(graph,kwargs={}):
     # kwargs = {}, here only for API compliance
     # return bool (True if satisfied) and string containing error message
     G = nx.DiGraph()
