@@ -11,11 +11,13 @@ def run():
         "edgelist" : fp.parseEdgeFile("VoigtEdgeFileShort.txt"),
         "nodelist" : fp.parseNodeFile("VoigtNodeFile.txt"),
         "probabilities" : {"addNode" : 0.8, "removeNode" : 0.00, "addEdge" : 0.2, "removeEdge" : 0.00},
-        "range_operations" : [4,8],
-        "numperturbations" : 3000,
-        "time_to_wait" : 900,
-        "maxparams" : 10000,
-        "filters" : {"constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 2}, "is_feed_forward" : {}}
+        "range_operations" : [4,6],
+        "numperturbations" : 50000,
+        "time_to_wait" : 7200,
+        "maxparams" : 5000,
+        "filters" : {"constrained_outedges" : {"min_outedges" : 1, "max_outedges" : 3},
+                     "constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 2}, "is_feed_forward" : {},
+                     }
     }
 
     query_params = {
@@ -34,13 +36,14 @@ def run():
                              {"C": [2, 7], "B": [0, 0], "A": [0, 0], "YFP": [1, 1]},
                              {"C": [2, 7], "B": [0, 0], "A": [2, 7], "YFP": [1, 1]},
                              {"C": [2, 7], "B": [2, 7], "A": [0, 0], "YFP": [1, 1]},
-                             {"C": [2, 7], "B": [2, 7], "A": [2, 7], "YFP": [0, 0]}]
+                             {"C": [2, 7], "B": [2, 7], "A": [2, 7], "YFP": [0, 0]}],
+        "hex_constraints" : {(1,1) : ["2"], (1,2) : ["C"], (1,3) : ["38"], (2,1) : ["E"], (2,2) : ["FC"], (2,3) : ["FF8"]}
     }
 
     def perturb():
         networks = netper.perturbNetwork(params,network_spec)
         print("Saving feed-forward networks.")
-        json.dump(networks,open("temp/all_networks_tested.json","w"))
+        json.dump(networks,open("temp/all_networks_tested_50000.json","w"))
         print("Searching for truth tables...")
         ME.query(networks,"temp",query_params)
 
@@ -52,8 +55,8 @@ def run():
         if len(net) == 1:
             print("\nOriginal network passes FP search.")
 
-    # perturb()
-    check_original()
+    perturb()
+    # check_original()
 
 if __name__ == "__main__":
     run()

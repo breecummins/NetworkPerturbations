@@ -16,27 +16,25 @@ def perturbNetwork(params, network_spec):
 
     :param params: params is a dictionary with the following key,value pairs. Every one has a default,
                    so any of these parameters are optional.
-        "nodelist" : a list of node labels (strings) acceptable to add OR None OR empty list
-                    default : []
-        "edgelist" : a list of ("source","target","regulation") tuples OR None OR empty list
-                    default : []
+        "nodelist" : default = [], a list of node labels (strings) acceptable to add OR None OR empty list
+        "edgelist" : default = [], a list of ("source","target","regulation") tuples OR None OR empty list
                    NOTE: negative self-loops are removed before perturbation
-        "probabilities" : dictionary with operations keying the probability that the operation will occur
-                          default: {"addNode" : 0.30, "removeNode" : 0.05, "addEdge" : 0.50, "removeEdge" : 0.15}
+        "probabilities" : default = {"addNode" : 0.30, "removeNode" : 0.05, "addEdge" : 0.50, "removeEdge" : 0.15}
+                          dictionary with operations keying the probability that the operation will occur
                           NOTE: setting any probability to zero will ensure the operation does not occur
                           NOTE: will be normalized if it does not sum to 1
                           NOTE: every added node is also given an inedge and an outedge as part of the operation
-        "range_operations" : [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive
-                             default : [1,25]
-        "numperturbations" : integer > 0, how many perturbations to construct
-                            default: 1000
-        "time_to_wait" : number of seconds to wait before halting perturbation procedure (avoid infinite while loop)
-                        default : 30
-        "maxparams" : integer > 0, parameters per database allowed (eventually this should be deprecated for estimated
+        "range_operations" : default = [1,25], [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive
+        "numperturbations" : default = 1000, integer > 0, how many perturbations to construct
+        "time_to_wait" : default = 30, number of seconds to wait before halting perturbation procedure (avoid infinite while loop)
+        "maxparams" : default = 100000, integer > 0, parameters per database allowed (eventually this should be deprecated for estimated
                       computation time)
-                      default : 100000
-        "filters" : default = None, dictionary of filter function name strings from filters.py keying input dictionaries with the needed keyword arguments for each function
+        "filters" : default = None, dictionary of filter function name strings from filters.py keying input dictionaries
+                    with the needed keyword arguments for each function
                     format: {"function_name1" : kwargs_dict_1, "function_name2" : kwargs_dict_2, ... }
+        "compressed_output" : default = True, prints count of warnings instead of printing every network spec that
+                                fails filtering, substantially reduces printing to terminal. Should only be set to False
+                                for trouble-shooting, since printing is a bottle-neck.
     :param network_spec: DSGRN network specification string
     :return: list of essential DSGRN network specification strings
 
@@ -45,25 +43,26 @@ def perturbNetwork(params, network_spec):
 
     # Initialize
     params, starting_graph = setup(params,network_spec)
-    networks = []
+    networks = set([])
     start_time = time.time()
 
+    # Perturb
     while (len(networks) < params['numperturbations']) and (time.time()-start_time < params['time_to_wait']):
         # add nodes and edges or just add edges based on params and get the network spec for the new graph
         graph = perform_operations(starting_graph.clone(),params)
         netspec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
-        # check that network spec does not string match another, is small enough, is DSGRN computable,
-        # and satisfies user-supplied filters
-        # TODO: check for graph isomorphisms, or at least alphabetize netspec for string matching
-        if (netspec not in networks) and checkComputability(netspec,params['maxparams']):
-            if other_filtering(graph,params,netspec):
-                networks.append(netspec)
+        # check that network spec is DSGRN computable with few enough parameters and satisfies user-supplied filters
+        if not params["filters"] or user_filtering(graph, params, netspec, params["msg_dict"], params["compressed_output"]):
+            if check_computability(netspec,params['maxparams'],params["msg_dict"],params["compressed_output"]):
+                networks.add(netspec)
+        if params["compressed_output"]:
+            update_line(params["msg_dict"])
 
     # inform user of the number of networks produced and return however many networks were made
     if time.time()-start_time >= params['time_to_wait']:
-        print("Process timed out.")
-    print("Proceeding with {} networks.".format(len(networks)))
-    return networks
+        print("\nProcess timed out.")
+    print("\nProceeding with {} networks.".format(len(networks)))
+    return list(networks)
 
 
 ##########################################################################################
@@ -109,6 +108,11 @@ def set_defaults(params):
         if not_implemented:
             raise ValueError("\nFilter(s) {} not implemented in filters.py. Please correct the name or add a function.\n".format(not_implemented))
         params["filters"] = [partial(o[1],kwargs=params["filters"][o[0]]) for o in funcs]
+    if "compressed_output" not in params or params["compressed_output"]:
+        params["compressed_output"] = True
+    else:
+        params["compressed_output"] = False
+    params["msg_dict"] = {}
     return params
 
 
@@ -132,28 +136,48 @@ def make_probability_vector(probabilities):
 # and satisfies user-supplied filters
 ##########################################################################################
 
-def checkComputability(network_spec,maxparams):
-    network=DSGRN.Network()
+def check_computability(network_spec,maxparams,msg_dict,compressed_output):
+    network = DSGRN.Network(network_spec)
     try:
-        network.assign(network_spec)
-        paramgraph=DSGRN.ParameterGraph(network) 
+        paramgraph=DSGRN.ParameterGraph(network)
         smallenough = paramgraph.size() <= int(maxparams)
         if not smallenough:
-            print("\nToo many parameters. Not using network spec: \n{}\n".format(network_spec))
+            msg = "Too many parameters"
+            add_warning(msg,network_spec,compressed_output,msg_dict)
         return smallenough
     except (AttributeError, RuntimeError):
-        print("\nNetwork spec not computable: \n{}\n".format(network_spec))
+        msg = "Network spec not computable"
+        add_warning(msg, network_spec, compressed_output, msg_dict)
         return False
 
 
-def other_filtering(graph,params,netspec):
-    if params["filters"]:
-        for fil in params["filters"]:
-            isgood, message = fil(graph)
-            if not isgood:
-                print("\n" + message + " Not using network spec: \n{}\n".format(netspec))
-                return False
-    return True
+def user_filtering(graph,params,netspec,msg_dict,compressed_output):
+     for fil in params["filters"]:
+        isgood, message = fil(graph)
+        if not isgood:
+            add_warning(message, netspec, compressed_output, msg_dict)
+            return False
+     return True
+
+
+def add_warning(msg,network_spec,compressed_output,msg_dict):
+    if compressed_output:
+        if msg not in msg_dict:
+            msg_dict[msg] = 1
+        else:
+            msg_dict[msg] += 1
+    else:
+        print("\n{}. Not using network spec: \n{}\n".format(msg, network_spec))
+    return None
+
+
+def update_line(msg_dict):
+    mstr = "; ".join([msg + ": {} networks".format(count) for msg,count in msg_dict.items()])
+    sys.stdout.write("\b" * len(mstr))
+    sys.stdout.write(" " * len(mstr))
+    sys.stdout.write("\b" * len(mstr))
+    sys.stdout.write(mstr)
+    sys.stdout.flush()
 
 
 ##############################################################################
