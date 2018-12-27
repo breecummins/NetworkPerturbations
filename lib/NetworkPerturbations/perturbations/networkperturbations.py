@@ -58,11 +58,11 @@ def perturbNetwork(params, network_spec):
             if check_computability(netspec,params['maxparams'],params["msg_dict"],params["compressed_output"]):
                 networks.add(netspec)
         if not count%1000 and params["compressed_output"]:
-            update_line(params["msg_dict"])
+            update_line(params["msg_dict"],len(networks))
 
     # last update of warnings
     if params["compressed_output"]:
-        update_line(params["msg_dict"])
+        update_line(params["msg_dict"],len(networks))
 
     # inform user of the number of networks produced and return however many networks were made
     if time.time()-start_time >= params['time_to_wait']:
@@ -118,7 +118,7 @@ def set_defaults(params):
         params["compressed_output"] = True
     else:
         params["compressed_output"] = False
-    params["msg_dict"] = {}
+    params["msg_dict"] = {"Accepted networks" : 0}
     return params
 
 
@@ -177,7 +177,8 @@ def add_warning(msg,network_spec,compressed_output,msg_dict):
     return None
 
 
-def update_line(msg_dict):
+def update_line(msg_dict,N):
+    msg_dict["Accepted networks"] = N
     mstr = "; ".join([msg + ": {} networks".format(count) for msg,count in msg_dict.items()])
     sys.stdout.write("\b" * len(mstr))
     sys.stdout.write(" " * len(mstr))
