@@ -34,7 +34,7 @@ def perturbNetwork(params, network_spec):
                     format: {"function_name1" : kwargs_dict_1, "function_name2" : kwargs_dict_2, ... }
         "compressed_output" : default = True, prints count of warnings instead of printing every network spec that
                                 fails filtering, substantially reduces printing to terminal. Should only be set to False
-                                for trouble-shooting, since printing is a bottle-neck.
+                                for trouble-shooting, since printing is a bottleneck.
     :param network_spec: DSGRN network specification string
     :return: list of essential DSGRN network specification strings
 
@@ -45,9 +45,11 @@ def perturbNetwork(params, network_spec):
     params, starting_graph = setup(params,network_spec)
     networks = set([])
     start_time = time.time()
+    count = 1
 
     # Perturb
     while (len(networks) < params['numperturbations']) and (time.time()-start_time < params['time_to_wait']):
+        count += 1
         # add nodes and edges or just add edges based on params and get the network spec for the new graph
         graph = perform_operations(starting_graph.clone(),params)
         netspec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
@@ -55,8 +57,12 @@ def perturbNetwork(params, network_spec):
         if not params["filters"] or user_filtering(graph, params, netspec, params["msg_dict"], params["compressed_output"]):
             if check_computability(netspec,params['maxparams'],params["msg_dict"],params["compressed_output"]):
                 networks.add(netspec)
-        if params["compressed_output"]:
+        if not count%1000 and params["compressed_output"]:
             update_line(params["msg_dict"])
+
+    # last update of warnings
+    if params["compressed_output"]:
+        update_line(params["msg_dict"])
 
     # inform user of the number of networks produced and return however many networks were made
     if time.time()-start_time >= params['time_to_wait']:
@@ -279,10 +285,10 @@ def addConnectingEdges(graph,nodes,edgelist):
             # can always add activating self-loop
             newinedge = (getRandomNode(N),n,getRandomReg())
             if newinedge[0] == newinedge[1] and newinedge[2] == 'r':
-                newinedge[2] = "a"
+                newinedge = (newinedge[0],newinedge[1],"a")
             newoutedge = (n,getRandomNode(N), getRandomReg())
             if newoutedge[0] == newoutedge[1] and newoutedge[2] == 'r':
-                newoutedge[2] = "a"
+                newoutedge = (newoutedge[0], newoutedge[1], "a")
         if newinedge:
             graph.add_edge(*newinedge)
         if newoutedge:
