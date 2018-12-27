@@ -45,7 +45,7 @@ def perturbNetwork(params, network_spec):
     params, starting_graph = setup(params,network_spec)
     networks = set([])
     start_time = time.time()
-    count = 1
+    count = 0
 
     # Perturb
     while (len(networks) < params['numperturbations']) and (time.time()-start_time < params['time_to_wait']):
