@@ -1,4 +1,5 @@
 # installer script
-git submodule update --init --recursive --remote --merge
+git submodule init
+git submodule update --merge
 pip uninstall -y NetworkPerturbations &> /dev/null || True
 pip install -e .
