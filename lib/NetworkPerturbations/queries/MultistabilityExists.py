@@ -2,6 +2,7 @@ import DSGRN
 import os, json, progressbar
 from multiprocessing import Pool
 from functools import partial
+import NetworkPerturbations.queries.query_utilities as qu
 
 def query(networks,resultsdir,params):
     '''
@@ -31,7 +32,7 @@ def query(networks,resultsdir,params):
     included_bounds = [dict(b) for b in params["included_bounds"]]
     excluded_bounds = [dict(b) for b in params["excluded_bounds"]]
     pool = Pool()  # Create a multiprocessing Pool
-    if "hex_constraints" in params:
+    if "hex_constraints" in params and params["hex_constraints"]:
         hex_constraints = dict(params["hex_constraints"])
         output = pool.map(partial(compute_for_network_with_constraints, included_bounds, excluded_bounds, len(networks), hex_constraints),enumerate(networks))
     else:
@@ -61,17 +62,9 @@ def compute_for_network_with_constraints(included_bounds,excluded_bounds,N,hex_c
     parametergraph = DSGRN.ParameterGraph(network)
     for p in progressbar.ProgressBar()(range(parametergraph.size())):
         param = parametergraph.parameter(p)
-        node_types = [(v, (v.numInputs(), v.numOutputs())) for v in param.logic()]
-        if satisfies_hex_constraints(node_types,hex_constraints) and have_match(network, param, included_bounds, excluded_bounds):
+        if qu.satisfies_hex_constraints(param,hex_constraints) and have_match(network, param, included_bounds,excluded_bounds):
             return netspec
     return None
-
-
-def satisfies_hex_constraints(node_types, hex_constraints):
-    for v,n in node_types:
-        if n in hex_constraints and v.hex() not in hex_constraints[n]:
-            return False
-    return True
 
 
 def have_match(network,parameter,included_bounds,excluded_bounds):

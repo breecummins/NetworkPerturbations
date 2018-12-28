@@ -141,7 +141,7 @@ def createEssentialNetworkSpecFromGraph(graph):
 
     # get network nodes in order
     networknodeindices, networknodenames = zip(*[(v, graph.vertex_label(v)) for v in graph.vertices()])
-    [networknodeindices, networknodenames] = sort_by_list(networknodeindices, [networknodenames], reverse=False)
+    [_, networknodenames] = sort_by_list(networknodeindices, [networknodenames], reverse=False)
 
     # get inedges
     graph_edges = [(v, a, graph.edge_label(v, a)) for v in graph.vertices() for a in graph.adjacencies(v)]

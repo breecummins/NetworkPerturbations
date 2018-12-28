@@ -12,7 +12,8 @@ import NetworkPerturbations.perturbations.filters as filters
 def perturbNetwork(params, network_spec):
     '''
     Get a list of essential DSGRN network specifications perturbed around an essential seed network given parameters
-    in params (see below). Duplicate networks are possible because there is no graph isomorphism checking.
+    in params (see below). Duplicate networks are possible because there is no graph isomorphism checking. Empirical
+    usage suggests that the number of duplicates is too small to warrant the computational cost of checking.
 
     :param params: params is a dictionary with the following key,value pairs. Every one has a default,
                    so any of these parameters are optional.
@@ -32,9 +33,10 @@ def perturbNetwork(params, network_spec):
         "filters" : default = None, dictionary of filter function name strings from filters.py keying input dictionaries
                     with the needed keyword arguments for each function
                     format: {"function_name1" : kwargs_dict_1, "function_name2" : kwargs_dict_2, ... }
+                    See filters.py for the implemented filter functions and their arguments.
         "compressed_output" : default = True, prints count of warnings instead of printing every network spec that
-                                fails filtering, substantially reduces printing to terminal. Should only be set to False
-                                for trouble-shooting, since printing is a bottleneck.
+                                fails filtering. This substantially reduces printing to terminal and should only be
+                                set to False for trouble-shooting, since printing is a bottleneck.
     :param network_spec: DSGRN network specification string
     :return: list of essential DSGRN network specification strings
 
@@ -42,21 +44,24 @@ def perturbNetwork(params, network_spec):
 
 
     # Initialize
-    params, starting_graph = setup(params,network_spec)
     networks = set([])
+    params, starting_graph = setup(params,network_spec)
+    starting_netspec = graphtranslation.createEssentialNetworkSpecFromGraph(starting_graph)
+    if enforce_filters(starting_graph,starting_netspec,params):
+        # add the starting network if it meets the filtering criteria
+        networks.add(starting_netspec)
     start_time = time.time()
     count = 0
 
     # Perturb
     while (len(networks) < params['numperturbations']) and (time.time()-start_time < params['time_to_wait']):
         count += 1
-        # add nodes and edges or just add edges based on params and get the network spec for the new graph
+        # add nodes and edges based on params and get the network spec for the new graph
         graph = perform_operations(starting_graph.clone(),params)
         netspec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
-        # check that network spec is DSGRN computable with few enough parameters and satisfies user-supplied filters
-        if not params["filters"] or user_filtering(graph, params, netspec, params["msg_dict"], params["compressed_output"]):
-            if check_computability(netspec,params['maxparams'],params["msg_dict"],params["compressed_output"]):
-                networks.add(netspec)
+        # check that the network spec is DSGRN computable with few enough parameters and satisfies user-supplied filters
+        if enforce_filters(graph,netspec,params):
+            networks.add(netspec)
         if not count%1000 and params["compressed_output"]:
             update_line(params["msg_dict"],len(networks))
 
@@ -72,7 +77,7 @@ def perturbNetwork(params, network_spec):
 
 
 ##########################################################################################
-# Set up functions
+# Initialization functions
 ##########################################################################################
 
 def setup(params,network_spec):
@@ -138,9 +143,15 @@ def make_probability_vector(probabilities):
 
 
 ##########################################################################################
-# Check that database is both computable (logic files present) and as small as requested
-# and satisfies user-supplied filters
+# Filtering and warning functions
 ##########################################################################################
+
+def enforce_filters(graph,netspec,params):
+    if not params["filters"] or user_filtering(graph, params, netspec, params["msg_dict"], params["compressed_output"]):
+        if check_computability(netspec, params['maxparams'], params["msg_dict"], params["compressed_output"]):
+            return True
+    return False
+
 
 def check_computability(network_spec,maxparams,msg_dict,compressed_output):
     network = DSGRN.Network(network_spec)
@@ -260,7 +271,7 @@ def addEdges(graph,edgelist,numedges):
                 while newedge in edges or (newedge[0]==newedge[1] and newedge[2]=='r'):
                     newedge = getRandomEdge(N)
             if newedge:
-                edges.append(newedge)
+                edges.add(newedge)
                 graph.add_edge(*newedge)
     return graph
 
@@ -270,26 +281,36 @@ def addConnectingEdges(graph,nodes,edgelist):
     networknodenames = getNetworkLabels(graph)
     N = len(networknodenames)
 
+    def make_edge(nv):
+        newv, newr = getRandomNode(N), getRandomReg()
+        while newv == nv and newr == "r":
+            newv, newr = getRandomNode(N), getRandomReg()
+        return newv,newr
+
     for n in nodes:
         # choose an edge from the list
         if edgelist:
             # get in-edge
             el_in = [e for e in edgelist if n == e[1] and e[0] in networknodenames]
-            e = getRandomListElement(el_in)
-            newinedge = tuple(getVertexFromLabel(graph,e[:2])+[e[2]])
+            if el_in:
+                e = getRandomListElement(el_in)
+                newinedge = tuple(getVertexFromLabel(graph,e[:2])+[e[2]])
+            else:
+                newinedge = None
             # get out-edge
             el_out = [e for e in edgelist if n == e[0] and e[1] in networknodenames]
-            e = getRandomListElement(el_out)
-            newoutedge = tuple(getVertexFromLabel(graph, e[:2]) + [e[2]])
+            if el_out:
+                e = getRandomListElement(el_out)
+                newoutedge = tuple(getVertexFromLabel(graph, e[:2]) + [e[2]])
+            else:
+                newoutedge = None
         # otherwise produce random edges that are not negative self-loops
         else:
-            # can always add activating self-loop
-            newinedge = (getRandomNode(N),n,getRandomReg())
-            if newinedge[0] == newinedge[1] and newinedge[2] == 'r':
-                newinedge = (newinedge[0],newinedge[1],"a")
-            newoutedge = (n,getRandomNode(N), getRandomReg())
-            if newoutedge[0] == newoutedge[1] and newoutedge[2] == 'r':
-                newoutedge = (newoutedge[0], newoutedge[1], "a")
+            nv = getVertexFromLabel(graph,[n])[0]
+            newv,newr = make_edge(nv)
+            newinedge = (newv,nv,newr)
+            newv,newr = make_edge(nv)
+            newoutedge = (nv,newv,newr)
         if newinedge:
             graph.add_edge(*newinedge)
         if newoutedge:
@@ -308,10 +329,10 @@ def addNodes(graph,nodelist,numnodes):
 
         if not nodelist:
             # make unique node name
-            newnodelabel = 'x'+str(N)
+            newnodelabel = 'x'+str(N+1)
             c=1
             while newnodelabel in networknodenames:
-                newnodelabel = 'x'+str(N+c)
+                newnodelabel = 'x'+str(N+1+c)
                 c+=1
         else:
             # filter nodelist to get only new nodes
