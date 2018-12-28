@@ -12,7 +12,7 @@ def run():
         "nodelist" : fp.parseNodeFile("VoigtNodeFile.txt"),
         "probabilities" : {"addNode" : 0.8, "removeNode" : 0.00, "addEdge" : 0.2, "removeEdge" : 0.00},
         "range_operations" : [6,6],
-        "numperturbations" : 200,
+        "numperturbations" : 5,
         "time_to_wait" : 7200,
         "maxparams" : 5000,
         "filters" : {"constrained_outedges" : {"min_outedges" : 1, "max_outedges" : 3},

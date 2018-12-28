@@ -153,32 +153,32 @@ def make_probability_vector(probabilities):
 ##########################################################################################
 
 def enforce_filters(graph,netspec,params):
-    if not params["filters"] or user_filtering(graph, params, netspec, params["msg_dict"], params["compressed_output"]):
-        if check_computability(netspec, params['maxparams'], params["msg_dict"], params["compressed_output"]):
+    if not params["filters"] or user_filtering(graph, params, netspec):
+        if check_computability(params,netspec):
             return True
     return False
 
 
-def check_computability(network_spec,maxparams,msg_dict,compressed_output):
+def check_computability(params,network_spec):
     network = DSGRN.Network(network_spec)
     try:
         paramgraph=DSGRN.ParameterGraph(network)
-        smallenough = paramgraph.size() <= int(maxparams)
+        smallenough = paramgraph.size() <= params['maxparams']
         if not smallenough:
             msg = "Too many parameters"
-            add_warning(msg,network_spec,compressed_output,msg_dict)
+            add_warning(msg,network_spec, params["compressed_output"], params["msg_dict"])
         return smallenough
     except (AttributeError, RuntimeError):
         msg = "Network spec not computable"
-        add_warning(msg, network_spec, compressed_output, msg_dict)
+        add_warning(msg, network_spec, params["compressed_output"], params["msg_dict"])
         return False
 
 
-def user_filtering(graph,params,netspec,msg_dict,compressed_output):
+def user_filtering(graph,params,netspec):
      for fil in params["filters"]:
         isgood, message = fil(graph)
         if not isgood:
-            add_warning(message, netspec, compressed_output, msg_dict)
+            add_warning(message, netspec, params["compressed_output"], params["msg_dict"])
             return False
      return True
 
@@ -344,7 +344,7 @@ def addEdges(graph,edgelist,numedges):
                 return None
         # otherwise produce random edge that is not a negative self-loop
         else:
-            newedge = None
+            newedge = getRandomEdge(N)
             while newedge in edges or (newedge[0]==newedge[1] and newedge[2]=='r'):
                 newedge = getRandomEdge(N)
             # newedge will always exist because regulation type can be swapped
