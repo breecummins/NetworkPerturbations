@@ -45,26 +45,30 @@ def query(networks,resultsdir,params):
 
 
 def compute_for_network_without_constraints(included_bounds,excluded_bounds,N,tup):
-    (k, netspec) = tup
-    print("Network {} of {}".format(k+1, N))
-    network = DSGRN.Network(netspec)
-    parametergraph = DSGRN.ParameterGraph(network)
-    for p in progressbar.ProgressBar()(range(parametergraph.size())):
+    netspec,network, parametergraph = getpg(tup,N)
+    # for p in progressbar.ProgressBar()(range(parametergraph.size())):
+    for p in range(parametergraph.size()):
         if have_match(network, parametergraph.parameter(p), included_bounds, excluded_bounds):
             return netspec
     return None
 
 
 def compute_for_network_with_constraints(included_bounds,excluded_bounds,N,hex_constraints,tup):
-    (k, netspec) = tup
-    print("Network {} of {}".format(k+1, N))
-    network = DSGRN.Network(netspec)
-    parametergraph = DSGRN.ParameterGraph(network)
-    for p in progressbar.ProgressBar()(range(parametergraph.size())):
+    netspec,network, parametergraph = getpg(tup,N)
+    # for p in progressbar.ProgressBar()(range(parametergraph.size())):
+    for p in range(parametergraph.size()):
         param = parametergraph.parameter(p)
         if qu.satisfies_hex_constraints(param,hex_constraints) and have_match(network, param, included_bounds,excluded_bounds):
             return netspec
     return None
+
+
+def getpg(tup,N):
+    (k, netspec) = tup
+    print("Network {} of {}".format(k+1, N))
+    network = DSGRN.Network(netspec)
+    parametergraph = DSGRN.ParameterGraph(network)
+    return netspec,network,parametergraph
 
 
 def have_match(network,parameter,included_bounds,excluded_bounds):

@@ -20,7 +20,7 @@ def perturbNetwork(params, network_spec):
         "nodelist" : default = [], a list of node labels (strings) acceptable to add OR None OR empty list
         "edgelist" : default = [], a list of ("source","target","regulation") tuples OR None OR empty list
                    NOTE: negative self-loops are removed before perturbation
-        "probabilities" : default = {"addNode" : 0.30, "removeNode" : 0.05, "addEdge" : 0.50, "removeEdge" : 0.15}
+        "probabilities" : default = {"addNode" : 0.40, "removeNode" : 0, "addEdge" : 0.60, "removeEdge" : 0.0}
                           dictionary with operations keying the probability that the operation will occur
                           NOTE: setting any probability to zero will ensure the operation does not occur
                           NOTE: will be normalized if it does not sum to 1
@@ -37,6 +37,9 @@ def perturbNetwork(params, network_spec):
         "compressed_output" : default = True, prints count of warnings instead of printing every network spec that
                                 fails filtering. This substantially reduces printing to terminal and should only be
                                 set to False for trouble-shooting, since printing is a bottleneck.
+        "DSGRN_optimized" : default = True, prioritizes adding new edges to nodes missing in- or out-edges.
+                            Should only be set to False if nodes without in- or out-edges are desired.
+                            NOTE: Can still get nodes without in- or out-edges if probabilities["removeEdge"] is nonzero
     :param network_spec: DSGRN network specification string
     :return: list of essential DSGRN network specification strings
 
@@ -58,10 +61,13 @@ def perturbNetwork(params, network_spec):
         count += 1
         # add nodes and edges based on params and get the network spec for the new graph
         graph = perform_operations(starting_graph.clone(),params)
-        netspec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
-        # check that the network spec is DSGRN computable with few enough parameters and satisfies user-supplied filters
-        if enforce_filters(graph,netspec,params):
-            networks.add(netspec)
+        if graph:
+            netspec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
+            # check that the network spec is DSGRN computable with few enough parameters and satisfies user-supplied filters
+            if enforce_filters(graph,netspec,params):
+                networks.add(netspec)
+        else:
+            params["msg_dict"]["Aborted networks"] += 1
         if not count%1000 and params["compressed_output"]:
             update_line(params["msg_dict"],len(networks))
 
@@ -99,7 +105,7 @@ def set_defaults(params):
     if "edgelist" not in params:
         params["edgelist"] = []
     if "probabilities" not in params:
-        params["probabilities"] = {"addNode" : 0.30, "removeNode" : 0.05, "addEdge" : 0.50, "removeEdge" : 0.15}
+        params["probabilities"] = {"addNode" : 0.40, "removeNode" : 0.0, "addEdge" : 0.60, "removeEdge" : 0.0}
     if "range_operations" not in params:
         params["range_operations"] = [1,26]
     else: # add 1 so that endpoint is inclusive
@@ -119,11 +125,11 @@ def set_defaults(params):
         if not_implemented:
             raise ValueError("\nFilter(s) {} not implemented in filters.py. Please correct the name or add a function.\n".format(not_implemented))
         params["filters"] = [partial(o[1],kwargs=params["filters"][o[0]]) for o in funcs]
-    if "compressed_output" not in params or params["compressed_output"]:
+    if "compressed_output" not in params:
         params["compressed_output"] = True
-    else:
-        params["compressed_output"] = False
-    params["msg_dict"] = {"Accepted networks" : 0}
+    params["msg_dict"] = {"Accepted networks" : 0, "Aborted networks" : 0}
+    if "DSGRN_optimized" not in params:
+        params["DSGRN_optimized"] = True
     return params
 
 
@@ -202,16 +208,23 @@ def update_line(msg_dict,N):
 # Stochastic numbers of additional edges and/or nodes to perturb the network.
 ##############################################################################
 
-
 def perform_operations(graph,params):
     # choose the number of each type of operation
     numops = choose_operations(params)
     # apply operations in the proper order
     graph, nodes = addNodes(graph, params["nodelist"],numops[0])
+    # punt if the graph is trivial
+    if len(graph.vertices()) == 1 and graph.edges():
+        return graph
+    # otherwise continue with operations
     graph = addConnectingEdges(graph,nodes,params["edgelist"])
-    graph = addEdges(graph,params["edgelist"],numops[1])
-    graph = removeEdges(graph,numops[2])
-    graph = removeNodes(graph,numops[3])
+    if params["DSGRN_optimized"]:
+        graph = addEdges_DSGRN_optimized(graph,params["edgelist"],numops[1])
+    else:
+        graph = addEdges(graph, params["edgelist"], numops[1])
+    if graph:
+        graph = removeEdges(graph,numops[2])
+        graph = removeNodes(graph,numops[3])
     return graph
 
 
@@ -237,91 +250,16 @@ def removeEdges(graph,numedges):
         graph.remove_edge(*random.choice(graph.edges()))
     return graph
 
+
 def removeNodes(graph,numnodes):
     for _ in range(numnodes):
         graph.remove_vertex(random.choice(graph.vertices()))
-    return graph
-
-def addEdges(graph,edgelist,numedges):
-    # if no edgelist, then a random edge is added to the network
-    # if edgelist is specified, a random choice is made from the filtered edgelist 
-    # (repressing self-loops removed)
-
-    # get info from graph
-    networknodenames = getNetworkLabels(graph)
-    N = len(networknodenames)
-    edges = set([(v, a, graph.edge_label(v, a)) for (v, a) in graph.edges()])
-    if edgelist:
-        el = list(set([tuple(getVertexFromLabel(graph, e[:2]) + [e[2]]) for e in edgelist if set(e[:2]).issubset(
-            networknodenames)]).difference(edges))
-
-    # add edges
-    for _ in range(numedges):
-        # choose an edge from the list
-        if edgelist:
-            newedge = getRandomListElement(el)
-            if newedge:
-                el.remove(newedge)
-                graph.add_edge(*newedge)
-        # otherwise produce random edge that is not a negative self-loop
-        else:
-            newedge = None
-            if N > 1 or (N == 1 and not edges):
-                newedge = getRandomEdge(N)
-                while newedge in edges or (newedge[0]==newedge[1] and newedge[2]=='r'):
-                    newedge = getRandomEdge(N)
-            if newedge:
-                edges.add(newedge)
-                graph.add_edge(*newedge)
-    return graph
-
-
-def addConnectingEdges(graph,nodes,edgelist):
-    # add connecting edges for newly added nodes
-    networknodenames = getNetworkLabels(graph)
-    N = len(networknodenames)
-
-    def make_edge(nv):
-        newv, newr = getRandomNode(N), getRandomReg()
-        while newv == nv and newr == "r":
-            newv, newr = getRandomNode(N), getRandomReg()
-        return newv,newr
-
-    for n in nodes:
-        # choose an edge from the list
-        if edgelist:
-            # get in-edge
-            el_in = [e for e in edgelist if n == e[1] and e[0] in networknodenames]
-            if el_in:
-                e = getRandomListElement(el_in)
-                newinedge = tuple(getVertexFromLabel(graph,e[:2])+[e[2]])
-            else:
-                newinedge = None
-            # get out-edge
-            el_out = [e for e in edgelist if n == e[0] and e[1] in networknodenames]
-            if el_out:
-                e = getRandomListElement(el_out)
-                newoutedge = tuple(getVertexFromLabel(graph, e[:2]) + [e[2]])
-            else:
-                newoutedge = None
-        # otherwise produce random edges that are not negative self-loops
-        else:
-            nv = getVertexFromLabel(graph,[n])[0]
-            newv,newr = make_edge(nv)
-            newinedge = (newv,nv,newr)
-            newv,newr = make_edge(nv)
-            newoutedge = (nv,newv,newr)
-        if newinedge:
-            graph.add_edge(*newinedge)
-        if newoutedge:
-            graph.add_edge(*newoutedge)
     return graph
 
 
 def addNodes(graph,nodelist,numnodes):
     # if nodelist, choose numnodes random nodes from nodelist
     # if no nodelist, make up names for new nodes
-
     nodes = []
     for _ in range(numnodes):
         networknodenames = getNetworkLabels(graph)
@@ -342,11 +280,108 @@ def addNodes(graph,nodelist,numnodes):
         # add to graph
         if newnodelabel:
             graph.add_vertex(N,label=newnodelabel)
-            nodes.append(newnodelabel)
-
+            nodes.append(N)
     return graph, nodes
 
-##################################################################################################
+
+def addConnectingEdges(graph, nodes, edgelist):
+    # add connecting edges for nodes in list
+
+    # get info from graph
+    networknodenames = getNetworkLabels(graph)
+    N = len(networknodenames)
+
+    # add edges for prioritized nodes, punt if edges cannot be constructed
+    need = getMissingEdges(graph,nodes)
+    while need:
+        nv, edge_type = getRandomListElement(need)
+        n = graph.vertex_label(nv)
+        if edgelist:
+            if edge_type == "in":
+                el_in = [tuple(getVertexFromLabel(graph, e[:2]) + [e[2]]) for e in edgelist if n == e[1] and e[0] in networknodenames]
+                newedge = getRandomListElement(el_in)
+            else:
+                el_out = [tuple(getVertexFromLabel(graph, e[:2]) + [e[2]]) for e in edgelist if n == e[0] and e[1] in networknodenames]
+                newedge = getRandomListElement(el_out)
+            if not newedge:
+                return None
+        else:
+            newv, newr = getHalfEdge(nv,N)
+            if edge_type == "in":
+                newedge = (newv, nv, newr)
+            else:
+                newedge = (nv, newv, newr)
+        graph.add_edge(*newedge)
+        need = getMissingEdges(graph,nodes)
+    return graph
+
+
+def addEdges(graph,edgelist,numedges):
+    # if no edgelist, then a random edge is added to the network
+    # if edgelist is specified, a random choice is made from the filtered edgelist 
+    # (repressing self-loops removed)
+
+    # get info from graph
+    networknodenames = getNetworkLabels(graph)
+    N = len(networknodenames)
+    edges = set([(v, a, graph.edge_label(v, a)) for (v, a) in graph.edges()])
+
+    # get allowable edges for this graph
+    if edgelist:
+        el = list(set([tuple(getVertexFromLabel(graph, e[:2]) + [e[2]]) for e in edgelist if set(e[:2]).issubset(
+            networknodenames)]).difference(edges))
+
+    # add edges
+    for _ in range(numedges):
+        # choose an edge from the list
+        if edgelist:
+            newedge = getRandomListElement(el)
+            if newedge:
+                el.remove(newedge)
+                graph.add_edge(*newedge)
+            else:
+                # punt if can't add an edge
+                return None
+        # otherwise produce random edge that is not a negative self-loop
+        else:
+            newedge = None
+            while newedge in edges or (newedge[0]==newedge[1] and newedge[2]=='r'):
+                newedge = getRandomEdge(N)
+            # newedge will always exist because regulation type can be swapped
+            # NOTE: multiple swaps on the same edge can occur
+            edges.add(newedge)
+            graph.add_edge(*newedge)
+    return graph
+
+
+def addEdges_DSGRN_optimized(graph,edgelist,numedges):
+    # prioritize nodes with missing in- and out-edges, and return None if there aren't enough edge perturbations
+    # to correct them all
+    # if no edgelist, then a random edge is added to the network
+    # if edgelist is specified, a random choice is made from the filtered edgelist
+    # (repressing self-loops removed)
+
+    # record original number of edges
+    M0 = len(graph.edges())
+    # add prioritized edges
+    graph = addConnectingEdges(graph, graph.vertices(), edgelist)
+    # adjust number of perturbations
+    M1 = len(graph.edges())
+    numedges -= (M1-M0)
+
+    if numedges < 0:
+        # punt if exceeded perturbations
+        return None
+    elif numedges == 0:
+        # stop if achieved perturbations
+        return graph
+    else:
+        # add remaining perturbations
+        return addEdges(graph, edgelist, numedges)
+
+
+
+#################################################################################################
 # Helper functions to access graph labels and produce random choices.
 ##################################################################################################
 
@@ -374,4 +409,22 @@ def getRandomListElement(masterlist):
     # pick randomly from list
     if not masterlist: return None
     else: return random.choice(masterlist)
+
+def getHalfEdge(n,N):
+    newv, newr = getRandomNode(N), getRandomReg()
+    while newv == n and newr == "r":
+        newv, newr = getRandomNode(N), getRandomReg()
+    return newv,newr
+
+def getMissingEdges(graph,vertices):
+    need = []
+    for v in vertices:
+        if not graph.adjacencies(v):
+            need.append((v,"out"))
+        if not [u for u in graph.vertices() if (u,v) in graph.edges()]:
+            need.append((v, "in"))
+    return need
+
+
+
 
