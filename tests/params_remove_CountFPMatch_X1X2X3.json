@@ -1,0 +1,14 @@
+{
+  "querymodule" : "CountFPMatch",
+  "computationsdir" : "",
+  "networkfile" : "networkspec_X1X2X3.txt",
+  "makeperturbations" : true,
+  "nodefile" : "",
+  "edgefile" : "",
+  "probabilities" : {"addNode" : 0.25, "removeNode" : 0.0, "addEdge" : 0.25, "removeEdge" : 0.25},
+  "range_operations" : [1,5],
+  "numperturbations" : 6,
+  "maxparams" : 100000,
+  "time_to_wait" : 30,
+  "bounds" : {"X1":[2,2],"X2":[1,1],"X3":[0,1]}
+}

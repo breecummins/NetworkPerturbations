@@ -30,6 +30,13 @@ def test_countFP_anon():
     assert(networkspec in results)
     assert(results[networkspec]=="8/168")
 
+def test_countFP_remove():
+    paramfile =  "params_remove_CountFPMatch_X1X2X3.json"
+    results, networkspec = run(paramfile)
+    assert(len(results)==6)
+    assert(networkspec in results)
+    assert(results[networkspec]=="8/168")
+
 def test_countFC():
     paramfile = "params_CountStableFC_X1X2X3.json"
     results, networkspec = run(paramfile)
@@ -55,5 +62,4 @@ def test_patternmatch_path():
     assert(results[networkspec]==[[0.0, 58, 168], [0.1, 80, 168]])
 
 if __name__ == "__main__":
-    test_patternmatch_path()
-    test_patternmatch_stable()
+    test_countFP_remove()

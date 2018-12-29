@@ -25,7 +25,7 @@ def perturbNetwork(params, network_spec):
                           NOTE: setting any probability to zero will ensure the operation does not occur
                           NOTE: will be normalized if it does not sum to 1
                           NOTE: every added node is also given an inedge and an outedge as part of the operation
-        "range_operations" : default = [1,25], [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive
+        "range_operations" : default = [1,10], [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive
         "numperturbations" : default = 1000, integer > 0, how many perturbations to construct
         "time_to_wait" : default = 30, number of seconds to wait before halting perturbation procedure (avoid infinite while loop)
         "maxparams" : default = 100000, integer > 0, parameters per database allowed (eventually this should be deprecated for estimated
@@ -105,9 +105,11 @@ def set_defaults(params):
     if "edgelist" not in params:
         params["edgelist"] = []
     if "probabilities" not in params:
-        params["probabilities"] = {"addNode" : 0.40, "removeNode" : 0.0, "addEdge" : 0.60, "removeEdge" : 0.0}
+        params["probabilities"] = {"addNode" : 0.50, "removeNode" : 0.0, "addEdge" : 0.50, "removeEdge" : 0.0}
+    if params["probabilities"]["removeNode"] > 0:
+        raise ValueError("Removing nodes is not currently supported. Set 'removeNode' to zero probability and make a feature request.")
     if "range_operations" not in params:
-        params["range_operations"] = [1,26]
+        params["range_operations"] = [1,11]
     else: # add 1 so that endpoint is inclusive
         params["range_operations"] = [params["range_operations"][0],params["range_operations"][1]+1]
     if "numperturbations" not in params:
@@ -218,13 +220,14 @@ def perform_operations(graph,params):
         return graph
     # otherwise continue with operations
     graph = addConnectingEdges(graph,nodes,params["edgelist"])
-    if params["DSGRN_optimized"]:
+    if graph and params["DSGRN_optimized"]:
         graph = addEdges_DSGRN_optimized(graph,params["edgelist"],numops[1])
-    else:
+    elif graph:
         graph = addEdges(graph, params["edgelist"], numops[1])
     if graph:
         graph = removeEdges(graph,numops[2])
-        graph = removeNodes(graph,numops[3])
+    # if graph:
+    #     graph = removeNodes(graph,numops[3])
     return graph
 
 
@@ -246,15 +249,20 @@ def choose_operations(params):
 ################################################################################################
 
 def removeEdges(graph,numedges):
+    if len(graph.edges()) <= numedges:
+        return None
     for _ in range(numedges):
         graph.remove_edge(*random.choice(graph.edges()))
     return graph
 
 
-def removeNodes(graph,numnodes):
-    for _ in range(numnodes):
-        graph.remove_vertex(random.choice(graph.vertices()))
-    return graph
+# def removeNodes(graph,numnodes):
+        #TODO refactor graphtranslation.createEssentialNetworkSpecFromGraph so I can do this
+#     if len(graph.vertices()) <= numnodes:
+#         return None
+#     for _ in range(numnodes):
+#         graph.remove_vertex(random.choice(list(graph.vertices())))
+#     return graph
 
 
 def addNodes(graph,nodelist,numnodes):

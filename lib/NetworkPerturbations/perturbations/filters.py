@@ -1,5 +1,4 @@
 import networkx as nx
-import inspect
 
 def constrained_inedges(graph,kwargs={}):
     # kwargs = { "min_inedges" : integer, "max_inedges" : integer }
