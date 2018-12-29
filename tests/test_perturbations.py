@@ -16,21 +16,27 @@ def run(paramfile):
     return results, networkspec
 
 
-# def test_countFP():
-#     paramfile =  "params_CountFPMatch_X1X2X3.json"
-#     results, networkspec = run(paramfile)
-#     assert(len(results)==4)
-#     assert(networkspec in results)
-#     assert(results[networkspec]=="8/168")
-#
-#
-# def test_countFC():
-#     paramfile = "params_CountStableFC_X1X2X3.json"
-#     results, networkspec = run(paramfile)
-#     assert(len(results)==7)
-#     assert(networkspec in results)
-#     assert(results[networkspec]=="76/168")
-#
+def test_countFP():
+    paramfile =  "params_CountFPMatch_X1X2X3.json"
+    results, networkspec = run(paramfile)
+    assert(len(results)==3)
+    assert(networkspec in results)
+    assert(results[networkspec]=="8/168")
+
+def test_countFP_anon():
+    paramfile =  "params_anonadds_CountFPMatch_X1X2X3.json"
+    results, networkspec = run(paramfile)
+    assert(len(results)==3)
+    assert(networkspec in results)
+    assert(results[networkspec]=="8/168")
+
+def test_countFC():
+    paramfile = "params_CountStableFC_X1X2X3.json"
+    results, networkspec = run(paramfile)
+    assert(len(results)==3)
+    assert(networkspec in results)
+    assert(results[networkspec]=="76/168")
+
 
 def test_patternmatch_stable():
     paramfile = "params_patternmatch_stable_X1X2X3.json"
