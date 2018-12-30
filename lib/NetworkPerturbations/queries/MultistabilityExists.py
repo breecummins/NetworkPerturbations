@@ -1,5 +1,5 @@
 import DSGRN
-import os, json, progressbar
+import os, json, progressbar, sys
 from multiprocessing import Pool
 from functools import partial
 import NetworkPerturbations.queries.query_utilities as qu
@@ -66,6 +66,7 @@ def compute_for_network_with_constraints(included_bounds,excluded_bounds,N,hex_c
 def getpg(tup,N):
     (k, netspec) = tup
     print("Network {} of {}".format(k+1, N))
+    sys.stdout.flush()
     network = DSGRN.Network(netspec)
     parametergraph = DSGRN.ParameterGraph(network)
     return netspec,network,parametergraph
