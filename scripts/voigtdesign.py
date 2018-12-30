@@ -11,7 +11,7 @@ def run():
         "edgelist" : fp.parseEdgeFile("VoigtEdgeFileShort.txt"),
         "nodelist" : fp.parseNodeFile("VoigtNodeFile.txt"),
         "probabilities" : {"addNode" : 0.8, "removeNode" : 0.00, "addEdge" : 0.2, "removeEdge" : 0.00},
-        "range_operations" : [6,6],
+        "range_operations" : [7,8],
         "numperturbations" : 100000,
         "time_to_wait" : 7200,
         "maxparams" : 6000,
