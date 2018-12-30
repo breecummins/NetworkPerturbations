@@ -44,6 +44,11 @@ def run():
     outdir = "computations_"+datetime
     os.makedirs(outdir)
 
+    def rerun():
+        fname = "all_networks_tested.json"
+        networks = json.load(open(fname))
+        ME.query(networks, outdir, query_params)
+
     def perturb():
         networks = netper.perturbNetwork(params,network_spec)
         print("Saving feed-forward networks.")
@@ -59,7 +64,8 @@ def run():
         if len(net) == 1:
             print("\nOriginal network passes FP search.")
 
-    perturb()
+    rerun()
+    # perturb()
     # check_original()
 
 if __name__ == "__main__":
