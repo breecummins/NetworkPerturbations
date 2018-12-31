@@ -1,7 +1,8 @@
 import DSGRN
-import os, json, progressbar
+import os, json, progressbar, sys
 from multiprocessing import Pool
 from functools import partial
+import NetworkPerturbations.queries.query_utilities as qu
 
 def query(networks,resultsdir,params):
     '''
@@ -9,13 +10,20 @@ def query(networks,resultsdir,params):
 
     :param networks: list of network specification strings in DSGRN format
     :param resultsdir: path to directory where results file(s) will be stored
-    :param params: dictionary containing the key "included_bounds" and "excluded_bounds".
-                    Each bounds is a list of dictionaries of variable names common to all network
-                    specifications with associated to an integer range.
+    :param params: dictionary containing the keys "included_bounds", "excluded_bounds", and optionally "hex_constraints".
+                    The "bounds" variables are each a list of dictionaries of variable names common to all network
+                    specifications with an associated integer range.
                     Example: [{"X1":[2,2],"X2":[1,1],"X3":[0,1]},{"X1":[0,1],"X2":[1,1],"X3":[2,3]}]
                     The integer ranges are the matching conditions for an FP.
                     For example, if there are four variablesm X1, X2, X3, X4 in the network spec,
                     the FP (2,1,0,*) would be a match to the first fixed point for any value of *.
+                    The optional key "hex_constraints" is a dictionary of lists keying a tuple of two integers to a list
+                    of hex numbers.
+                    The tuple key describes the node type: (num inedges, num outedges) and the list contains the
+                    allowable hex codes for this node type. In the algorithm below, only those hex codes in the list
+                    are permitted for the node type.
+                    Example: {(1,2) : ["C"], (3,1) : ["0"]} means that any node with 1 in-edge and 2 out-edges must have
+                    hex code 0x0C and any node with 3 in-edges and 1 outedge must have hex code 0.
 
     :return: List of network specs that match all FPs in params["included_bounds"] and match none of
              the FPs in params["excluded_bounds"] for at least 1 parameter that is dumped to a json file.
@@ -24,7 +32,11 @@ def query(networks,resultsdir,params):
     included_bounds = [dict(b) for b in params["included_bounds"]]
     excluded_bounds = [dict(b) for b in params["excluded_bounds"]]
     pool = Pool()  # Create a multiprocessing Pool
-    output = pool.map(partial(compute_for_network,included_bounds,excluded_bounds,len(networks)),enumerate(networks))
+    if "hex_constraints" in params and params["hex_constraints"]:
+        hex_constraints = dict(params["hex_constraints"])
+        output = pool.map(partial(compute_for_network_with_constraints, included_bounds, excluded_bounds, len(networks), hex_constraints),enumerate(networks))
+    else:
+        output = pool.map(partial(compute_for_network_without_constraints, included_bounds, excluded_bounds, len(networks)),enumerate(networks))
     results = list(filter(None,output))
     rname = os.path.join(resultsdir,"Networks_With_Multistable_FP.json")
     if os.path.exists(rname):
@@ -32,15 +44,32 @@ def query(networks,resultsdir,params):
     json.dump(results,open(rname,'w'))
 
 
-def compute_for_network(included_bounds,excluded_bounds,N,tup):
-    (k, netspec) = tup
-    print("Network {} of {}".format(k+1, N))
-    network = DSGRN.Network(netspec)
-    parametergraph = DSGRN.ParameterGraph(network)
-    for p in progressbar.ProgressBar()(range(parametergraph.size())):
+def compute_for_network_without_constraints(included_bounds,excluded_bounds,N,tup):
+    netspec,network, parametergraph = getpg(tup,N)
+    # for p in progressbar.ProgressBar()(range(parametergraph.size())):
+    for p in range(parametergraph.size()):
         if have_match(network, parametergraph.parameter(p), included_bounds, excluded_bounds):
             return netspec
     return None
+
+
+def compute_for_network_with_constraints(included_bounds,excluded_bounds,N,hex_constraints,tup):
+    netspec,network, parametergraph = getpg(tup,N)
+    # for p in progressbar.ProgressBar()(range(parametergraph.size())):
+    for p in range(parametergraph.size()):
+        param = parametergraph.parameter(p)
+        if qu.satisfies_hex_constraints(param,hex_constraints) and have_match(network, param, included_bounds,excluded_bounds):
+            return netspec
+    return None
+
+
+def getpg(tup,N):
+    (k, netspec) = tup
+    print("Network {} of {}".format(k+1, N))
+    sys.stdout.flush()
+    network = DSGRN.Network(netspec)
+    parametergraph = DSGRN.ParameterGraph(network)
+    return netspec,network,parametergraph
 
 
 def have_match(network,parameter,included_bounds,excluded_bounds):

@@ -1,9 +1,12 @@
 import DSGRN
-import sys, json, os, ast
+import json, os, ast
 from NetworkPerturbations.min_interval_posets.libposets import curve
 from NetworkPerturbations.min_interval_posets.libposets import posets as make_posets
 import pandas as pd
+from multiprocessing import Pool
 from copy import deepcopy
+from functools import partial
+
 
 def query(networks,resultsdir,params):
     '''
@@ -19,8 +22,10 @@ def query(networks,resultsdir,params):
         "count" : True or False, whether to count all params or shortcut at first success
         Then, one can either specify posets directly, or extract posets from timeseries data.
         Include either
-        "posets" : list of tuples of epsilon with a DSGRN formatted poset:
-                    [(eps1,poset1), (eps2,poset2),...]
+        "posets" : a (quoted) dictionary of Python tuples of node names keying a list of tuples of epsilon with a DSGRN
+        formatted poset:
+                    '{ ("A","B","C") : [(eps11,poset11), (eps21,poset21),...], ("A","B","D") : [(eps12,poset12), (eps22,
+                    poset22),...] }'
         or the two keys
        "timeseriesfname" : path to a file containing the time series data from which to make posets
         "tsfile_is_row_format" : True if the time series file is in row format (times are in the first row); False if in
@@ -31,35 +36,51 @@ def query(networks,resultsdir,params):
          epsilon to a dictionary keyed by network spec, which is dumped to a json file:
          { networkspec : (eps, result, num params) }
     '''
+
     if "posets" not in params:
-        curves = readrow(params['timeseriesfname']) if params['tsfile_is_row_format'] else readcol(params['timeseriesfname'])
-        all_posets = []
-        all_names = []
+        posets = calculate_posets(params,networks)
     else:
-        posets = ast.literal_eval(params["posets"])
-    results = {}
-    for networkspec in networks:
-        network = DSGRN.Network(networkspec)
-        if "posets" not in params:
-            names = set(list(network.name(k) for k in range(network.size())))
-            if names not in all_names:
-                posets = createPosetsFromData(names, curves, params['epsilons'])
-                all_posets.append(posets)
-                all_names.append(names)
-            else:
-                ind = all_names.index(names)
-                posets = all_posets[ind]
-        ER = []
-        for (eps,(events,event_ordering)) in posets:
-            #TODO: In order for cycle matches to work correctly, the last extremum on each time series with an odd number of extrema must be removed
-            paramgraph, patterngraph = getGraphs(events, event_ordering, network)
-            R = globals()[params['matchingfunction']](paramgraph, patterngraph, params['count'])
-            ER.append((eps,R,paramgraph.size()))
-        results[networkspec] = ER
+        lit_posets = ast.literal_eval(params["posets"])
+        posets = {}
+        for names,pos in lit_posets.items():
+            # make sure variables are in canonical order
+            sort_names = tuple(sorted(list(names)))
+            posets[sort_names] = pos
+
+    pool = Pool()  # Create a multiprocessing Pool
+    output = pool.map(partial(search_over_networks, params, posets,len(networks)),enumerate(networks))
+    results = dict(output)
     rname = os.path.join(resultsdir,"pattern_matches.json")
     if os.path.exists(rname):
         os.rename(rname,rname+".old")
     json.dump(results,open(rname,'w'))
+
+
+def search_over_networks(params,posets,N,tup):
+    (k, netspec) = tup
+    print("Network {} of {}".format(k+1, N))
+    network = DSGRN.Network(netspec)
+    names = tuple(sorted([network.name(k) for k in range(network.size())]))
+    ER = []
+    for (eps, (events, event_ordering)) in posets[names]:
+        # TODO: In order for cycle matches to work correctly, the last extremum on each time series with an odd number of extrema must be removed
+        paramgraph, patterngraph = getGraphs(events, event_ordering, network)
+        # TODO: Use inspect module instead of globals()
+        R = globals()[params['matchingfunction']](paramgraph, patterngraph, params['count'])
+        ER.append((eps, R, paramgraph.size()))
+    return (netspec, ER)
+
+
+def calculate_posets(params,networks):
+    curves = readrow(params['timeseriesfname']) if params['tsfile_is_row_format'] else readcol(
+        params['timeseriesfname'])
+    posets = {}
+    for networkspec in networks:
+        network = DSGRN.Network(networkspec)
+        names = tuple(sorted([network.name(k) for k in range(network.size())]))
+        if names not in posets.keys():
+            posets[names] = createPosetsFromData(names, curves, params['epsilons'])
+    return posets
 
 
 def extractdata(filename):
