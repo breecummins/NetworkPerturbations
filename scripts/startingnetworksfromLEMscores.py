@@ -2,9 +2,10 @@ import NetworkPerturbations.perturbations.graphtranslation as gt
 import numpy as np
 from scipy.sparse.csgraph import connected_components
 import pandas as pd
+import sys, ast
 
 
-def generate_lem_networks(lemfile, column, delimiter=None,comment="#",save2file="temp.txt"):
+def generate_lem_networks(lemfile, column, save2file="temp.txt", delimiter=None, comment="#"):
     '''
 
     :param lemfile: file name with lem scores; full path required if not in local folder
@@ -120,10 +121,26 @@ def parse_lem_file(fname,column,delimiter=None,comment="#"):
 
 
 if __name__ == "__main__":
-    lemfile = "all_scores_rep_0.tsv"
-    print(generate_lem_networks(lemfile,("norm_loss","<",0.4)))
-    print(generate_lem_networks(lemfile,("pld",">",0.01)))
+    # lemfile = "all_scores_rep_0.tsv"
+    # print(generate_lem_networks(lemfile,("norm_loss","<",0.4)))
+    # print(generate_lem_networks(lemfile,("pld",">",0.01)))
 
+    if not len(sys.argv) >= 4:
+        save2file = "nets.txt"
+    else:
+        save2file = sys.argv[3]
+    if not len(sys.argv) >= 5:
+        delimiter = None
+    else:
+        delimiter = sys.argv[4]
+    if not len(sys.argv) == 6:
+        comment = "#"
+    else:
+        comment = sys.argv[5]
+
+
+
+    generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2]), save2file=save2file, delimiter=delimiter, comment=comment)
 
 
 
