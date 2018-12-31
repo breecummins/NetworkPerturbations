@@ -11,10 +11,10 @@ def run():
         "edgelist" : fp.parseEdgeFile("VoigtEdgeFileShort.txt"),
         "nodelist" : fp.parseNodeFile("VoigtNodeFile.txt"),
         "probabilities" : {"addNode" : 0.8, "removeNode" : 0.00, "addEdge" : 0.2, "removeEdge" : 0.00},
-        "range_operations" : [7,8],
+        "range_operations" : [7,10],
         "numperturbations" : 100000,
         "time_to_wait" : 7200,
-        "maxparams" : 6000,
+        "maxparams" : 11000,
         "filters" : {"constrained_outedges" : {"min_outedges" : 1, "max_outedges" : 3},
                      "constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 2}, "is_feed_forward" : {},
                      }
@@ -64,8 +64,8 @@ def run():
         if len(net) == 1:
             print("\nOriginal network passes FP search.")
 
-    rerun()
-    # perturb()
+    # rerun()
+    perturb()
     # check_original()
 
 if __name__ == "__main__":
