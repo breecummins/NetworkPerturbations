@@ -14,8 +14,8 @@ def run():
         "range_operations" : [7,10],
         "numperturbations" : 100000,
         "time_to_wait" : 7200,
-        "maxparams" : 11000,
-        "filters" : {"constrained_outedges" : {"min_outedges" : 1, "max_outedges" : 3},
+        "maxparams" : 50000,
+        "filters" : {"constrained_outedges" : {"min_outedges" : 1, "max_outedges" : 4},
                      "constrained_inedges" : {"min_inedges" : 1, "max_inedges" : 2}, "is_feed_forward" : {},
                      }
     }
