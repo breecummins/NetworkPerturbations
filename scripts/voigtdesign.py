@@ -8,8 +8,8 @@ def run():
     network_spec = "C : C : E\nB : B : E\nA : A : E\nx : A : E\ny : B : E\nz : C : E\nYFP : : E\nD : D + " \
                     "YFP : E"
     params = {
-        "edgelist" : fp.parseEdgeFile("VoigtEdgeFileShort.txt"),
-        "nodelist" : fp.parseNodeFile("VoigtNodeFile.txt"),
+        "edgelist" : fp.parseEdgeFile("VoigtEdgeFileShort_5node.txt"),
+        "nodelist" : fp.parseNodeFile("VoigtNodeFile_5node.txt"),
         "probabilities" : {"addNode" : 0.8, "removeNode" : 0.00, "addEdge" : 0.2, "removeEdge" : 0.00},
         "range_operations" : [7,10],
         "numperturbations" : 100000,
