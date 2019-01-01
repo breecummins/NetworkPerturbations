@@ -60,13 +60,22 @@ def run():
         original = ["C : C : E\nB : B : E\nA : A : E\nw : C : E\nz: A + C : E\ny : B : E\nx : A : E\nt : (~y)(~x) : E\nu : "
                  "~t : E\nv : (~w)(~u) : E\nYFP : (~v)(~z) : E\nD : YFP + D : E"]
         ME.query(original, "temp", query_params)
-        net = json.load(open(os.path.join(outdir,"Networks_With_Multistable_FP.json")))
+        net = json.load(open(os.path.join("temp","Networks_With_Multistable_FP.json")))
         if len(net) == 1:
             print("\nOriginal network passes FP search.")
 
+    def check_extended():
+        extended = ["C : C : E\nB : B : E\nA : A : E\nw : C : E\nz: A + C : E\ny : B : E\nx : A : E\nt : (~y)(~x) : E\nu : "
+                 "~t : E\nv : (~w)(~u) : E\nYFP : (~v)(~z3) : E\nD : YFP + D : E\nz2 : ~z : E\nz3 : ~z2 : E"]
+        ME.query(extended, "temp", query_params)
+        net = json.load(open(os.path.join("temp","Networks_With_Multistable_FP.json")))
+        if len(net) == 1:
+            print("\nExtended network passes FP search.")
+
     # rerun()
-    perturb()
+    # perturb()
     # check_original()
+    check_extended()
 
 if __name__ == "__main__":
     run()
