@@ -1,3 +1,0 @@
-[submodule "lib/NetworkPerturbations/min_interval_posets"]
-	path = lib/NetworkPerturbations/min_interval_posets
-	url = https://github.com/breecummins/min_interval_posets.git

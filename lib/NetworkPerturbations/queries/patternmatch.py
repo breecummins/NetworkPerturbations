@@ -1,7 +1,7 @@
 import DSGRN
 import json, os, ast
-from NetworkPerturbations.min_interval_posets.libposets import curve
-from NetworkPerturbations.min_interval_posets.libposets import posets as make_posets
+from min_interval_posets import curve
+from min_interval_posets import posets as make_posets
 import pandas as pd
 from multiprocessing import Pool
 from copy import deepcopy
