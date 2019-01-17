@@ -5,7 +5,7 @@ import pandas as pd
 import sys, ast
 
 
-def generate_lem_networks(lemfile, column, save2file="temp.txt", delimiter=None, comment="#"):
+def generate_lem_networks(lemfile, column, delimiter=None, comment="#"):
     '''
 
     :param lemfile: file name with lem scores; full path required if not in local folder
@@ -32,9 +32,12 @@ def generate_lem_networks(lemfile, column, save2file="temp.txt", delimiter=None,
             if e[0] in comp and e[1] in comp:
                 sg.add_edge(comp.index(e[0]),comp.index(e[1]),label=graph.edge_label(*e))
         networks.append(gt.createEssentialNetworkSpecFromGraph(sg))
-    if save2file:
-        with open(save2file,"w") as f:
-            f.write(str(networks))
+    with open("lem_networks.txt","w") as f:
+        f.write(str(networks))
+    with open("node_file.txt","w") as f:
+        f.write("\n".join(genes))
+    with open("edge_file.txt","w") as f:
+        f.write("\n".join(["{}={}({})".format(graph.vertex_label(e[1]),graph.edge_label(*e),graph.vertex_label(e[0])) for e in graph.edges()]))
     return networks
 
 
@@ -126,21 +129,15 @@ if __name__ == "__main__":
     # print(generate_lem_networks(lemfile,("pld",">",0.01)))
 
     if not len(sys.argv) >= 4:
-        save2file = "nets.txt"
-    else:
-        save2file = sys.argv[3]
-    if not len(sys.argv) >= 5:
         delimiter = None
     else:
         delimiter = sys.argv[4]
-    if not len(sys.argv) == 6:
+    if not len(sys.argv) == 5:
         comment = "#"
     else:
         comment = sys.argv[5]
 
-
-
-    generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2]), save2file=save2file, delimiter=delimiter, comment=comment)
+    print(generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2]), delimiter=delimiter, comment=comment))
 
 
 
