@@ -34,10 +34,6 @@ def generate_lem_networks(lemfile, column, delimiter=None, comment="#"):
         networks.append(gt.createEssentialNetworkSpecFromGraph(sg))
     with open("lem_networks.txt","w") as f:
         f.write(str(networks))
-    with open("node_file.txt","w") as f:
-        f.write("\n".join(genes))
-    with open("edge_file.txt","w") as f:
-        f.write("\n".join(["{}={}({})".format(graph.vertex_label(e[1]),graph.edge_label(*e),graph.vertex_label(e[0])) for e in graph.edges()]))
     return networks
 
 
@@ -76,8 +72,9 @@ def parse_lem_file(fname,column,delimiter=None,comment="#"):
 
     :param lemfile: file name with lem scores; full path required if not in local folder
     :param column: a tuple containing column name of desired lem score, if the desired scores are lower "<" or
-    higher ">" than the threshold, and the threshold itself.
-    Examples: column=("norm_loss","<",0.4), column=("pld",">",0.1)
+    higher ">" than the threshold, the threshold for creating the seed network, and a second more permissive threshold
+    for creating the node and edge files. If the second threshold is absent, then all nodes and edges will be included.
+    Examples: column=("norm_loss","<",0.4,0.5), column=("pld",">",0.1,0.02)
     The column name column[0] must be in the file.
     :param delimiter: "\s+" for tab-delimited or "," for comma-delimited; if None it will be inferred from file type
     :param comment: comment character in file, usually "#"
@@ -114,19 +111,31 @@ def parse_lem_file(fname,column,delimiter=None,comment="#"):
         source.append(second[1][:-1])
     if column[1] == "<":
         [LEM_score, source, target, type_reg] = gt.sort_by_list(LEM_score,[source, target, type_reg], reverse=False)
-        ind = next(k for k,l in enumerate(LEM_score) if l > column[2])
+        ind = next(k for k, l in enumerate(LEM_score) if l > column[2])
+        try:
+            jnd = next(k for k, l in enumerate(LEM_score) if l > column[3])
+        except:
+            jnd = len(source)
     elif column[1] == ">":
         [LEM_score, source, target, type_reg] = gt.sort_by_list(LEM_score, [source, target, type_reg], reverse=True)
         ind = next(k for k, l in enumerate(LEM_score) if l < column[2])
+        try:
+            jnd = next(k for k, l in enumerate(LEM_score) if l < column[3])
+        except:
+            jnd = len(source)
     else:
         raise ValueError("Second element of input argument 'column' must be '<' or '>'.")
+    with open("node_file.txt","w") as f:
+        f.write("\n".join(set(source).union(target)))
+    with open("edge_file.txt","w") as f:
+        f.write("\n".join(["{}={}({})".format(*e) for e in zip(target[:jnd],type_reg[:jnd],source[:jnd])]))
     return source[:ind], target[:ind], type_reg[:ind]
 
 
 if __name__ == "__main__":
     # lemfile = "all_scores_rep_0.tsv"
-    # print(generate_lem_networks(lemfile,("norm_loss","<",0.4)))
-    # print(generate_lem_networks(lemfile,("pld",">",0.01)))
+    # print(generate_lem_networks(lemfile,("norm_loss","<",0.3,1.0)))
+    # print(generate_lem_networks(lemfile,("pld",">",0.01,0.0)))
 
     if not len(sys.argv) >= 4:
         delimiter = None
