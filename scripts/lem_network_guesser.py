@@ -137,16 +137,10 @@ if __name__ == "__main__":
     # print(generate_lem_networks(lemfile,("norm_loss","<",0.3,1.0)))
     # print(generate_lem_networks(lemfile,("pld",">",0.01,0.0)))
 
-    if not len(sys.argv) >= 4:
-        delimiter = None
-    else:
-        delimiter = sys.argv[4]
-    if not len(sys.argv) == 5:
-        comment = "#"
-    else:
-        comment = sys.argv[5]
+    #sys.argv[3] should be (stringified) dictionary with optional keyword args for parse_lem_file
 
-    print(generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2]), delimiter=delimiter, comment=comment))
+
+    print(generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2])))
 
 
 
