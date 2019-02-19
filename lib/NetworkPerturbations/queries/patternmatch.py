@@ -86,9 +86,9 @@ def calculate_posets(params,networks):
 def extractdata(filename):
     file_type = filename.split(".")[-1]
     if file_type == "tsv":
-        df = pd.read_csv(open(filename),delim_whitespace=True)
+        df = pd.read_csv(open(filename),comment="#",delim_whitespace=True)
     elif file_type == "csv":
-        df = pd.read_csv(open(filename))
+        df = pd.read_csv(open(filename),comment="#")
     else:
         raise ValueError("File type not recognized. Require .tsv or .csv.")
     return list(df)[1:],df.values
