@@ -21,14 +21,6 @@ See the parameter files in the `tests` folder for examples of the input argument
 
 REQUIRED:
 
-    querymodule         =   module name from queries that has the query to be performed
-    
-    querymodule_args    =   dictionary containing query module specific arguments -- see 
-                            individual query documentation. Can be empty for some queries.
-
-    computationsdir     =   path to location where results are to be stored; 
-                            empty string "" indicates current directory
-
     networkfile         =   path to a file containing either a single network specification
                             or a list of them (comma-separated and surrounded by square
                             brackets, saved as plain text)
@@ -36,8 +28,21 @@ REQUIRED:
     makeperturbations   =   true or false (must be lowercase, no quotes);
                             false = perform the query only for the network specifications 
                                     provided in the list;
-                            true = for every network spec in the list, 
-                                   make perturbations using the parameters below
+                            true = for every network spec in the list, make perturbations using 
+                                   the optional parameters listed farther down
+                                   
+If a DSGRN query is desired, with or without perturbations, the following arguments are required:
+    
+        querymodule     =   module name from 'queries' folder that has the query to be performed
+    
+    querymodule_args    =   dictionary containing query module specific arguments -- see 
+                            individual query documentation. Can be empty for some queries.
+
+The user may optionally specify a location where the results folder will be generated.
+
+    computationsdir     =   path to location where results are to be stored; 
+                            default is current directory
+
 
 
 If makeperturbations == true, the following are optional parameters with the defaults listed:

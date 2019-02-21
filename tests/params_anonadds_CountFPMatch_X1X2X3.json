@@ -1,6 +1,5 @@
 {
   "querymodule" : "CountFPMatch",
-  "computationsdir" : "",
   "networkfile" : "networkspec_X1X2X3.txt",
   "makeperturbations" : true,
   "nodefile" : "",

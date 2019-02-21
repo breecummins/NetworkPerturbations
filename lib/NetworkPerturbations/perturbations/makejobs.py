@@ -9,6 +9,8 @@ class Job():
         self.params = json.load(open(paramfile))
         # use datetime as unique identifier to avoid overwriting
         datetime = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).decode(sys.stdout.encoding).strip()
+        if "computationsdir" not in self.params:
+            self.params["computationsdir"] = ""
         computationsdir_datetime = os.path.join(os.path.expanduser(self.params["computationsdir"]),"computations"+datetime)
         os.makedirs(computationsdir_datetime)
         self.inputfilesdir = os.path.join(computationsdir_datetime,"inputfiles")
@@ -41,7 +43,7 @@ class Job():
             while networks[-1] == '\n':
                 networks = networks[:-1]
             networks = [networks]
-        # perform perturbations if needed
+        # perform perturbations if requested
         if self.params['makeperturbations']:
             # do perturbations if not already done
             self._parsefile('edge',fileparsers.parseEdgeFile)
@@ -52,9 +54,18 @@ class Job():
             networks=list(set(perturbed_networks))
             print("\nPerturbations complete; queries beginning.\n")
             sys.stdout.flush()
-        query = importlib.import_module("..queries."+self.params["querymodule"],"NetworkPerturbations.perturbations")
-        query.query(networks,self.resultsdir,self.params["querymodule_args"])
-        print("\nQueries complete.\n")
+        else:
+            print("\nNo perturbations requested.\n")
+            sys.stdout.flush()
+        # perform queries if requested
+        if "querymodule" in self.params and "querymodule_args" in self.params and self.params["querymodule"]:
+            query = importlib.import_module("..queries."+self.params["querymodule"],"NetworkPerturbations.perturbations")
+            query.query(networks,self.resultsdir,self.params["querymodule_args"])
+            print("\nQueries complete.\n")
+            sys.stdout.flush()
+        else:
+            print("\nNo queries requested.\n")
+            sys.stdout.flush()
 
 
 
