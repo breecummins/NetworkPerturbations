@@ -1,5 +1,5 @@
 import DSGRN
-import json, os, ast
+import json, os, ast, warnings
 from min_interval_posets import curve
 from min_interval_posets import posets as make_posets
 import pandas as pd
@@ -17,7 +17,6 @@ def query(networks,resultsdir,params):
     :param networks: list of network specification strings in DSGRN format
     :param resultsdir: path to directory where results file(s) will be stored
     :param params: A dictionary containing the keys
-        "epsilons" : list of floats 0 <= x <= 1, one poset will be made for each x
         "matchingfunction" : a string containing the name of one of the matching functions in this module
         "count" : True or False, whether to count all params or shortcut at first success
         Then, one can either specify posets directly, or extract posets from timeseries data.
@@ -26,10 +25,11 @@ def query(networks,resultsdir,params):
         formatted poset:
                     '{ ("A","B","C") : [(eps11,poset11), (eps21,poset21),...], ("A","B","D") : [(eps12,poset12), (eps22,
                     poset22),...] }'
-        or the two keys
-       "timeseriesfname" : path to a file containing the time series data from which to make posets
+        or the three keys
+        "timeseriesfname" : path to a file containing the time series data from which to make posets
         "tsfile_is_row_format" : True if the time series file is in row format (times are in the first row); False if in
         column format (times are in the first column)
+        "epsilons" : list of floats 0 <= x <= 1, one poset will be made for each x
 
     :return: Writes True (pattern match for the poset) or False (no pattern match) or
         parameter count (# successful matches) plus the number of parameters, for each
@@ -79,7 +79,9 @@ def calculate_posets(params,networks):
         network = DSGRN.Network(networkspec)
         names = tuple(sorted([network.name(k) for k in range(network.size())]))
         if names not in posets.keys():
-            posets[names] = createPosetsFromData(names, curves, params['epsilons'])
+            pos = createPosetsFromData(names, curves, params['epsilons'],networkspec)
+            if pos is not None:
+                posets[names] = pos
     return posets
 
 
@@ -113,7 +115,7 @@ def readcol(filename):
     return dict(zip(names,curves))
 
 
-def createPosetsFromData(names,curves,epsilons):
+def createPosetsFromData(names,curves,epsilons,networkspec):
     '''
     Use min_interval_posets submodule to make a poset from time series curves. See query for inputs.
     :return: list of (epsilon, poset) tuples
@@ -122,6 +124,10 @@ def createPosetsFromData(names,curves,epsilons):
     for name in curves:
         if name not in names:
             subset_curves.pop(name)
+    for name in names:
+        if name not in subset_curves:
+            warnings.warn("Missing variable {} from time series file for network {}.".format(name,networkspec),RuntimeWarning)
+            return None
     return make_posets.eps_posets(subset_curves, epsilons)
 
 

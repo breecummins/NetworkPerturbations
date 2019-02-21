@@ -1,8 +1,10 @@
 from run_tests import run
 
+netfile = "networkspec_X1X2X3.txt"
+
 def test_patternmatch_stable():
     paramfile = "params_patternmatch_stable_X1X2X3.json"
-    results, networkspec = run(paramfile)
+    results, networkspec = run(paramfile,netfile)
     print(results)
     assert(len(results)==3)
     assert(networkspec in results)
@@ -10,8 +12,15 @@ def test_patternmatch_stable():
 
 def test_patternmatch_path():
     paramfile = "params_patternmatch_path_domaingraph_X1X2X3.json"
-    results, networkspec = run(paramfile)
+    results, networkspec = run(paramfile,netfile)
     print(results)
     assert(len(results)==3)
     assert(networkspec in results)
     assert(results[networkspec]==[[0.0, 58, 168], [0.1, 80, 168]])
+
+def test_patternmatch_path_wavepool():
+    paramfile = "params_patternmatch_path_domaingraph_wavepool.json"
+    results, networkspec = run(paramfile,"good_wavepool.txt")
+    print(networkspec)
+    print(results)
+    assert(results=={'SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E': [[0.0, 0, 14], [0.01, 8, 14], [0.05, 5, 14]]})
