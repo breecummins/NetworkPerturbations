@@ -20,7 +20,7 @@ def perturbNetwork(params, network_spec):
         "nodelist" : default = [], a list of node labels (strings) acceptable to add OR None OR empty list
         "edgelist" : default = [], a list of ("source","target","regulation") tuples OR None OR empty list
                    NOTE: negative self-loops are removed before perturbation
-        "probabilities" : default = {"addNode" : 0.40, "removeNode" : 0, "addEdge" : 0.60, "removeEdge" : 0.0}
+        "probabilities" : default = {"addNode" : 0.5, "removeNode" : 0.0, "addEdge" : 0.5, "removeEdge" : 0.0}
                           dictionary with operations keying the probability that the operation will occur
                           NOTE: setting any probability to zero will ensure the operation does not occur
                           NOTE: will be normalized if it does not sum to 1
@@ -40,6 +40,7 @@ def perturbNetwork(params, network_spec):
         "DSGRN_optimized" : default = True, prioritizes adding new edges to nodes missing in- or out-edges.
                             Should only be set to False if nodes without in- or out-edges are desired.
                             NOTE: Can still get nodes without in- or out-edges if probabilities["removeEdge"] is nonzero
+        "random_seed" : default = time.time(), optional random seed for repeatability
     :param network_spec: DSGRN network specification string
     :return: list of essential DSGRN network specification strings
 
@@ -94,6 +95,8 @@ def setup(params,network_spec):
         params["edgelist"] = filter_edgelist(params["edgelist"])
     # make sure probabilities are normalized and take the cumsum
     params["probabilities"] = make_probability_vector(params["probabilities"])
+    seed = time.time() if "random_seed" not in params else params["random_seed"]
+    random.seed(seed)
     # make starting graph, make sure network_spec is essential, and add network_spec to list of networks
     starting_graph = graphtranslation.getGraphFromNetworkSpec(network_spec)
     return params, starting_graph

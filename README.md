@@ -88,6 +88,9 @@ If makeperturbations == true, the following are optional parameters with the def
     DSGRN_optimized     =   (true or false) prioritizes adding new edges to nodes missing in- or out-edges.
                             Should only be set to false if nodes without in- or out-edges are desired.
                             default = true
+                            
+    random_seed         =   (integer) random seed for pseudo-random number generator
+                            default = system time (for stochastic results) 
 
 NOTES:
 
