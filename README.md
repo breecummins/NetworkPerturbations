@@ -23,6 +23,8 @@ REQUIRED:
 
     querymodule         =   module name from queries that has the query to be performed
     
+    querymodule_args    =   dictionary containing query module specific arguments -- see 
+                            individual query documentation. Can be empty for some queries.
 
     computationsdir     =   path to location where results are to be stored; 
                             empty string "" indicates current directory
@@ -37,7 +39,6 @@ REQUIRED:
                             true = for every network spec in the list, 
                                    make perturbations using the parameters below
 
-Also required are keywords for the arguments of the chosen query module. See the query modules for these arguments.
 
 If makeperturbations == true, the following are optional parameters with the defaults listed:
 

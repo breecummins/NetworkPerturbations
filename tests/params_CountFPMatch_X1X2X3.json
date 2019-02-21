@@ -10,5 +10,5 @@
   "numperturbations" : 3,
   "maxparams" : 100000,
   "time_to_wait" : 30,
-  "bounds" : {"X1":[2,2],"X2":[1,1],"X3":[0,1]}
+  "querymodule_args" : {"bounds" : {"X1":[2,2],"X2":[1,1],"X3":[0,1]}}
 }

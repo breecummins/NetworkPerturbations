@@ -9,5 +9,6 @@
   "range_operations" : [1,3],
   "numperturbations" : 3,
   "maxparams" : 100000,
-  "time_to_wait" : 30
+  "time_to_wait" : 30,
+  "querymodule_args" : {}
 }
