@@ -5,7 +5,7 @@ import pandas as pd
 import sys, ast,os
 
 
-def generate_lem_networks(lemfile, column, outputdir,delimiter=None, comment="#"):
+def generate_lem_networks(lemfile, column, outputdir,delimiter=None, comment="#", return_networks=False):
     '''
 
     :param lemfile: file name with lem scores; full path required if not in local folder
@@ -38,7 +38,10 @@ def generate_lem_networks(lemfile, column, outputdir,delimiter=None, comment="#"
         networkfile = "lem_networks.txt"
     with open(networkfile,"w") as f:
         f.write(str(networks))
-    return networks, nodefile, edgefile, networkfile
+    if return_networks:
+        return networks
+    else:
+        return nodefile, edgefile, networkfile
 
 
 def makegraph(genes,source,target,type_reg):
