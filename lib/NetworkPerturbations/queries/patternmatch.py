@@ -192,3 +192,28 @@ def PathMatchInDomainGraph(paramgraph, patterngraph, count):
             else:
                 return True
     return numparams if count else False
+
+
+def PathMatchInStableFullCycle(paramgraph, patterngraph, count):
+    '''
+    Search for path matches in stable full cycles only.
+    :return: Integer count of parameters if count = True; if count = False return True if at least one match, False otherwise.
+    '''
+    numparams = 0
+    for paramind in range(paramgraph.size()):
+        domaingraph = DSGRN.DomainGraph(paramgraph.parameter(paramind))
+        morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
+        morsegraph = DSGRN.MorseGraph(domaingraph,morsedecomposition)
+        for i in range(0,morsedecomposition.poset().size()):
+             if morsegraph.annotation(i)[0]  == "FC" and len(morsedecomposition.poset().children(i)) == 0:
+                searchgraph = DSGRN.SearchGraph(domaingraph,i)
+                matchinggraph = DSGRN.MatchingGraph(searchgraph,patterngraph)
+                if DSGRN.PathMatch(matchinggraph):
+                    if count:
+                        numparams +=1
+                        break
+                    else:
+                        return True
+    return numparams if count else False
+
+
