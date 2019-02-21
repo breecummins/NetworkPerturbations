@@ -1,4 +1,5 @@
 from run_tests import run
+import warnings
 
 netfile = "networkspec_X1X2X3.txt"
 
@@ -24,3 +25,17 @@ def test_patternmatch_path_wavepool():
     print(networkspec)
     print(results)
     assert(results=={'SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E': [[0.0, 0, 14], [0.01, 8, 14], [0.05, 5, 14]]})
+
+def test_patternmatch_path_badwavepool():
+    paramfile = "params_patternmatch_path_domaingraph_badwavepool.json"
+    with warnings.catch_warnings(record=True) as w:
+        # Trigger a warning.
+        _ = run(paramfile,"bad_wavepool.txt")
+        # Verify some things
+        print(w)
+        assert(len(w) == 1)
+        assert(issubclass(w[-1].category, RuntimeWarning))
+        assert("Missing" in str(w[-1].message))
+
+if __name__ == "__main__":
+    test_patternmatch_path_badwavepool()

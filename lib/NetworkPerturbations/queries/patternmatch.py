@@ -20,12 +20,12 @@ def query(networks,resultsdir,params):
         "matchingfunction" : a string containing the name of one of the matching functions in this module
         "count" : True or False, whether to count all params or shortcut at first success
         Then, one can either specify posets directly, or extract posets from timeseries data.
-        Include either
+        Include EITHER
         "posets" : a (quoted) dictionary of Python tuples of node names keying a list of tuples of epsilon with a DSGRN
         formatted poset:
                     '{ ("A","B","C") : [(eps11,poset11), (eps21,poset21),...], ("A","B","D") : [(eps12,poset12), (eps22,
-                    poset22),...] }'
-        or the three keys
+                    poset22),...] }' (the quotes are to handle difficulties with the json format)
+        OR the three keys
         "timeseriesfname" : path to a file containing the time series data from which to make posets
         "tsfile_is_row_format" : True if the time series file is in row format (times are in the first row); False if in
         column format (times are in the first column)
@@ -38,7 +38,7 @@ def query(networks,resultsdir,params):
     '''
 
     if "posets" not in params:
-        posets = calculate_posets(params,networks)
+        posets,networks = calculate_posets(params,networks)
     else:
         lit_posets = ast.literal_eval(params["posets"])
         posets = {}
@@ -75,6 +75,7 @@ def calculate_posets(params,networks):
     curves = readrow(params['timeseriesfname']) if params['tsfile_is_row_format'] else readcol(
         params['timeseriesfname'])
     posets = {}
+    new_networks = []
     for networkspec in networks:
         network = DSGRN.Network(networkspec)
         names = tuple(sorted([network.name(k) for k in range(network.size())]))
@@ -82,7 +83,8 @@ def calculate_posets(params,networks):
             pos = createPosetsFromData(names, curves, params['epsilons'],networkspec)
             if pos is not None:
                 posets[names] = pos
-    return posets
+                new_networks.append(networkspec)
+    return posets, new_networks
 
 
 def extractdata(filename):
