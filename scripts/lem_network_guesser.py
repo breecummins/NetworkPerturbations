@@ -2,10 +2,10 @@ import NetworkPerturbations.perturbations.graphtranslation as gt
 import numpy as np
 from scipy.sparse.csgraph import connected_components
 import pandas as pd
-import sys, ast
+import sys, ast,os
 
 
-def generate_lem_networks(lemfile, column, delimiter=None, comment="#"):
+def generate_lem_networks(lemfile, column, outputdir,delimiter=None, comment="#"):
     '''
 
     :param lemfile: file name with lem scores; full path required if not in local folder
@@ -18,7 +18,7 @@ def generate_lem_networks(lemfile, column, delimiter=None, comment="#"):
 
     :return: a list of network strings in DSGRN format
     '''
-    source, target, type_reg=parse_lem_file(lemfile,column,delimiter,comment)
+    source, target, type_reg, nodefile, edgefile=parse_lem_file(lemfile,column,delimiter,comment)
     genes = sorted(set(source).intersection(target))
     # print(genes, "\n")
     graph = makegraph(genes, source, target, type_reg)
@@ -32,9 +32,13 @@ def generate_lem_networks(lemfile, column, delimiter=None, comment="#"):
             if e[0] in comp and e[1] in comp:
                 sg.add_edge(comp.index(e[0]),comp.index(e[1]),label=graph.edge_label(*e))
         networks.append(gt.createEssentialNetworkSpecFromGraph(sg))
-    with open("lem_networks.txt","w") as f:
+    if outputdir:
+        networkfile = os.path.join(outputdir,"lem_networks.txt")
+    else:
+        networkfile = "lem_networks.txt"
+    with open(networkfile,"w") as f:
         f.write(str(networks))
-    return networks
+    return networks, nodefile, edgefile, networkfile
 
 
 def makegraph(genes,source,target,type_reg):
@@ -59,7 +63,7 @@ def strongly_connected_components(graph):
     return grouped_components
 
 
-def parse_lem_file(fname,column,delimiter=None,comment="#"):
+def parse_lem_file(fname,column,outputdir,comment="#"):
     '''
     Parses lem score file of the following format:
 
@@ -83,15 +87,13 @@ def parse_lem_file(fname,column,delimiter=None,comment="#"):
 
     '''
 
-    if delimiter is None:
-        ext = fname.split(".")[-1]
-        if ext == "tsv":
-            delimiter = "\s+"
-        elif ext == "csv":
-            delimiter = ","
-        else:
-            raise ValueError("Extension .{} not recognized. Please specify delimiter.".format(ext))
-    df = pd.read_csv(fname,sep=delimiter,comment=comment)
+    ext = fname.split(".")[-1]
+    if ext == "tsv":
+        df = pd.read_csv(fname,delim_whitespace=True,comment=comment)
+    elif ext == "csv":
+        df = pd.read_csv(fname,comment=comment)
+    else:
+        raise ValueError("Extension .{} not recognized. Please specify delimiter.".format(ext))
     models = list(df["model"].values)
     LEM_score = list(df[column[0]].values)
     source=[]
@@ -125,22 +127,25 @@ def parse_lem_file(fname,column,delimiter=None,comment="#"):
             jnd = len(source)
     else:
         raise ValueError("Second element of input argument 'column' must be '<' or '>'.")
-    with open("node_file.txt","w") as f:
+    if outputdir:
+        nodefile = os.path.join(outputdir, "node_file.txt")
+        edgefile = os.path.join(outputdir, "edge_file.txt")
+    else:
+        nodefile = "node_file.txt"
+        edgefile = "edge_file.txt"
+    with open(nodefile,"w") as f:
         f.write("\n".join(set(source).union(target)))
-    with open("edge_file.txt","w") as f:
+    with open(edgefile,"w") as f:
         f.write("\n".join(["{}={}({})".format(*e) for e in zip(target[:jnd],type_reg[:jnd],source[:jnd])]))
-    return source[:ind], target[:ind], type_reg[:ind]
+    return source[:ind], target[:ind], type_reg[:ind], nodefile, edgefile
 
 
 if __name__ == "__main__":
     # lemfile = "all_scores_rep_0.tsv"
-    # print(generate_lem_networks(lemfile,("norm_loss","<",0.3,1.0)))
-    # print(generate_lem_networks(lemfile,("pld",">",0.01,0.0)))
+    # print(generate_lem_networks(lemfile,("norm_loss","<",0.3,1.0)),"")
+    # print(generate_lem_networks(lemfile,("pld",">",0.01,0.0)),"")
 
-    #sys.argv[3] should be (stringified) dictionary with optional keyword args for parse_lem_file
-
-
-    print(generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2])))
+    print(generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2]),sys.argv[3]))
 
 
 
