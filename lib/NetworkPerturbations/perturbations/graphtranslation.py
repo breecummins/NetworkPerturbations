@@ -161,6 +161,28 @@ def createEssentialNetworkSpecFromGraph(graph):
     return network_spec
 
 
+def createEssentialNetworkSpecFromGraph_Alphabetized(graph):
+    # take a graph and return a network spec file
+
+    # get nodes in order
+    vs = { v : graph.vertex_label(v) for v in sorted(list(graph.vertices())) }
+
+    # get inedges
+    graph_edges = { name : [(a, graph.edge_label(a, v)) for a in graph.inedges(v)] for v,name in vs.items() }
+
+    # generate network spec lines
+    network_spec_lines = []
+    for node,inedges in  graph_edges.items():
+        act = " + ".join([vs[i] for (i, r) in inedges if r == 'a'])
+        if act: act = "(" + act + ")"
+        rep = "".join(["(~" + vs[i] + ")" for (i, r) in inedges if r == 'r'])
+        network_spec_lines.append(node + " : " + act + rep + " : E\n")
+
+    # alphabetize lines
+    network_spec = "".join(sorted(network_spec_lines))
+    return network_spec
+
+
 def getGraphFromNetworkSpec(network_spec):
     # take a network spec and return an graphtranslation.Graph
     eqns = filter(bool, network_spec.split("\n"))
@@ -173,8 +195,7 @@ def getGraphFromNetworkSpec(network_spec):
         nodelist.append(words[0])
         innodes.append(words[2:])  # get rid of ':' at index 1
     graph = Graph()
-    for k, node in enumerate(
-            nodelist):  # need the index as node name to preserve original network order in perturbed networks
+    for k, node in enumerate(nodelist):  # need the index as node name to preserve original network order in perturbed networks
         graph.add_vertex(k, label=node)
     for outnode, ies in enumerate(innodes):
         for ie in ies:

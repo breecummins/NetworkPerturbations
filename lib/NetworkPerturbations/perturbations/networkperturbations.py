@@ -50,7 +50,7 @@ def perturbNetwork(params, network_spec):
     # Initialize
     networks = set([])
     params, starting_graph = setup(params,network_spec)
-    starting_netspec = graphtranslation.createEssentialNetworkSpecFromGraph(starting_graph)
+    starting_netspec = graphtranslation.createEssentialNetworkSpecFromGraph_Alphabetized(starting_graph)
     if enforce_filters(starting_graph,starting_netspec,params):
         # add the starting network if it meets the filtering criteria
         networks.add(starting_netspec)
@@ -63,7 +63,7 @@ def perturbNetwork(params, network_spec):
         # add nodes and edges based on params and get the network spec for the new graph
         graph = perform_operations(starting_graph.clone(),params)
         if graph:
-            netspec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
+            netspec = graphtranslation.createEssentialNetworkSpecFromGraph_Alphabetized(graph)
             # check that the network spec is DSGRN computable with few enough parameters and satisfies user-supplied filters
             if enforce_filters(graph,netspec,params):
                 networks.add(netspec)
