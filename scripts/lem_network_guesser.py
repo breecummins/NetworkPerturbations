@@ -16,6 +16,7 @@ def generate_lem_networks(lemfile, column, outputdir, comment="#", return_networ
     The column name column[0] must be in the file.
     :param outputdir: location for saving files
     :param comment: comment character in file, usually "#"
+    :param return_networks: False = return file names, True = return network list, files are written in either case
 
     :return: a list of network strings in DSGRN format
     '''
