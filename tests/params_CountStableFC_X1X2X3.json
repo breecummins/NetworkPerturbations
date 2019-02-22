@@ -5,10 +5,10 @@
   "makeperturbations" : true,
   "nodefile" : "nodefile_X1X2X3.txt",
   "edgefile" : "edgefile_X1X2X3.txt",
-  "probabilities" : {"addNode" : 0.5, "removeNode" : 0.00, "addEdge" : 0.5, "removeEdge" : 0.00},
+  "probabilities" : {"addNode" : 0.5, "removeNode" : 0.1, "addEdge" : 0.4, "removeEdge" : 0.00},
   "range_operations" : [1,3],
   "numperturbations" : 3,
-  "maxparams" : 100000,
+  "maxparams" : 10000,
   "time_to_wait" : 30,
   "querymodule_args" : {}
 }

@@ -68,6 +68,16 @@ def strongly_connected_components(graph):
     return grouped_components
 
 
+def sort_by_list(X, Y, reverse=False):
+    # X is a list of length n, Y is a list of lists of length n
+    # sort every list in Y by either ascending order (reverse = False) or descending order (reverse=True) of X
+    newlists = [[] for _ in range(len(Y) + 1)]
+    for ztup in sorted(zip(X, *Y), reverse=reverse):
+        for k, z in enumerate(ztup):
+            newlists[k].append(z)
+    return newlists
+
+
 def parse_lem_file(fname,column,outputdir,comment="#"):
     '''
     Parses lem score file of the following format:
@@ -117,14 +127,14 @@ def parse_lem_file(fname,column,outputdir,comment="#"):
             raise ValueError("Regulation type is ambiguous. Regulation must be a string with 'a' and no 'r' for activation and 'r' with no 'a' for repression.")
         source.append(second[1][:-1])
     if column[1] == "<":
-        [LEM_score, source, target, type_reg] = gt.sort_by_list(LEM_score,[source, target, type_reg], reverse=False)
+        [LEM_score, source, target, type_reg] = sort_by_list(LEM_score,[source, target, type_reg], reverse=False)
         ind = next(k for k, l in enumerate(LEM_score) if l > column[2])
         try:
             jnd = next(k for k, l in enumerate(LEM_score) if l > column[3])
         except:
             jnd = len(source)
     elif column[1] == ">":
-        [LEM_score, source, target, type_reg] = gt.sort_by_list(LEM_score, [source, target, type_reg], reverse=True)
+        [LEM_score, source, target, type_reg] = sort_by_list(LEM_score, [source, target, type_reg], reverse=True)
         ind = next(k for k, l in enumerate(LEM_score) if l < column[2])
         try:
             jnd = next(k for k, l in enumerate(LEM_score) if l < column[3])

@@ -126,42 +126,9 @@ class Graph:
 # Translation to and from network specifications
 ##################################################
 
-def sort_by_list(X, Y, reverse=False):
-    # X is a list of length n, Y is a list of lists of length n
-    # sort every list in Y by either ascending order (reverse = False) or descending order (reverse=True) of X 
-    newlists = [[] for _ in range(len(Y) + 1)]
-    for ztup in sorted(zip(X, *Y), reverse=reverse):
-        for k, z in enumerate(ztup):
-            newlists[k].append(z)
-    return newlists
 
 
 def createEssentialNetworkSpecFromGraph(graph):
-    # take a graph and return a network spec file
-
-    # get network nodes in order
-    networknodeindices, networknodenames = zip(*[(v, graph.vertex_label(v)) for v in graph.vertices()])
-    [_, networknodenames] = sort_by_list(networknodeindices, [networknodenames], reverse=False)
-
-    # get inedges
-    graph_edges = [(v, a, graph.edge_label(v, a)) for v in graph.vertices() for a in graph.adjacencies(v)]
-    inedges = [[] for _ in range(len(networknodenames))]
-    for edge in graph_edges:
-        inedges[edge[1]].append((edge[0], edge[2]))
-
-    # generate network spec
-    network_spec = ""
-    for (node, ies) in zip(networknodenames, inedges):
-        act = " + ".join([networknodenames[i] for (i, r) in ies if r == 'a'])
-        if act:
-            act = "(" + act + ")"
-        rep = "".join(["(~" + networknodenames[i] + ")" for (i, r) in ies if r == 'r'])
-        nodestr = node + " : " + act + rep + " : E\n"
-        network_spec += nodestr
-    return network_spec
-
-
-def createEssentialNetworkSpecFromGraph_Alphabetized(graph):
     # take a graph and return a network spec file
 
     # get nodes in order

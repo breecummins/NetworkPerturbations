@@ -33,7 +33,7 @@ REQUIRED:
                                    
 If a DSGRN query is desired, with or without perturbations, the following arguments are required:
     
-        querymodule     =   module name from 'queries' folder that has the query to be performed
+    querymodule     =   module name from 'queries' folder that has the query to be performed
     
     querymodule_args    =   dictionary containing query module specific arguments -- see 
                             individual query documentation. Can be empty for some queries.
@@ -50,8 +50,7 @@ If makeperturbations == true, the following are optional parameters with the def
     probabilities      =   dictionary with operations keying the probability that the operation will occur
                            default = 
                            {"addNode" : 0.50, "removeNode" : 0.0, "addEdge" : 0.50, "removeEdge" : 0.0}
-                           NOTE: "removeNode" is not currently supported and must be set to zero. 
-                           Make a feature request if you need it.
+                           
                           
 
     range_operations   =   [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive

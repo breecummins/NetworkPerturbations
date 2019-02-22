@@ -50,7 +50,7 @@ def perturbNetwork(params, network_spec):
     # Initialize
     networks = set([])
     params, starting_graph = setup(params,network_spec)
-    starting_netspec = graphtranslation.createEssentialNetworkSpecFromGraph_Alphabetized(starting_graph)
+    starting_netspec = graphtranslation.createEssentialNetworkSpecFromGraph(starting_graph)
     if enforce_filters(starting_graph,starting_netspec,params):
         # add the starting network if it meets the filtering criteria
         networks.add(starting_netspec)
@@ -63,7 +63,7 @@ def perturbNetwork(params, network_spec):
         # add nodes and edges based on params and get the network spec for the new graph
         graph = perform_operations(starting_graph.clone(),params)
         if graph:
-            netspec = graphtranslation.createEssentialNetworkSpecFromGraph_Alphabetized(graph)
+            netspec = graphtranslation.createEssentialNetworkSpecFromGraph(graph)
             # check that the network spec is DSGRN computable with few enough parameters and satisfies user-supplied filters
             if enforce_filters(graph,netspec,params):
                 networks.add(netspec)
@@ -109,8 +109,6 @@ def set_defaults(params):
         params["edgelist"] = []
     if "probabilities" not in params:
         params["probabilities"] = {"addNode" : 0.50, "removeNode" : 0.0, "addEdge" : 0.50, "removeEdge" : 0.0}
-    if params["probabilities"]["removeNode"] > 0:
-        raise ValueError("Removing nodes is not currently supported. Set 'removeNode' to zero probability and make a feature request.")
     if "range_operations" not in params:
         params["range_operations"] = [1,11]
     else: # add 1 so that endpoint is inclusive
@@ -229,8 +227,8 @@ def perform_operations(graph,params):
         graph = addEdges(graph, params["edgelist"], numops[1])
     if graph:
         graph = removeEdges(graph,numops[2])
-    # if graph:
-    #     graph = removeNodes(graph,numops[3])
+    if graph:
+        graph = removeNodes(graph,numops[3])
     return graph
 
 
@@ -259,13 +257,12 @@ def removeEdges(graph,numedges):
     return graph
 
 
-# def removeNodes(graph,numnodes):
-        #TODO refactor graphtranslation.createEssentialNetworkSpecFromGraph so I can do this
-#     if len(graph.vertices()) <= numnodes:
-#         return None
-#     for _ in range(numnodes):
-#         graph.remove_vertex(random.choice(list(graph.vertices())))
-#     return graph
+def removeNodes(graph,numnodes):
+    if len(graph.vertices()) <= numnodes:
+        return None
+    for _ in range(numnodes):
+        graph.remove_vertex(random.choice(list(graph.vertices())))
+    return graph
 
 
 def addNodes(graph,nodelist,numnodes):
