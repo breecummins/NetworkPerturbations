@@ -5,20 +5,21 @@ import pandas as pd
 import sys, ast,os
 
 
-def generate_lem_networks(lemfile, column, outputdir,delimiter=None, comment="#", return_networks=False):
+def generate_lem_networks(lemfile, column, outputdir, comment="#", return_networks=False):
     '''
 
     :param lemfile: file name with lem scores; full path required if not in local folder
     :param column: a tuple containing column name of desired lem score, if the desired scores are lower "<" or
-    higher ">" than the threshold, and the threshold itself.
-    Examples: column=("norm_loss","<",0.4), column=("pld",">",0.1)
-    :param delimiter: "\s+" for tab-delimited or "," for comma-delimited; if None it will be inferred from file type
-    where possible
+    higher ">" than the threshold, the threshold for creating the seed network, and a second more permissive threshold
+    for creating the node and edge files. If the second threshold is absent, then all nodes and edges will be included.
+    Examples: column=("norm_loss","<",0.4,0.5), column=("pld",">",0.1,0.02)
+    The column name column[0] must be in the file.
+    :param outputdir: location for saving files
     :param comment: comment character in file, usually "#"
 
     :return: a list of network strings in DSGRN format
     '''
-    source, target, type_reg, nodefile, edgefile=parse_lem_file(lemfile,column,delimiter,comment)
+    source, target, type_reg, nodefile, edgefile=parse_lem_file(lemfile,column,outputdir,comment)
     genes = sorted(set(source).intersection(target))
     # print(genes, "\n")
     graph = makegraph(genes, source, target, type_reg)
