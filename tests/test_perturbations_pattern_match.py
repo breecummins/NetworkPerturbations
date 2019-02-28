@@ -33,9 +33,7 @@ def test_patternmatch_path_badwavepool():
         _ = run(paramfile,"bad_wavepool.txt")
         # Verify some things
         print(w)
-        assert(len(w) == 1)
-        assert(issubclass(w[-1].category, RuntimeWarning))
-        assert("Missing" in str(w[-1].message))
+        assert(len(w) == 0)
 
 if __name__ == "__main__":
-    test_patternmatch_path_badwavepool()
+    test_patternmatch_path_wavepool()

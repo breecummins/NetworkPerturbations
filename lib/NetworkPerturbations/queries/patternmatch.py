@@ -72,18 +72,26 @@ def search_over_networks(params,posets,N,tup):
 
 
 def calculate_posets(params,networks):
-    curves = readrow(params['timeseriesfname']) if params['tsfile_is_row_format'] else readcol(
+    data, times = readrow(params['timeseriesfname']) if params['tsfile_is_row_format'] else readcol(
         params['timeseriesfname'])
     posets = {}
     new_networks = []
+    missing_names = set([])
     for networkspec in networks:
         network = DSGRN.Network(networkspec)
         names = tuple(sorted([network.name(k) for k in range(network.size())]))
+        missing_names = missing_names.union(set(name for name in names if name not in data))
+        if set(names).intersection(missing_names):
+            continue
         if names not in posets.keys():
-            pos = createPosetsFromData(names, curves, params['epsilons'],networkspec)
-            if pos is not None:
-                posets[names] = pos
-                new_networks.append(networkspec)
+            curves = [curve.Curve(data[name], times, True) for name in names]
+            pos = make_posets.eps_posets(dict(zip(names,curves)), params["epsilons"])
+            if pos is None:
+                raise ValueError("poset is None!")
+            posets[names] = pos
+        new_networks.append(networkspec)
+    if missing_names:
+        print("No time series for nodes {}. Skipping all networks with at least one missing time series.\nContinuing with {} networks.".format(missing_names,len(new_networks)))
     return posets, new_networks
 
 
@@ -104,8 +112,7 @@ def readrow(filename):
     names = data[:,0]
     if len(set(names)) < len(names):
         raise ValueError("Non-unique names in time series file.")
-    curves = [curve.Curve(data[k,1:],times,True) for k in range(data.shape[0])]
-    return dict(zip(names,curves))
+    return dict(zip(names,[data[k,1:] for k in range(data.shape[0])])), times
 
 
 def readcol(filename):
@@ -113,24 +120,7 @@ def readcol(filename):
     if len(set(names)) < len(names):
         raise ValueError("Non-unique names in time series file.")
     times = data[:,0]
-    curves = [curve.Curve(data[1:,k],times,True) for k in range(data.shape[1])]
-    return dict(zip(names,curves))
-
-
-def createPosetsFromData(names,curves,epsilons,networkspec):
-    '''
-    Use min_interval_posets submodule to make a poset from time series curves. See query for inputs.
-    :return: list of (epsilon, poset) tuples
-    '''
-    subset_curves = deepcopy(curves)
-    for name in curves:
-        if name not in names:
-            subset_curves.pop(name)
-    for name in names:
-        if name not in subset_curves:
-            warnings.warn("Missing variable {} from time series file for network {}.".format(name,networkspec),RuntimeWarning)
-            return None
-    return make_posets.eps_posets(subset_curves, epsilons)
+    return dict(zip(names,[data[1:,k] for k in range(data.shape[1])])), times
 
 
 def getGraphs(events,event_ordering,network):
@@ -223,5 +213,4 @@ def PathMatchInStableFullCycle(paramgraph, patterngraph, count):
                     else:
                         return True
     return numparams if count else False
-
 
