@@ -3,9 +3,11 @@ import numpy as np
 from scipy.sparse.csgraph import connected_components
 import pandas as pd
 import sys, ast,os
+from inspect import getmembers, isfunction
 
 
-def generate_lem_networks(lemfile, column, outputdir, comment="#", return_networks=False):
+
+def generate_lem_networks(lemfile, column, outputdir, func = "guarantee_strongly_connected", num_top_edges = 0, comment="#", return_networks=False):
     '''
 
     :param lemfile: file name with lem scores; full path required if not in local folder
@@ -21,23 +23,17 @@ def generate_lem_networks(lemfile, column, outputdir, comment="#", return_networ
     :return: a list of network strings in DSGRN format
     '''
     source, target, type_reg, nodefile, edgefile=parse_lem_file(lemfile,column,outputdir,comment)
-    genes = sorted(set(source).intersection(target))
-    # print(genes, "\n")
-    graph = makegraph(genes, source, target, type_reg)
-    scc = strongly_connected_components(graph)
-    networks = []
-    for comp in scc:
-        sg = gt.Graph()
-        for v in comp:
-            sg.add_vertex(comp.index(v),label=graph.vertex_label(v))
-        for e in graph.edges():
-            if e[0] in comp and e[1] in comp:
-                sg.add_edge(comp.index(e[0]),comp.index(e[1]),label=graph.edge_label(*e))
-        networks.append(gt.createEssentialNetworkSpecFromGraph(sg))
-    if outputdir:
-        networkfile = os.path.join(outputdir,"lem_networks.txt")
+    try:
+        func_handle = globals()[func]
+    except KeyError:
+        print("The function {} is not implemented.".format(func))
+        raise
+    if num_top_edges:
+        graph = makegraph(source, target, type_reg, num_top_edges)
     else:
-        networkfile = "lem_networks.txt"
+        graph = makegraph(source,target,type_reg)
+    networks = func_handle(graph)
+    networkfile = os.path.join(outputdir,"lem_networks.txt")
     with open(networkfile,"w") as f:
         f.write(str(networks))
     if return_networks:
@@ -46,14 +42,36 @@ def generate_lem_networks(lemfile, column, outputdir, comment="#", return_networ
         return nodefile, edgefile, networkfile
 
 
-def makegraph(genes,source,target,type_reg):
+def guarantee_strongly_connected(graph):
+    # x is a placeholder to guarantee consistent API
+    scc = strongly_connected_components(graph)
+    networks = []
+    for comp in scc:
+        sg = gt.Graph()
+        for v in comp:
+            sg.add_vertex(comp.index(v), label=graph.vertex_label(v))
+        for e in graph.edges():
+            if e[0] in comp and e[1] in comp:
+                sg.add_edge(comp.index(e[0]), comp.index(e[1]), label=graph.edge_label(*e))
+        networks.append(gt.createEssentialNetworkSpecFromGraph(sg))
+    return networks
+
+
+def choose_top_edges(graph):
+    return gt.createEssentialNetworkSpecFromGraph(graph)
+
+
+def makegraph(source,target,type_reg,x=0):
     # make gt.Graph
+    edges = list(zip(source,target,type_reg))
+    if x:
+        edges = edges[:int(x)]
+    genes = sorted(set(source).union(target))
     graph = gt.Graph()
     for k,g in enumerate(genes):
         graph.add_vertex(k,label=g)
-    for s, t, tr in zip(source,target,type_reg):
-        if s in genes and t in genes:
-            graph.add_edge(genes.index(s),genes.index(t),label=tr)
+    for s, t, tr in edges:
+        graph.add_edge(genes.index(s),genes.index(t),label=tr)
     return graph
 
 
@@ -156,11 +174,15 @@ def parse_lem_file(fname,column,outputdir,comment="#"):
 
 
 if __name__ == "__main__":
-    # lemfile = "all_scores_rep_0.tsv"
-    # print(generate_lem_networks(lemfile,("norm_loss","<",0.3,1.0)),"")
-    # print(generate_lem_networks(lemfile,("pld",">",0.01,0.0)),"")
+    if len(sys.argv) > 5:
+        generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2]),sys.argv[3],sys.argv[4],sys.argv[5])
+    elif len(sys.argv) > 4:
+        generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2]),sys.argv[3],sys.argv[4])
+    elif len(sys.argv) > 3:
+        generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2]),sys.argv[3])
+    else:
+        print("Arguments lemfile, column, and outputdir are required.")
 
-    print(generate_lem_networks(sys.argv[1], ast.literal_eval(sys.argv[2]),sys.argv[3]))
 
 
 
