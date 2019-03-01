@@ -429,7 +429,7 @@ def getMissingEdges(graph,vertices):
     for v in vertices:
         if not graph.adjacencies(v):
             need.append((v,"out"))
-        if not [u for u in graph.vertices() if (u,v) in graph.edges()]:
+        if not graph.inedges(v):
             need.append((v, "in"))
     return need
 
