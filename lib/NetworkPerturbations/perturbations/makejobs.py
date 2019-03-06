@@ -52,6 +52,8 @@ class Job():
             for network_spec in networks:
                 perturbed_networks.extend(perturb.perturbNetwork(self.params,network_spec))
             networks=list(set(perturbed_networks))
+            with open(os.path.join(self.resultsdir,"networks.txt"),"w") as f:
+                f.write(str(networks))
             print("\nPerturbations complete; queries beginning.\n")
             sys.stdout.flush()
         else:

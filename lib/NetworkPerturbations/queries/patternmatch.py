@@ -50,7 +50,7 @@ def query(networks,resultsdir,params):
     pool = Pool()  # Create a multiprocessing Pool
     output = pool.map(partial(search_over_networks, params, posets,len(networks)),enumerate(networks))
     results = dict(output)
-    rname = os.path.join(resultsdir,"pattern_matches.json")
+    rname = os.path.join(resultsdir,"query_results.json")
     if os.path.exists(rname):
         os.rename(rname,rname+".old")
     json.dump(results,open(rname,'w'))

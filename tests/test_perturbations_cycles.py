@@ -8,7 +8,7 @@ def test_countFC():
     print(results)
     assert(len(results)==3)
     assert(networkspec in results)
-    assert(results[networkspec]=="76/168")
+    assert(results[networkspec]==[76,168])
 
 if __name__ == "__main__":
     test_countFC()

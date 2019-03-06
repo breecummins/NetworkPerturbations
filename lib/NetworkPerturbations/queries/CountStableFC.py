@@ -28,9 +28,9 @@ def query(networks,resultsdir,params):
                                      if is_FC(mg.annotation(i)[0]) and len(mg.poset().children(i)) == 0]
             if len(stable_FC_annotations) > 0:
                 count+=1
-        resultsdict[net] = str(count)+"/"+str(parametergraph.size())
+        resultsdict[net] = [count,parametergraph.size()]
 
-    rname = os.path.join(resultsdir,"Stable_FC_parameter_counts.json")
+    rname = os.path.join(resultsdir,"query_results.json")
     if os.path.exists(rname):
         os.rename(rname,rname+".old")
     json.dump(resultsdict,open(rname,'w'))

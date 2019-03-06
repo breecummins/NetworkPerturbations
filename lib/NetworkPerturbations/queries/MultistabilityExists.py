@@ -38,7 +38,7 @@ def query(networks,resultsdir,params):
     else:
         output = pool.map(partial(compute_for_network_without_constraints, included_bounds, excluded_bounds, len(networks)),enumerate(networks))
     results = list(filter(None,output))
-    rname = os.path.join(resultsdir,"Networks_With_Multistable_FP.json")
+    rname = os.path.join(resultsdir,"query_results.json")
     if os.path.exists(rname):
         os.rename(rname,rname+".old")
     json.dump(results,open(rname,'w'))

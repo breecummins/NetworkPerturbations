@@ -41,9 +41,9 @@ def query(networks,resultsdir,params):
                                      if is_FP(mg.annotation(i)[0]) and len(mg.poset().children(i)) == 0]
             if any([is_FP_match(bounds_ind,a) for a in stable_FP_annotations]):
                 count+=1
-        resultsdict[net] = str(count)+"/"+str(parametergraph.size())
+        resultsdict[net] = [count,parametergraph.size()]
 
-    rname = os.path.join(resultsdir,"FP_parameter_match_counts.json")
+    rname = os.path.join(resultsdir,"query_results.json")
     if os.path.exists(rname):
         os.rename(rname,rname+".old")
     json.dump(resultsdict,open(rname,'w'))
