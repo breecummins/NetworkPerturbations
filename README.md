@@ -139,7 +139,7 @@ The results from NetworkPerturbations can be unexpected due to the interplay bet
 1. There are no networks produced after perturbation. 
     * The seed network has a node that has too many in-edges or too many out-edges, and the `probabilities` parameter has non-zero probabilities only for adding nodes and edges. In this case, no DSGRN computable networks can be constructed, because there will always be a non-computable subnetwork. At the time of this writing, 5 in-edges or 5 out-edges at a single node is likely too many (although not always). You must either (a) reduce the number of edges in your seed network, or (b) change your `probabilities` parameter so that removing nodes and/or edges is permitted.
       
-     * The `maxparams` parameter may be too small. For example, if the seed network has 5000 parameters, but `maxparams` is 1000, and the `probabilities` parameter has non-zero probabilities only for adding nodes and edges, then no networks will be produced. To check the number of parameters for a seed network, repeat the previous steps and do
+     * The `maxparams` parameter may be too small. For example, if the seed network has 5000 parameters, but `maxparams` is 1000, and the `probabilities` parameter has non-zero probabilities only for adding nodes and edges, then no networks will be produced, because in this case there will always be a subgraph with 5000 parameters. Since every produced network has more than a 1000 parameters, all networks will be rejected. To check the number of parameters for a seed network, repeat the previous steps and do
         ```
         import DSGRN
         network = DSGRN.Network("networkfile.txt")
