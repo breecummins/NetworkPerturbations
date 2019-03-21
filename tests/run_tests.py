@@ -1,14 +1,16 @@
 from NetworkPerturbations.perturbations.makejobs import Job
 import NetworkPerturbations.perturbations.graphtranslation as gt
-import subprocess,os,json,glob
+import subprocess,os,json
 
 def run(paramfile,netfile):
     job = Job(paramfile)
     job.run()
-    compdir = subprocess.getoutput("ls -td ./computations*/ | head -1")
-    resultsfile = glob.glob(os.path.join(compdir,"results/*"))[0]
+    qdir = subprocess.getoutput("ls -td ./queries*/ | head -1")
+    resultsfile = os.path.join(qdir,"query_results.json")
     results = json.load(open(resultsfile,'r'))
-    subprocess.call("rm -r " + compdir, shell=True)
+    subprocess.call("rm -r " + qdir, shell=True)
+    subprocess.call("rm -r " + subprocess.getoutput("ls -td ./perturbations*/ | head -1"), shell=True)
+    subprocess.call("rm -r " + subprocess.getoutput("ls -td ./inputs*/ | head -1"), shell=True)
     networkspec = open(netfile).read()
     G = gt.getGraphFromNetworkSpec(networkspec)
     networkspec = gt.createEssentialNetworkSpecFromGraph(G)

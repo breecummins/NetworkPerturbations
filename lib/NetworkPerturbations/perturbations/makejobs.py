@@ -11,16 +11,19 @@ class Job():
         datetime = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).decode(sys.stdout.encoding).strip()
         if "computationsdir" not in self.params:
             self.params["computationsdir"] = ""
-        computationsdir_datetime = os.path.join(os.path.expanduser(self.params["computationsdir"]),"computations"+datetime)
-        os.makedirs(computationsdir_datetime)
-        self.inputfilesdir = os.path.join(computationsdir_datetime,"inputfiles")
+        self.perturbationsdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
+                                                "perturbations"+datetime)
+        os.makedirs(self.perturbationsdir)
+        self.queriesdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
+                                                "queries"+datetime)
+        os.makedirs(self.queriesdir)
+        self.inputfilesdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
+                                                "inputs"+datetime)
         os.makedirs(self.inputfilesdir)
         # save parameter file to computations folder
         shutil.copy(self.paramfile,self.inputfilesdir)
         shutil.copy(self.params["networkfile"], self.inputfilesdir)
         #TODO: Record versions/git number of DSGRN and NetworkPerturbations
-        self.resultsdir =os.path.join(computationsdir_datetime,"results")
-        os.makedirs(self.resultsdir)
 
     def _parsefile(self,eorn,parsefunc):
         f = eorn+"file"
@@ -52,7 +55,7 @@ class Job():
             for network_spec in networks:
                 perturbed_networks.extend(perturb.perturbNetwork(self.params,network_spec))
             networks=list(set(perturbed_networks))
-            with open(os.path.join(self.resultsdir,"networks.txt"),"w") as f:
+            with open(os.path.join(self.perturbationsdir,"networks.txt"),"w") as f:
                 f.write(str(networks))
             print("\nPerturbations complete; queries beginning.\n")
             sys.stdout.flush()
@@ -62,7 +65,7 @@ class Job():
         # perform queries if requested
         if "querymodule" in self.params and "querymodule_args" in self.params and self.params["querymodule"]:
             query = importlib.import_module("..queries."+self.params["querymodule"],"NetworkPerturbations.perturbations")
-            query.query(networks,self.resultsdir,self.params["querymodule_args"])
+            query.query(networks,self.queriesdir,self.params["querymodule_args"])
             print("\nQueries complete.\n")
             sys.stdout.flush()
         else:
