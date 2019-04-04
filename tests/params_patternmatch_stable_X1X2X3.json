@@ -2,7 +2,6 @@
   "querymodule" : "patternmatch",
   "computationsdir" : "",
   "networkfile" : "networkspec_X1X2X3.txt",
-  "makeperturbations" : true,
   "nodefile" : "",
   "edgefile" : "edgefile_X1X2X3.txt",
   "probabilities" : {"addNode" : 0.0, "removeNode" : 0.00, "addEdge" : 0.5, "removeEdge" : 0.00},

@@ -8,15 +8,20 @@ class Job():
         self.paramfile = paramfile
         self.params = json.load(open(paramfile))
         # use datetime as unique identifier to avoid overwriting
-        datetime = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).decode(sys.stdout.encoding).strip()
+        if "datetime" not in self.params:
+            datetime = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).decode(sys.stdout.encoding).strip()
+        else:
+            datetime = self.params["datetime"]
         if "computationsdir" not in self.params:
             self.params["computationsdir"] = ""
-        self.perturbationsdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
-                                                "perturbations"+datetime)
-        os.makedirs(self.perturbationsdir)
-        self.queriesdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
-                                                "queries"+datetime)
-        os.makedirs(self.queriesdir)
+        if self.params['numperturbations']:
+            self.perturbationsdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
+                                                    "perturbations"+datetime)
+            os.makedirs(self.perturbationsdir)
+        if"querymodule" in self.params and "querymodule_args" in self.params and self.params["querymodule"]:
+            self.queriesdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
+                                                    "queries"+datetime)
+            os.makedirs(self.queriesdir)
         self.inputfilesdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
                                                 "inputs"+datetime)
         os.makedirs(self.inputfilesdir)
@@ -47,7 +52,7 @@ class Job():
                 networks = networks[:-1]
             networks = [networks]
         # perform perturbations if requested
-        if self.params['makeperturbations']:
+        if self.params['numperturbations']:
             # do perturbations if not already done
             self._parsefile('edge',fileparsers.parseEdgeFile)
             self._parsefile('node',fileparsers.parseNodeFile)

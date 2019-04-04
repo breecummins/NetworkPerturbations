@@ -2,7 +2,6 @@
   "querymodule" : "CountStableFC",
   "computationsdir" : "",
   "networkfile" : "networkspec_X1X2X3.txt",
-  "makeperturbations" : true,
   "nodefile" : "nodefile_X1X2X3.txt",
   "edgefile" : "edgefile_X1X2X3.txt",
   "probabilities" : {"addNode" : 0.5, "removeNode" : 0.1, "addEdge" : 0.4, "removeEdge" : 0.00},

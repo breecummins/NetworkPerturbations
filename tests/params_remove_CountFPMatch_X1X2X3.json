@@ -2,7 +2,6 @@
   "querymodule" : "CountFPMatch",
   "computationsdir" : "",
   "networkfile" : "networkspec_X1X2X3.txt",
-  "makeperturbations" : true,
   "nodefile" : "",
   "edgefile" : "",
   "probabilities" : {"addNode" : 0.25, "removeNode" : 0.0, "addEdge" : 0.25, "removeEdge" : 0.25},

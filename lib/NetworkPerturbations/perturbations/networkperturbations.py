@@ -25,10 +25,10 @@ def perturbNetwork(params, network_spec):
                           NOTE: setting any probability to zero will ensure the operation does not occur
                           NOTE: will be normalized if it does not sum to 1
                           NOTE: every added node is also given an inedge and an outedge as part of the operation
-        "range_operations" : default = [1,10], [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive
+        "range_operations" : default = [1,5], [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive
         "numperturbations" : default = 1000, integer > 0, how many perturbations to construct
         "time_to_wait" : default = 30, number of seconds to wait before halting perturbation procedure (avoid infinite while loop)
-        "maxparams" : default = 100000, integer > 0, parameters per database allowed (eventually this should be deprecated for estimated
+        "maxparams" : default = 20000, integer > 0, parameters per database allowed (eventually this should be deprecated for estimated
                       computation time)
         "filters" : default = None, dictionary of filter function name strings from filters.py keying input dictionaries
                     with the needed keyword arguments for each function
@@ -110,7 +110,7 @@ def set_defaults(params):
     if "probabilities" not in params:
         params["probabilities"] = {"addNode" : 0.50, "removeNode" : 0.0, "addEdge" : 0.50, "removeEdge" : 0.0}
     if "range_operations" not in params:
-        params["range_operations"] = [1,11]
+        params["range_operations"] = [1,5]
     else: # add 1 so that endpoint is inclusive
         params["range_operations"] = [params["range_operations"][0],params["range_operations"][1]+1]
     if "numperturbations" not in params:
@@ -118,7 +118,7 @@ def set_defaults(params):
     if "time_to_wait" not in params:
         params["time_to_wait"] = 30
     if "maxparams" not in params:
-        params["maxparams"] = 100000
+        params["maxparams"] = 20000
     if "filters" not in params:
         params["filters"] = None
     else:

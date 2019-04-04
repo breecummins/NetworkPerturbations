@@ -31,11 +31,11 @@ __Required:__
                             or a list of them (comma-separated and surrounded by square
                             brackets, saved as plain text)
 
-    makeperturbations   =   true or false (must be lowercase, no quotes);
-                            false = perform the query only for the network specifications 
-                                    provided in the list;
-                            true = for every network spec in the list, make perturbations using 
-                                   the optional parameters listed farther down
+    numperturbations    =   Maximum number of perturbed networks to find (integer);
+                            process may time out before this number is reached. If 0,
+                            then the perturbation step is skipped. 
+                            
+
                                    
 If a DSGRN query is desired, with or without perturbations, the following arguments are required:
     
@@ -59,10 +59,6 @@ If `makeperturbations` is true, the following are optional parameters with the d
                                                
     range_operations   =   [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive
                            default = [1,10]
-
-    numperturbations    =   Maximum number of perturbed networks to find (integer);
-                            process may time out before this number is reached
-                            default = 1000
 
     maxparams           =   Accept networks with this number of DSGRN parameters or fewer
                             default = 100000
