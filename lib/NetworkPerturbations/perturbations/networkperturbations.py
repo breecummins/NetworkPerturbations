@@ -119,7 +119,7 @@ def set_defaults(params):
         params["time_to_wait"] = 30
     if "maxparams" not in params:
         params["maxparams"] = 20000
-    if "filters" not in params:
+    if "filters" not in params or not params["filters"]:
         params["filters"] = None
     else:
         names = list(params["filters"].keys())
