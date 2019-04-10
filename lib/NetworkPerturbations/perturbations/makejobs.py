@@ -53,6 +53,8 @@ class Job():
             networks = [networks]
         # perform perturbations if requested
         if self.params['numperturbations']:
+            print("\nPerturbations beginning.\n")
+            sys.stdout.flush()
             # do perturbations if not already done
             self._parsefile('edge',fileparsers.parseEdgeFile)
             self._parsefile('node',fileparsers.parseNodeFile)
@@ -62,13 +64,12 @@ class Job():
             networks=list(set(perturbed_networks))
             with open(os.path.join(self.perturbationsdir,"networks.txt"),"w") as f:
                 f.write(str(networks))
-            print("\nPerturbations complete; queries beginning.\n")
-            sys.stdout.flush()
-        else:
-            print("\nNo perturbations requested.\n")
+            print("\nPerturbations complete.\n")
             sys.stdout.flush()
         # perform queries if requested
         if "querymodule" in self.params and "querymodule_args" in self.params and self.params["querymodule"]:
+            print("\nQueries beginning.\n")
+            sys.stdout.flush()
             query = importlib.import_module("..queries."+self.params["querymodule"],"NetworkPerturbations.perturbations")
             query.query(networks,self.queriesdir,self.params["querymodule_args"])
             print("\nQueries complete.\n")
