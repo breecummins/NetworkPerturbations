@@ -373,6 +373,8 @@ def addEdges_DSGRN_optimized(graph,edgelist,numedges):
     M0 = len(graph.edges())
     # add prioritized edges
     graph = addConnectingEdges(graph, graph.vertices(), edgelist)
+    if not graph:
+        return None
     # adjust number of perturbations
     M1 = len(graph.edges())
     numedges -= (M1-M0)
