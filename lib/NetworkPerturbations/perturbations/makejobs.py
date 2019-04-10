@@ -73,9 +73,6 @@ class Job():
             query.query(networks,self.queriesdir,self.params["querymodule_args"])
             print("\nQueries complete.\n")
             sys.stdout.flush()
-        else:
-            print("\nNo queries requested.\n")
-            sys.stdout.flush()
 
 
 
