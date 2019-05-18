@@ -152,6 +152,8 @@ def createEssentialNetworkSpecFromGraph(graph):
 
 def getGraphFromNetworkSpec(network_spec):
     # take a network spec and return an graphtranslation.Graph
+    if not network_spec:
+        return Graph()
     eqns = filter(bool, network_spec.split("\n"))
     nodelist = []
     innodes = []

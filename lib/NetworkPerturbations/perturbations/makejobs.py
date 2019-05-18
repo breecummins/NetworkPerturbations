@@ -45,7 +45,11 @@ class Job():
     def run(self):
         # read network file
         networks = open(self.params["networkfile"]).read()
-        if networks[0] == "[":
+        if not networks and self.params['numperturbations']:
+            networks = [""]
+        elif not networks and "querymodule" in self.params:
+            networks = []
+        elif networks[0] == "[":
             networks = ast.literal_eval(networks)
         else:
             while networks[-1] == '\n':

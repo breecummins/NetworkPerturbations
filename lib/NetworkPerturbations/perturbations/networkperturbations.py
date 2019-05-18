@@ -163,6 +163,10 @@ def enforce_filters(graph,netspec,params):
 
 
 def check_computability(params,network_spec):
+    if not network_spec:
+        msg = "Network spec not computable"
+        add_warning(msg, network_spec, params["compressed_output"], params["msg_dict"])
+        return False
     network = DSGRN.Network(network_spec)
     try:
         paramgraph=DSGRN.ParameterGraph(network)
