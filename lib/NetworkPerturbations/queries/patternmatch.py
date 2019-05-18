@@ -3,7 +3,7 @@ import json, os, ast, warnings
 from min_interval_posets import curve
 from min_interval_posets import posets as make_posets
 import pandas as pd
-from multiprocessing import Pool
+import multiprocessing
 from copy import deepcopy
 from functools import partial
 
@@ -30,6 +30,7 @@ def query(networks,resultsdir,params):
         "tsfile_is_row_format" : True if the time series file is in row format (times are in the first row); False if in
         column format (times are in the first column)
         "epsilons" : list of floats 0 <= x <= 1, one poset will be made for each x
+        Optional: "num_proc" specifies the number of processes to be created in the multiprocessing tools. Default: determined by cpu count.
 
     :return: Writes True (pattern match for the poset) or False (no pattern match) or
         parameter count (# successful matches) plus the number of parameters, for each
@@ -46,8 +47,8 @@ def query(networks,resultsdir,params):
             # make sure variables are in canonical order
             sort_names = tuple(sorted(list(names)))
             posets[sort_names] = pos
-
-    pool = Pool()  # Create a multiprocessing Pool
+    num_proc = multiprocessing.cpu_count() if "num_proc" not in params else params["num_proc"]
+    pool = multiprocessing.Pool(num_proc)  # Create a multiprocessing Pool
     output = pool.map(partial(search_over_networks, params, posets,len(networks)),enumerate(networks))
     results = dict(output)
     rname = os.path.join(resultsdir,"query_results.json")
