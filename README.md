@@ -58,10 +58,10 @@ If `makeperturbations` is true, the following are optional parameters with the d
                            {"addNode" : 0.50, "removeNode" : 0.0, "addEdge" : 0.50, "removeEdge" : 0.0}
                                                
     range_operations   =   [int,int] min to max # of node/edge changes allowed per graph, endpoint inclusive
-                           default = [1,10]
+                           default = [1,5]
 
     maxparams           =   Accept networks with this number of DSGRN parameters or fewer
-                            default = 100000
+                            default = 20000
 
     time_to_wait        =   Maximum time in seconds (integer) allowed to calculate perturbed networks;
                             intended as a fail-safe when there are not enough computable networks 

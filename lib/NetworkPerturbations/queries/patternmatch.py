@@ -29,7 +29,10 @@ def query(networks,resultsdir,params):
         "timeseriesfname" : path to a file containing the time series data from which to make posets
         "tsfile_is_row_format" : True if the time series file is in row format (times are in the first row); False if in
         column format (times are in the first column)
-        "epsilons" : list of floats 0 <= x <= 1, one poset will be made for each x
+        "epsilons" : list of floats 0 <= x <= 0.5, one poset will be made for each x
+                    Note that an epsilon of 0.10 means that the noise level is considered to be +/- 10% of the distance
+                    between global maximum and global minimum for each time series. Thus all information on curve shape
+                    is lost at epsilon = 0.5. It is recommended to stay far below that level
         Optional: "num_proc" specifies the number of processes to be created in the multiprocessing tools. Default: determined by cpu count.
 
     :return: Writes True (pattern match for the poset) or False (no pattern match) or

@@ -111,8 +111,8 @@ def set_defaults(params):
         params["probabilities"] = {"addNode" : 0.50, "removeNode" : 0.0, "addEdge" : 0.50, "removeEdge" : 0.0}
     if "range_operations" not in params:
         params["range_operations"] = [1,5]
-    else: # add 1 so that endpoint is inclusive
-        params["range_operations"] = [params["range_operations"][0],params["range_operations"][1]+1]
+    # add 1 so that endpoint is inclusive
+    params["range_operations"] = [params["range_operations"][0],params["range_operations"][1]+1]
     if "numperturbations" not in params:
         params["numperturbations"] = 1000
     if "time_to_wait" not in params:
