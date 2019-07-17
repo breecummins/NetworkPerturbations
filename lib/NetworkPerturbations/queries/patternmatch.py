@@ -124,7 +124,7 @@ def readcol(filename):
     if len(set(names)) < len(names):
         raise ValueError("Non-unique names in time series file.")
     times = data[:,0]
-    return dict(zip(names,[data[1:,k] for k in range(data.shape[1])])), times
+    return dict(zip(names,[data[:,k] for k in range(1,data.shape[1])])), times
 
 
 def getGraphs(events,event_ordering,network):
