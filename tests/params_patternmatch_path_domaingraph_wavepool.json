@@ -3,5 +3,5 @@
   "computationsdir" : "",
   "networkfile" : "good_wavepool.txt",
   "numperturbations" : 0,
-  "querymodule_args" : {"timeseriesfname" : "wt1_microarray_coregenes_lifepoints_interpol_trim.csv", "tsfile_is_row_format" : true, "epsilons" : [0.0, 0.01, 0.05], "matchingfunction" : "PathMatchInDomainGraph", "count" : true }
+  "querymodule_args" : {"timeseriesfname" : "wt1_microarray_coregenes_lifepoints_interpol_trim.csv", "tsfile_is_row_format" : true, "epsilons" : [0.0, 0.01, 0.05], "matchingfunction" : ["PathMatchInDomainGraph","PathMatchInStableFullCycle"], "count" : true }
 }
