@@ -422,7 +422,7 @@ def getRandomReg():
 def getRandomListElement(masterlist):
     # pick randomly from list
     if not masterlist: return None
-    else: return random.choice(masterlist)
+    else: return random.choice(sorted(masterlist))
 
 def getHalfEdge(n,N):
     newv, newr = getRandomNode(N), getRandomReg()
