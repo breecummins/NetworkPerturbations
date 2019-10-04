@@ -28,7 +28,7 @@ def test_patternmatch_path_wavepool():
     results, networkspec = run(paramfile,"good_wavepool.txt","query_results_PathMatchInStableFullCycle.json")
     print(networkspec)
     print(results)
-    assert(results=={'SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E': [[0.0, 0, 14], [0.01, 2, 14], [0.05, 1, 14]]})
+    assert(results=={'SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E': [[0.0, 0, 2, 14], [0.01, 2, 2, 14], [0.05, 1, 2, 14]]})
 
 def test_patternmatch_path_badwavepool():
     paramfile = "params_patternmatch_path_domaingraph_badwavepool.json"

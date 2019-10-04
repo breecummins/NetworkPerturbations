@@ -96,7 +96,10 @@ def search_over_networks(params,posets,N,tup):
         paramgraph, patterngraph = getGraphs(events, event_ordering, network)
         for name,mf in matchingfuncs.items():
             R = mf(paramgraph, patterngraph, params['count'])
-            ER[name].append((eps, R, paramgraph.size()))
+            if name == "PathMatchInStableFullCycle":
+                ER[name].append((eps, R[0], R[1], paramgraph.size()))
+            else:
+                ER[name].append((eps, R, paramgraph.size()))
     return (netspec, ER)
 
 
@@ -227,12 +230,17 @@ def PathMatchInStableFullCycle(paramgraph, patterngraph, count):
     :return: Integer count of parameters if count = True; if count = False return True if at least one match, False otherwise.
     '''
     numparams = 0
+    numFC = 0
     for paramind in range(paramgraph.size()):
+        FC = False
         domaingraph = DSGRN.DomainGraph(paramgraph.parameter(paramind))
         morsedecomposition = DSGRN.MorseDecomposition(domaingraph.digraph())
         morsegraph = DSGRN.MorseGraph(domaingraph,morsedecomposition)
         for i in range(0,morsedecomposition.poset().size()):
              if morsegraph.annotation(i)[0]  == "FC" and len(morsedecomposition.poset().children(i)) == 0:
+                if not FC:
+                    numFC += 1
+                    FC = True
                 searchgraph = DSGRN.SearchGraph(domaingraph,i)
                 matchinggraph = DSGRN.MatchingGraph(searchgraph,patterngraph)
                 if DSGRN.PathMatch(matchinggraph):
@@ -241,5 +249,5 @@ def PathMatchInStableFullCycle(paramgraph, patterngraph, count):
                         break
                     else:
                         return True
-    return numparams if count else False
+    return (numparams,numFC) if count else False
 
