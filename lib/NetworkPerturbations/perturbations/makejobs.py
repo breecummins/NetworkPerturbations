@@ -12,8 +12,8 @@ class Job():
             datetime = subprocess.check_output(['date +%Y_%m_%d_%H_%M_%S'],shell=True).decode(sys.stdout.encoding).strip()
         else:
             datetime = self.params["datetime"]
-        if "computationsdir" not in self.params:
-            self.params["computationsdir"] = ""
+        if "computationsdir" not in self.params or self.params["computationsdir"] == "":
+            self.params["computationsdir"] = "computations"+datetime
         if self.params['numperturbations']:
             self.perturbationsdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
                                                     "perturbations"+datetime)
