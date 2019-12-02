@@ -37,8 +37,18 @@ def is_strongly_connected(graph,kwargs={}):
     # return bool (True if satisfied) and string containing error message
     G = nx.DiGraph()
     G.add_edges_from(graph.edges())
-    scc = list(nx.strongly_connected_components(G))
-    # throw out graphs with more than one scc
-    if len(scc) > 1:
+    if nx.is_strongly_connected():
+        return True, ""
+    else:
         return False, "Not strongly connected"
-    return True, ""
+
+
+def is_connected(graph,kwargs={}):
+    # kwargs = {}, here only for API compliance
+    # return bool (True if satisfied) and string containing error message
+    G = nx.DiGraph()
+    G.add_edges_from(graph.edges())
+    if nx.is_connected():
+        return True, ""
+    else:
+        return False, "Not connected"
