@@ -10,7 +10,7 @@ def parseEdgeFile(fname):
     edgelist=[]
     with open(fname,'r') as f:
         for l in f.readlines():
-            if l:
+            if l.strip():
                 if l[0] == '#':
                     continue
                 wordlist=l.replace(',',' ').replace('=',' ').split()
@@ -32,7 +32,7 @@ def parseNodeFile(fname):
     nodelist = []
     with open(fname,'r') as f:
         for l in f.readlines():
-            if l:
+            if l.strip():
                 if l[0] == '#':
                     continue
                 wordlist=l.replace(',',' ').split()
