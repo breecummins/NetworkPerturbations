@@ -37,7 +37,7 @@ def is_strongly_connected(graph,kwargs={}):
     # return bool (True if satisfied) and string containing error message
     G = nx.DiGraph()
     G.add_edges_from(graph.edges())
-    if nx.is_strongly_connected(G):
+    if G and nx.is_strongly_connected(G):
         return True, ""
     else:
         return False, "Not strongly connected"
@@ -48,7 +48,7 @@ def is_connected(graph,kwargs={}):
     # return bool (True if satisfied) and string containing error message
     G = nx.DiGraph()
     G.add_edges_from(graph.edges())
-    if nx.is_connected(G):
+    if G and nx.is_weakly_connected(G):
         return True, ""
     else:
         return False, "Not connected"
