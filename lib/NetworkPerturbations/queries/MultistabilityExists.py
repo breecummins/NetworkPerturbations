@@ -27,6 +27,7 @@ def query(networks,resultsdir,params):
 
     :return: List of network specs that match all FPs in params["included_bounds"] and match none of
              the FPs in params["excluded_bounds"] for at least 1 parameter that is dumped to a json file.
+             NOTE: This means that no matches returns an empty list.
     '''
 
     included_bounds = [dict(b) for b in params["included_bounds"]]
