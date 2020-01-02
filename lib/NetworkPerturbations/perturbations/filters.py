@@ -25,6 +25,7 @@ def is_feed_forward(graph,kwargs={}):
     # return bool (True if satisfied) and string containing error message
     G = nx.DiGraph()
     G.add_edges_from(graph.edges())
+    G.add_nodes_from(graph.vertices())
     scc = nx.strongly_connected_components(G)
     # throw out graphs with non-trivial cycles
     if any(len(s) > 1 for s in scc):
@@ -37,6 +38,7 @@ def is_strongly_connected(graph,kwargs={}):
     # return bool (True if satisfied) and string containing error message
     G = nx.DiGraph()
     G.add_edges_from(graph.edges())
+    G.add_nodes_from(graph.vertices())
     if G and nx.is_strongly_connected(G):
         return True, ""
     else:
@@ -48,6 +50,7 @@ def is_connected(graph,kwargs={}):
     # return bool (True if satisfied) and string containing error message
     G = nx.DiGraph()
     G.add_edges_from(graph.edges())
+    G.add_nodes_from(graph.vertices())
     if G and nx.is_weakly_connected(G):
         return True, ""
     else:
