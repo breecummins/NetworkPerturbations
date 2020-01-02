@@ -1,6 +1,6 @@
 import DSGRN
 import os, json, progressbar, sys
-from multiprocessing import Pool
+import multiprocessing
 from functools import partial
 import NetworkPerturbations.queries.query_utilities as qu
 
@@ -24,6 +24,7 @@ def query(networks,resultsdir,params):
                     are permitted for the node type.
                     Example: {(1,2) : ["C"], (3,1) : ["0"]} means that any node with 1 in-edge and 2 out-edges must have
                     hex code 0x0C and any node with 3 in-edges and 1 outedge must have hex code 0.
+            Optional: "num_proc" specifies the number of processes to be created in the multiprocessing tools. Default: determined by cpu count.
 
     :return: List of network specs that match all FPs in params["included_bounds"] and match none of
              the FPs in params["excluded_bounds"] for at least 1 parameter that is dumped to a json file.
@@ -32,7 +33,8 @@ def query(networks,resultsdir,params):
 
     included_bounds = [dict(b) for b in params["included_bounds"]]
     excluded_bounds = [dict(b) for b in params["excluded_bounds"]]
-    pool = Pool()  # Create a multiprocessing Pool
+    num_proc = multiprocessing.cpu_count() if "num_proc" not in params else params["num_proc"]
+    pool = multiprocessing.Pool(num_proc)  # Create a multiprocessing Pool
     if "hex_constraints" in params and params["hex_constraints"]:
         hex_constraints = dict(params["hex_constraints"])
         output = pool.map(partial(compute_for_network_with_constraints, included_bounds, excluded_bounds, len(networks), hex_constraints),enumerate(networks))
