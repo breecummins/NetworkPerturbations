@@ -1,10 +1,9 @@
 import DSGRN
-import json, os, ast, warnings, sys
+import json, os, ast, sys
 from min_interval_posets import curve
 from min_interval_posets import posets as make_posets
 import pandas as pd
 import multiprocessing
-from copy import deepcopy
 from functools import partial
 from inspect import getmembers, isfunction
 
@@ -19,6 +18,7 @@ def query(networks,resultsdir,params):
     :param resultsdir: path to directory where results file(s) will be stored
     :param params: A dictionary containing the keys
         "matchingfunction" : a string or list of strings containing the name(s) of one of the matching functions in this module
+        **NOTE** Cycle matches are not recommended. They will not work unless the first and last extrema are the same for each variable.
         "count" : True or False, whether to count all params or shortcut at first success
         Then, one can either specify posets directly, or extract posets from timeseries data.
         Include EITHER
@@ -39,7 +39,7 @@ def query(networks,resultsdir,params):
     :return: Writes True (pattern match for the poset) or False (no pattern match) or
         parameter count (# successful matches) plus the number of parameters, for each
          epsilon to a dictionary keyed by network spec, which is dumped to a json file:
-         { networkspec : (eps, result, num params) }
+         { networkspec : [(eps, result, num params)] }
     '''
 
     if "posets" not in params:
@@ -96,7 +96,7 @@ def search_over_networks(params,posets,N,tup):
         paramgraph, patterngraph = getGraphs(events, event_ordering, network)
         for name,mf in matchingfuncs.items():
             R = mf(paramgraph, patterngraph, params['count'])
-            if name == "PathMatchInStableFullCycle":
+            if name == "PathMatchInStableFullCycle" and params["count"]:
                 ER[name].append((eps, R[0], R[1], paramgraph.size()))
             else:
                 ER[name].append((eps, R, paramgraph.size()))
