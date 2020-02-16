@@ -27,8 +27,6 @@ def is_FC(annotation):
 
 def check_FC(N,tup):
     k,netspec = tup
-    print("Network {} of {}".format(k+1, N))
-    sys.stdout.flush()
     count = 0
     network = DSGRN.Network(netspec)
     parametergraph = DSGRN.ParameterGraph(network)
@@ -41,5 +39,7 @@ def check_FC(N,tup):
                                  if is_FC(mg.annotation(i)[0]) and len(mg.poset().children(i)) == 0]
         if len(stable_FC_annotations) > 0:
             count+=1
+    print("Network {} of {} complete".format(k+1, N))
+    sys.stdout.flush()
     return netspec,(count,parametergraph.size())
 

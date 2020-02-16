@@ -10,6 +10,14 @@ def test_countFC():
     assert(networkspec in results)
     assert(results[networkspec]==[76,168])
 
+def test_countFC2():
+    paramfile = "params_CountStableFC2_X1X2X3.json"
+    results, networkspec = run(paramfile,netfile)
+    print(results)
+    assert(len(results)==3)
+    assert(networkspec in results)
+    assert(results[networkspec]==[76,168])
+
 if __name__ == "__main__":
     test_countFC()
 
