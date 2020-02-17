@@ -27,6 +27,5 @@ def query(networks,resultsdir,params):
         json.dump(resultsdict,open(rname,'w'))
         subprocess.call(["rm","temp.db"])
         subprocess.call(["rm","temp.txt"])
-        print(subprocess.call(["ls"]))
         print("Network {} of {} complete".format(k + 1, len(networks)))
         sys.stdout.flush()
