@@ -16,7 +16,7 @@ def query(networks,resultsdir,params):
     for k,netspec in enumerate(networks):
         with open("temp.txt","w") as f:
             f.write(netspec)
-        subprocess.call("mpiexec -n {} Signatures {} {}".format(params["num_proc"],"temp.txt","temp.db"),shell=True)
+        subprocess.call("mpiexec --oversubscribe -n {} Signatures {} {}".format(params["num_proc"],"temp.txt","temp.db"),shell=True)
         db = DSGRN.Database("temp.db")
         N = db.parametergraph.size()
         matches = len(DSGRN.StableFCQuery(db).matches())
