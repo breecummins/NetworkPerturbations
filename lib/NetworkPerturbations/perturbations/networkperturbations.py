@@ -120,7 +120,7 @@ def set_defaults(params):
     if "maxparams" not in params:
         params["maxparams"] = 20000
     if "filters" not in params or not params["filters"]:
-        params["filters"] = None
+        params["filters"] = [partial(filters.is_connected,kwargs={})]
     else:
         names = list(params["filters"].keys())
         funcs = [o for o in getmembers(filters) if isfunction(o[1]) and o[0] in names]

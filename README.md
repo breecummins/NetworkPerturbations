@@ -81,8 +81,8 @@ If `makeperturbations` is true, the following are optional parameters with the d
     filters             =   dictionary of function names keying dictionaries with keyword arguments
                             format: 
                             {"function_name1" : kwargs_dict_1, "function_name2" : kwargs_dict_2, ... }
-                            See filters.py for the implemented filter functions and their arguments.
-                            default = no filters
+                            See filters.py for the implemented filter functions and their arguments. The default is to seek only connected networks.
+                            default = {"is_connected" : {}}
                         
     compressed_output   =   (true or false) prints count of warnings instead of printing every network spec 
                             that fails filtering. This should only be set to false for trouble-shooting.
