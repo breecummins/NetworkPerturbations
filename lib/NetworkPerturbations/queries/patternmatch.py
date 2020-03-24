@@ -1,11 +1,12 @@
 import DSGRN
-import json, os, ast, sys
+import json, os, sys, ast
 from min_interval_posets import curve
 from min_interval_posets import posets as make_posets
 import pandas as pd
 import multiprocessing
 from functools import partial
 from inspect import getmembers, isfunction
+from NetworkPerturbations.queries.query_utilities import calculate_posets_from_multiple_time_series
 
 
 def query(networks,resultsdir,params):
@@ -43,14 +44,14 @@ def query(networks,resultsdir,params):
     '''
 
     if "posets" not in params:
-        posets,networks = calculate_posets(params,networks)
+        posets,networks = calculate_posets_from_multiple_time_series(params,networks)
     else:
         lit_posets = ast.literal_eval(params["posets"])
         posets = {}
         for names,pos in lit_posets.items():
             # make sure variables are in canonical order
             sort_names = tuple(sorted(list(names)))
-            posets[sort_names] = pos
+            posets[sort_names] = {"no file" : pos}
     extract_queries(params)
     num_proc = multiprocessing.cpu_count() if "num_proc" not in params else params["num_proc"]
     pool = multiprocessing.Pool(num_proc)  # Create a multiprocessing Pool
@@ -90,69 +91,18 @@ def search_over_networks(params,posets,N,tup):
     print("Network {} of {}".format(k+1, N))
     network = DSGRN.Network(netspec)
     names = tuple(sorted([network.name(k) for k in range(network.size())]))
-    ER = dict([(k,[]) for k in matchingfuncs.keys()])
-    for (eps, (events, event_ordering)) in posets[names]:
-        # TODO: In order for cycle matches to work correctly, the last extremum on each time series with an odd number of extrema must be removed
-        paramgraph, patterngraph = getGraphs(events, event_ordering, network)
-        for name,mf in matchingfuncs.items():
-            R = mf(paramgraph, patterngraph, params['count'])
-            if name == "PathMatchInStableFullCycle" and params["count"]:
-                ER[name].append((eps, R[0], R[1], paramgraph.size()))
-            else:
-                ER[name].append((eps, R, paramgraph.size()))
+    ER = dict([(k, {ts : [] for ts in posets[names]}) for k in matchingfuncs.keys()])
+    for tsfile,pos_list in posets[names].items():
+        for (eps, (events, event_ordering)) in pos_list:
+            # TODO: In order for cycle matches to work correctly, the last extremum on each time series with an odd number of extrema must be removed
+            paramgraph, patterngraph = getGraphs(events, event_ordering, network)
+            for name,mf in matchingfuncs.items():
+                R = mf(paramgraph, patterngraph, params['count'])
+                if name == "PathMatchInStableFullCycle" and params["count"]:
+                    ER[name][tsfile].append((eps, R[0], R[1], paramgraph.size()))
+                else:
+                    ER[name][tsfile].append((eps, R, paramgraph.size()))
     return (netspec, ER)
-
-
-def calculate_posets(params,networks):
-    data, times = readrow(params['timeseriesfname']) if params['tsfile_is_row_format'] else readcol(
-        params['timeseriesfname'])
-    posets = {}
-    new_networks = []
-    missing_names = set([])
-    for networkspec in networks:
-        network = DSGRN.Network(networkspec)
-        names = tuple(sorted([network.name(k) for k in range(network.size())]))
-        missing_names = missing_names.union(set(name for name in names if name not in data))
-        if set(names).intersection(missing_names):
-            continue
-        if names not in posets.keys():
-            curves = [curve.Curve(data[name], times, True) for name in names]
-            pos = make_posets.eps_posets(dict(zip(names,curves)), params["epsilons"])
-            if pos is None:
-                raise ValueError("poset is None!")
-            posets[names] = pos
-        new_networks.append(networkspec)
-    if missing_names:
-        print("No time series for nodes {}. Skipping all networks with at least one missing time series.\nContinuing with {} networks.".format(missing_names,len(new_networks)))
-    return posets, new_networks
-
-
-def extractdata(filename):
-    file_type = filename.split(".")[-1]
-    if file_type == "tsv":
-        df = pd.read_csv(open(filename),comment="#",sep="\t")
-    elif file_type == "csv":
-        df = pd.read_csv(open(filename),comment="#")
-    else:
-        raise ValueError("File type not recognized. Require .tsv or .csv.")
-    return list(df)[1:],df.values
-
-
-def readrow(filename):
-    times,data = extractdata(filename)
-    times = [float(n) for n in times]
-    names = data[:,0]
-    if len(set(names)) < len(names):
-        raise ValueError("Non-unique names in time series file.")
-    return dict(zip(names,[data[k,1:] for k in range(data.shape[0])])), times
-
-
-def readcol(filename):
-    names,data = extractdata(filename)
-    if len(set(names)) < len(names):
-        raise ValueError("Non-unique names in time series file.")
-    times = data[:,0]
-    return dict(zip(names,[data[:,k] for k in range(1,data.shape[1])])), times
 
 
 def getGraphs(events,event_ordering,network):
