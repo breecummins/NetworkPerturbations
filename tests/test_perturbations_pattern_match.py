@@ -39,5 +39,20 @@ def test_patternmatch_path_badwavepool():
         print(w)
         assert(len(w) == 0)
 
+def test_patternmatch_path_wavepool_multiple():
+    paramfile = "params_patternmatch_path_domaingraph_wavepool_2datasets.json"
+    results, networkspec = run(paramfile, "good_wavepool.txt", "query_results_PathMatchInDomainGraph.json")
+    print(networkspec)
+    print(results)
+    assert (results == {'SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E': {
+        "wt1_microarray_coregenes_lifepoints_interpol_trim.csv": [[0.0, 0, 14], [0.01, 8, 14], [0.05, 5, 14]], 'wt_rnaseq_ts.tsv': [[0.0, 0, 14], [0.01, 0, 14], [0.05, 0, 14]]}})
+    results, networkspec = run(paramfile, "good_wavepool.txt", "query_results_PathMatchInStableFullCycle.json")
+    print(networkspec)
+    print(results)
+    assert (results == {'SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E': {
+        "wt1_microarray_coregenes_lifepoints_interpol_trim.csv": [[0.0, 0, 2, 14], [0.01, 2, 2, 14],
+                                                                      [0.05, 1, 2, 14]], 'wt_rnaseq_ts.tsv': [[0.0, 0, 2, 14], [0.01, 0, 2, 14], [0.05, 0, 2, 14]]}})
+
+
 if __name__ == "__main__":
-    test_patternmatch_path_wavepool()
+    test_patternmatch_path_wavepool_multiple()
