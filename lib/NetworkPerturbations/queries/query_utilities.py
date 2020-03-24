@@ -1,4 +1,5 @@
 import ast, DSGRN
+import pandas as pd
 from min_interval_posets import curve
 from min_interval_posets import posets as make_posets
 
@@ -121,7 +122,7 @@ def calculate_poset(params, networks):
             pos = make_posets.eps_posets(dict(zip(names, curves)), params["epsilons"])
             if pos is None:
                 raise ValueError("poset is None!")
-            posets[names] = [pos]
+            posets[names] = pos
         new_networks.append(networkspec)
     return posets, new_networks, missing_names
 
@@ -155,8 +156,9 @@ def calculate_posets_from_multiple_time_series(params,networks):
         missing_names.update(msn)
         for name,val in pos.items():
             if name not in posets:
-                posets[name] = []
-            posets[name].append(val)
+                posets[name] = {ts_file : val}
+            else:
+                posets[name][ts_file] = val
     if missing_names:
         print(
             "No time series data for node(s) {} in at least one time series file. \nSkipping pattern matches whenever there is a missing time series.\nContinuing with {} networks.".format(
