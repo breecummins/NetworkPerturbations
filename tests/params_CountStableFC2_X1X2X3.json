@@ -1,0 +1,14 @@
+{
+  "querymodule" : "CountStableFC_large_networks",
+  "computationsdir" : "",
+  "networkfile" : "networkspec_X1X2X3.txt",
+  "nodefile" : "nodefile_X1X2X3.txt",
+  "edgefile" : "edgefile_X1X2X3.txt",
+  "probabilities" : {"addNode" : 0.5, "removeNode" : 0.1, "addEdge" : 0.4, "removeEdge" : 0.00},
+  "range_operations" : [1,3],
+  "numperturbations" : 3,
+  "maxparams" : 10000,
+  "time_to_wait" : 30,
+  "random_seed" : 0,
+  "querymodule_args" : {"num_proc" : 4}
+}

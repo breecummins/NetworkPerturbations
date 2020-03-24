@@ -1,1 +1,1 @@
-__all__ = ["CountFPMatch","CountStableFC","patternmatch"]
+__all__ = ["CountFPMatch","CountStableFC","CountStableFC_large_networks","patternmatch"]
