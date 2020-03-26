@@ -6,8 +6,14 @@ def run(paramfile,netfile,queryfile="query_results.json"):
     job = Job(paramfile)
     job.run()
     qdir = subprocess.getoutput("ls -td ./computations*/queries*/ | head -1")
-    resultsfile = os.path.join(qdir,queryfile)
-    results = json.load(open(resultsfile,'r'))
+    if isinstance(queryfile,str):
+        resultsfile = os.path.join(qdir, queryfile)
+        results=json.load(open(resultsfile,'r'))
+    else:
+        results = []
+        for qf in queryfile:
+            resultsfile = os.path.join(qdir, qf)
+            results.append(json.load(open(resultsfile,'r')))
     subprocess.call("rm -r " + qdir, shell=True)
     subprocess.call("rm -r " + subprocess.getoutput("ls -td ./computations*/ | head -1"), shell=True)
     networkspec = open(netfile).read()
