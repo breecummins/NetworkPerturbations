@@ -51,7 +51,7 @@ def query(networks,resultsdir,params):
         for names,pos in lit_posets.items():
             # make sure variables are in canonical order
             sort_names = tuple(sorted(list(names)))
-            posets[sort_names] = {"no file" : pos}
+            posets[sort_names] = {"no_time_series_file" : pos}
     extract_queries(params)
     num_proc = multiprocessing.cpu_count() if "num_proc" not in params else params["num_proc"]
     pool = multiprocessing.Pool(num_proc)  # Create a multiprocessing Pool
@@ -62,16 +62,20 @@ def query(networks,resultsdir,params):
             reparse = dict((k, []) for k in results.keys())
             for netspec in results.keys():
                 reparse[netspec] = results[netspec][name]
-            rname = os.path.join(resultsdir,"query_results_{}.json".format(name))
+            rname = os.path.join(resultsdir,"query_results_{}_{}.json".format(name[0],name[1].split(".")[0]))
             if os.path.exists(rname):
                 os.rename(rname,rname+".old")
             json.dump(reparse,open(rname,'w'))
     else:
+        tsf = params["timeseriesfname"]
+        if isinstance(tsf,str):
+            tsf = [tsf]
         for name in params["matchingfunction"]:
-            rname = os.path.join(resultsdir, "query_results_{}.json".format(name))
-            if os.path.exists(rname):
-                os.rename(rname, rname + ".old")
-            json.dump(results, open(rname, 'w'))
+            for ts in tsf:
+                rname = os.path.join(resultsdir, "query_results_{}_{}.json".format(name,ts.split(".")[0]))
+                if os.path.exists(rname):
+                    os.rename(rname, rname + ".old")
+                json.dump(results, open(rname, 'w'))
 
 
 def extract_queries(params):
@@ -91,17 +95,16 @@ def search_over_networks(params,posets,N,tup):
     print("Network {} of {}".format(k+1, N))
     network = DSGRN.Network(netspec)
     names = tuple(sorted([network.name(k) for k in range(network.size())]))
-    ER = dict([(k, {ts : [] for ts in posets[names]}) for k in matchingfuncs.keys()])
+    ER = dict([((k,ts),[]) for k in matchingfuncs.keys() for ts in posets[names]])
     for tsfile,pos_list in posets[names].items():
         for (eps, (events, event_ordering)) in pos_list:
-            # TODO: In order for cycle matches to work correctly, the last extremum on each time series with an odd number of extrema must be removed
             paramgraph, patterngraph = getGraphs(events, event_ordering, network)
             for name,mf in matchingfuncs.items():
                 R = mf(paramgraph, patterngraph, params['count'])
                 if name == "PathMatchInStableFullCycle" and params["count"]:
-                    ER[name][tsfile].append((eps, R[0], R[1], paramgraph.size()))
+                    ER[(name,tsfile)].append((eps, R[0], R[1], paramgraph.size()))
                 else:
-                    ER[name][tsfile].append((eps, R, paramgraph.size()))
+                    ER[(name,tsfile)].append((eps, R, paramgraph.size()))
     return (netspec, ER)
 
 
@@ -120,6 +123,7 @@ def CycleMatchInStableMorseSet(paramgraph, patterngraph, count):
     Search for cycle matches in stable Morse sets only.
     :return: Integer count of parameters if count = True; if count = False return True if at least one match, False otherwise.
     '''
+    # TODO: In order for cycle matches to work correctly, the last extremum on each time series with an odd number of extrema must be removed
     numparams = 0
     for paramind in range(paramgraph.size()):
         domaingraph = DSGRN.DomainGraph(paramgraph.parameter(paramind))
@@ -143,6 +147,7 @@ def CycleMatchInDomainGraph(paramgraph, patterngraph, count):
     Search for cycle matches anywhere in the domain graph.
     :return: Integer count of parameters if count = True; if count = False return True if at least one match, False otherwise.
     '''
+    # TODO: In order for cycle matches to work correctly, the last extremum on each time series with an odd number of extrema must be removed
     numparams = 0
     for paramind in range(paramgraph.size()):
         domaingraph = DSGRN.DomainGraph(paramgraph.parameter(paramind))
