@@ -77,7 +77,7 @@ def read_networks(network_object):
     '''
     Identify a list of networks or generate a list of DSGRN network specifications from a .txt file, such as that produced in makejobs.Job.run().
 
-    :param networks: Either a list of network specifications or a .txt file containing a list of network specifications,
+    :param networks: Either a list of network specifications or a .txt file containing a single DSGRN network specification or a list of network specifications,
     :return: list of DSGRN network specifications
     '''
 
@@ -89,9 +89,9 @@ def read_networks(network_object):
         if network_str[0] == "[":
             networks = ast.literal_eval(network_str)
         else:
-            while networks[-1] == '\n':
-                networks = networks[:-1]
-            networks = [networks]
+            while network_str[-1] == '\n':
+                network_str = network_str[:-1]
+            networks = [network_str]
     return networks
 
 
@@ -164,9 +164,6 @@ def calculate_posets_from_multiple_time_series(params,networks):
             "No time series data for node(s) {} in at least one time series file. \nSkipping pattern matches whenever there is a missing time series.\nContinuing with {} networks.".format(
                 missing_names, len(new_networks)))
     return posets, new_networks
-
-
-
 
 
 
