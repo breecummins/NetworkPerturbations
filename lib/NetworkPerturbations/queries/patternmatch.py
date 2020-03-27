@@ -51,6 +51,7 @@ def query(networks,resultsdir,params):
         for names,pos in lit_posets.items():
             # make sure variables are in canonical order
             sort_names = tuple(sorted(list(names)))
+            params["timeseriesfname"] = "no_time_series_file"
             posets[sort_names] = {"no_time_series_file" : pos}
     extract_queries(params)
     num_proc = multiprocessing.cpu_count() if "num_proc" not in params else params["num_proc"]
