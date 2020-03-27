@@ -74,6 +74,7 @@ class Job():
         if "querymodule" in self.params and "querymodule_args" in self.params and self.params["querymodule"]:
             print("\nQueries beginning.\n")
             sys.stdout.flush()
+            #TODO: add mpiexec calls
             query = importlib.import_module("..queries."+self.params["querymodule"],"NetworkPerturbations.perturbations")
             query.query(networks,self.queriesdir,self.params["querymodule_args"])
             print("\nQueries complete.\n")

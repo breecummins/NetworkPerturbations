@@ -11,6 +11,7 @@ def query(networks,resultsdir,params):
     :return: Writes count of parameters with a stable FC to a dictionary keyed by
     network spec, which is dumped to a json file.
     '''
+    #TODO: move mpiexec call to job object
 
     resultsdict = {}
     for k,netspec in enumerate(networks):

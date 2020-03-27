@@ -30,7 +30,7 @@ def query(networks,resultsdir,params):
              the FPs in params["excluded_bounds"] for at least 1 parameter that is dumped to a json file.
              NOTE: This means that no matches returns an empty list.
     '''
-
+    #TODO: parallelize
     included_bounds = [dict(b) for b in params["included_bounds"]]
     excluded_bounds = [dict(b) for b in params["excluded_bounds"]]
     num_proc = multiprocessing.cpu_count() if "num_proc" not in params else params["num_proc"]

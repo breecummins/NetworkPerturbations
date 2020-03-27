@@ -11,6 +11,7 @@ def query(networks,resultsdir,params):
     :return: Writes count of parameters with a stable FC to a dictionary keyed by
     network spec, which is dumped to a json file.
     '''
+    #TODO: parallelize
 
     num_proc = multiprocessing.cpu_count() if "num_proc" not in params else params["num_proc"]
     pool = multiprocessing.Pool(num_proc)  # Create a multiprocessing Pool

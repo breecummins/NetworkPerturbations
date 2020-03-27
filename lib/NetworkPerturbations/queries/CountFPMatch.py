@@ -15,6 +15,8 @@ def query(networks,resultsdir,params):
     :return: Writes count of parameters with an FP match to a dictionary keyed by
     network spec, which is dumped to a json file.
     '''
+    #TODO: parallelize
+
     bounds = dict(params["bounds"])
 
     def is_FP(annotation):
