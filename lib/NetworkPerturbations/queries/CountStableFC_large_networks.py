@@ -28,11 +28,6 @@ def query(network_file,resultsdir,params_file):
         dbfile = "temp{}.db".format(k)
         with open(netfile,"w") as f:
             f.write(netspec)
-        # subprocess.call(["cat",netfile])
-        # command = ["mpiexec", "-n", str(N), "Signatures",netfile ,dbfile]
-        # subprocess.check_output(command)
-        # command = "mpiexec -n {} Signatures {} {}".format(str(N),netfile ,dbfile)
-        # subprocess.call(command,shell=True)
         fromSignatures(netfile,dbfile)
         db = DSGRN.Database(dbfile)
         N = db.parametergraph.size()
