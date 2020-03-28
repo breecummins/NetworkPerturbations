@@ -23,4 +23,13 @@ def test_patternmatch():
     assert(results2 == {"SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E": [[0.0, 0, 2, 14], [0.01, 2, 2, 14], [0.05, 1, 2, 14]], "SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : NDD1 : E": [[0.0, 0, 0, 4], [0.01, 0, 0, 4], [0.05, 0, 0, 4]]})
 
 
+def test_count_stableFCln():
+    command = "python ../lib/NetworkPerturbations/queries/CountStableFC_large_networks.py mpi_networks_FCln.txt results mpi_params_FCln.json"
+    output_file = "results/query_results.json"
+    subprocess.check_call(command,shell=True)
+    results = json.load(open(output_file))
+    assert(results == {"SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E": [2, 14], "SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : NDD1 : E": [0, 4]})
 
+
+if __name__ == "__main__":
+    test_count_stableFCln()
