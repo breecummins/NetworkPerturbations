@@ -1,16 +1,18 @@
 import DSGRN
-import os, json, progressbar, sys
-import multiprocessing
+import os, json, sys
 from functools import partial
 import NetworkPerturbations.queries.query_utilities as qu
+from mpi4py import MPI
+from mpi4py.futures import MPICommExecutor
+from NetworkPerturbations.queries.query_utilities import read_networks
 
-def query(networks,resultsdir,params):
+def query(network_file,resultsdir,params_file):
     '''
     Take the intersection of an arbitrary number of DSGRN fixed points in a list.
 
-    :param networks: list of network specification strings in DSGRN format
+    :param network_file: a .txt file containing either a single DSGRN network specification or a list of network specification strings in DSGRN format
     :param resultsdir: path to directory where results file(s) will be stored
-    :param params: dictionary containing the keys "included_bounds", "excluded_bounds", and optionally "hex_constraints".
+    :param params_file: A json file with a dictionary containing the keys "included_bounds", "excluded_bounds", and optionally "hex_constraints".
                     The "bounds" variables are each a list of dictionaries of variable names common to all network
                     specifications with an associated integer range.
                     Example: [{"X1":[2,2],"X2":[1,1],"X3":[0,1]},{"X1":[0,1],"X2":[1,1],"X3":[2,3]}]
@@ -24,23 +26,31 @@ def query(networks,resultsdir,params):
                     are permitted for the node type.
                     Example: {(1,2) : ["C"], (3,1) : ["0"]} means that any node with 1 in-edge and 2 out-edges must have
                     hex code 0x0C and any node with 3 in-edges and 1 outedge must have hex code 0.
-            Optional: "num_proc" specifies the number of processes to be created in the multiprocessing tools. Default: determined by cpu count.
 
     :return: List of network specs that match all FPs in params["included_bounds"] and match none of
              the FPs in params["excluded_bounds"] for at least 1 parameter that is dumped to a json file.
              NOTE: This means that no matches returns an empty list.
     '''
-    #TODO: parallelize
+
+    networks = read_networks(network_file)
+    params = json.load(open(params_file))
+
     included_bounds = [dict(b) for b in params["included_bounds"]]
     excluded_bounds = [dict(b) for b in params["excluded_bounds"]]
-    num_proc = multiprocessing.cpu_count() if "num_proc" not in params else params["num_proc"]
-    pool = multiprocessing.Pool(num_proc)  # Create a multiprocessing Pool
     if "hex_constraints" in params and params["hex_constraints"]:
         hex_constraints = dict(params["hex_constraints"])
-        output = pool.map(partial(compute_for_network_with_constraints, included_bounds, excluded_bounds, len(networks), hex_constraints),enumerate(networks))
+        work_function = partial(compute_for_network_with_constraints, included_bounds, excluded_bounds, len(networks), hex_constraints)
     else:
-        output = pool.map(partial(compute_for_network_without_constraints, included_bounds, excluded_bounds, len(networks)),enumerate(networks))
-    results = list(filter(None,output))
+        work_function = partial(compute_for_network_without_constraints, included_bounds, excluded_bounds, len(networks))
+    with MPICommExecutor(MPI.COMM_WORLD, root=0) as executor:
+        if executor is not None:
+            print("Querying networks.")
+            output=list(executor.map(work_function, enumerate(networks)))
+            results = list(filter(None, output))
+            record_results(results,resultsdir)
+
+
+def record_results(results,resultsdir):
     rname = os.path.join(resultsdir,"query_results.json")
     if os.path.exists(rname):
         os.rename(rname,rname+".old")
@@ -48,31 +58,36 @@ def query(networks,resultsdir,params):
 
 
 def compute_for_network_without_constraints(included_bounds,excluded_bounds,N,tup):
-    netspec,network, parametergraph = getpg(tup,N)
-    # for p in progressbar.ProgressBar()(range(parametergraph.size())):
+    (k, netspec) = tup
+    network, parametergraph = getpg(netspec)
     for p in range(parametergraph.size()):
         if have_match(network, parametergraph.parameter(p), included_bounds, excluded_bounds):
+            print("Network {} of {} complete.".format(k + 1, N))
+            sys.stdout.flush()
             return netspec
+    print("Network {} of {} complete.".format(k + 1, N))
+    sys.stdout.flush()
     return None
 
 
 def compute_for_network_with_constraints(included_bounds,excluded_bounds,N,hex_constraints,tup):
-    netspec,network, parametergraph = getpg(tup,N)
-    # for p in progressbar.ProgressBar()(range(parametergraph.size())):
+    (k, netspec) = tup
+    network, parametergraph = getpg(netspec)
     for p in range(parametergraph.size()):
         param = parametergraph.parameter(p)
         if qu.satisfies_hex_constraints(param,hex_constraints) and have_match(network, param, included_bounds,excluded_bounds):
+            print("Network {} of {} complete.".format(k + 1, N))
+            sys.stdout.flush()
             return netspec
+    print("Network {} of {} complete.".format(k + 1, N))
+    sys.stdout.flush()
     return None
 
 
-def getpg(tup,N):
-    (k, netspec) = tup
-    print("Network {} of {}".format(k+1, N))
-    sys.stdout.flush()
+def getpg(netspec):
     network = DSGRN.Network(netspec)
     parametergraph = DSGRN.ParameterGraph(network)
-    return netspec,network,parametergraph
+    return network,parametergraph
 
 
 def have_match(network,parameter,included_bounds,excluded_bounds):
@@ -120,3 +135,14 @@ def all_excluded(network,excluded_bounds,stable_FP_annotations):
             return False
     return True
 
+if __name__ == "__main__":
+    if len(sys.argv) < 4:
+        print(
+        "Calling signature is \n " \
+        "mpiexec -n <num_processes> python MultistabilityExists.py <path_to_network_file> <path_to_results_directory> <path_to_parameter_file>"
+        )
+        exit(1)
+    network_file = sys.argv[1]
+    resultsdir = sys.argv[2]
+    params_file = sys.argv[3]
+    query(network_file,resultsdir,params_file)
