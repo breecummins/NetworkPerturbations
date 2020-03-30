@@ -1,5 +1,6 @@
 import subprocess,os,json
 from pathlib import Path
+# import NetworkPerturbations as NP
 
 Path("results").mkdir(exist_ok=True)
 
@@ -48,4 +49,4 @@ def test_count_stableFP():
 
 
 if __name__ == "__main__":
-    test_count_stableFP()
+    test_count_stableFC()

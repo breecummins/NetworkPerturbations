@@ -86,7 +86,9 @@ def read_networks(network_object):
     elif isinstance(network_object,str):
         # read network file
         network_str = open(network_object).read()
-        if network_str[0] == "[":
+        if not network_str:
+            networks = []
+        elif network_str[0] == "[":
             networks = ast.literal_eval(network_str)
         else:
             while network_str[-1] == '\n':

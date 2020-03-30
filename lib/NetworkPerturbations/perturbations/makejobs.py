@@ -1,6 +1,7 @@
-import NetworkPerturbations.perturbations.networkperturbations as perturb
-import NetworkPerturbations.perturbations.fileparsers as fileparsers
+# import NetworkPerturbations.perturbations.networkperturbations as perturb
+# import NetworkPerturbations.perturbations.fileparsers as fileparsers
 import subprocess, os, json, shutil, ast, importlib,sys
+
 
 class Job():
 
@@ -18,7 +19,7 @@ class Job():
             self.perturbationsdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
                                                     "perturbations"+datetime)
             os.makedirs(self.perturbationsdir)
-        if"querymodule" in self.params and "querymodule_args" in self.params and self.params["querymodule"]:
+        if "querymodule" in self.params and "querymodule_args" in self.params and self.params["querymodule"]:
             self.queriesdir = os.path.join(os.path.expanduser(self.params["computationsdir"]),
                                                     "queries"+datetime)
             os.makedirs(self.queriesdir)
@@ -74,9 +75,18 @@ class Job():
         if "querymodule" in self.params and "querymodule_args" in self.params and self.params["querymodule"]:
             print("\nQueries beginning.\n")
             sys.stdout.flush()
-            #TODO: add mpiexec calls
-            query = importlib.import_module("..queries."+self.params["querymodule"],"NetworkPerturbations.perturbations")
-            query.query(networks,self.queriesdir,self.params["querymodule_args"])
+            # query = importlib.import_module("..queries."+self.params["querymodule"],"NetworkPerturbations.perturbations")
+            # query.query(networks,self.queriesdir,self.params["querymodule_args"])
+            # path = os.path.abspath(query.__file__)
+            path = "../lib/NetworkPerturbations/queries/patternmatch.py"
+            num_proc = 1 if "num_proc" not in self.params["querymodule_args"] else self.params["querymodule_args"]["num_proc"]
+            with open("temp.json","w") as f:
+                json.dump(self.params["querymodule_args"],f)
+            # command = "mpiexec -n {} python {} {} {} temp.json".format(str(num_proc), path, self.params["networkfile"], self.queriesdir)
+            # print(command)
+            command = ["mpiexec", "-n", str(num_proc), "python", path, self.params["networkfile"], self.queriesdir, "temp.json"]
+            print(" ".join(command))
+            subprocess.check_call(command)
             print("\nQueries complete.\n")
             sys.stdout.flush()
 

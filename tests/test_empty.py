@@ -16,3 +16,5 @@ def test_patternmatch2():
     print(results)
     assert(len(results)==3)
 
+if __name__ == "__main__":
+    test_patternmatch()
