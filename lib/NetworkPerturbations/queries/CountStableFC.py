@@ -60,7 +60,7 @@ if __name__ == "__main__":
     if len(sys.argv) < 3:
         print(
         "Calling signature is \n " \
-        "mpiexec -n <num_processes> python patternmatch.py <path_to_network_file> <path_to_results_directory>"
+        "mpiexec -n <num_processes> python CountStableFC.py <path_to_network_file> <path_to_results_directory>"
         )
         exit(1)
     network_file = sys.argv[1]

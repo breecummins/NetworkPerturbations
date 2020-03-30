@@ -4,7 +4,7 @@
   "networkfile" : "networkspec_X1X2X3.txt",
   "nodefile" : "nodefile_X1X2X3.txt",
   "edgefile" : "edgefile_X1X2X3.txt",
-  "probabilities" : {"addNode" : 0.4, "removeNode" : 0.00, "addEdge" : 0.5, "removeEdge" : 0.1},
+  "probabilities" : {"addNode" : 0.4, "removeNode" : 0.00, "addEdge" : 0.5, "removeEdge" : 0.0},
   "range_operations" : [1,3],
   "numperturbations" : 3,
   "maxparams" : 10000,
