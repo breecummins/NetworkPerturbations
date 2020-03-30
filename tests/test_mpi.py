@@ -31,5 +31,14 @@ def test_count_stableFCln():
     assert(results == {"SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E": [2, 14], "SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : NDD1 : E": [0, 4]})
 
 
+def test_count_stableFC():
+    command = ["mpiexec", "-n", "2", "python", "../lib/NetworkPerturbations/queries/CountStableFC.py", "mpi_networks_FCln.txt", "results", ""]
+    output_file = "results/query_results.json"
+    subprocess.check_call(command)
+    results = json.load(open(output_file))
+    assert(results == {"SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : SWI4 : E": [2, 14], "SWI4 : (NDD1)(~YOX1) : E\nHCM1 : SWI4 : E\nNDD1 : HCM1 : E\nYOX1 : NDD1 : E": [0, 4]})
+
+
+
 if __name__ == "__main__":
-    test_count_stableFCln()
+    test_count_stableFC()

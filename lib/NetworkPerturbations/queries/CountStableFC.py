@@ -1,25 +1,36 @@
 import DSGRN
-import os, json, multiprocessing,sys
+import os, json,sys
 from functools import partial
+from NetworkPerturbations.queries.query_utilities import read_networks
+from mpi4py import MPI
+from mpi4py.futures import MPICommExecutor
 
-def query(networks,resultsdir,params):
+def query(network_file,resultsdir,params_file=""):
     '''
-    :param networks: list of network specification strings in DSGRN format
-    :param resultsdir: path to directory where results file(s) will be stored
-    :param params: optional dictionary with key "num_proc" that specifies the (integer) number of processes to be created in the multiprocessing tools. Default: determined by cpu count.
+    :param network_file: a .txt file containing either a single DSGRN network specification or a list of network specification strings in DSGRN format
+    :param resultsdir: path to an existing directory where results file(s) will be stored
+    :param params_file: An unnecessary .json file containing an empty dictionary that's here for API consistency only.
 
     :return: Writes count of parameters with a stable FC to a dictionary keyed by
     network spec, which is dumped to a json file.
     '''
-    #TODO: parallelize
 
-    num_proc = multiprocessing.cpu_count() if "num_proc" not in params else params["num_proc"]
-    pool = multiprocessing.Pool(num_proc)  # Create a multiprocessing Pool
-    output = pool.map(partial(check_FC,len(networks)),enumerate(networks))
+    networks = read_networks(network_file)
+
+    work_function = partial(check_FC, len(networks))
+    with MPICommExecutor(MPI.COMM_WORLD, root=0) as executor:
+        if executor is not None:
+            print("Querying networks.")
+            output=list(executor.map(work_function, enumerate(networks)))
+            results = dict(output)
+            record_results(results,resultsdir)
+
+
+def record_results(results,resultsdir):
     rname = os.path.join(resultsdir,"query_results.json")
     if os.path.exists(rname):
         os.rename(rname,rname+".old")
-    json.dump(dict(output),open(rname,'w'))
+    json.dump(results,open(rname,'w'))
 
 
 def is_FC(annotation):
@@ -44,3 +55,14 @@ def check_FC(N,tup):
     sys.stdout.flush()
     return netspec,(count,parametergraph.size())
 
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3:
+        print(
+        "Calling signature is \n " \
+        "mpiexec -n <num_processes> python patternmatch.py <path_to_network_file> <path_to_results_directory>"
+        )
+        exit(1)
+    network_file = sys.argv[1]
+    resultsdir = sys.argv[2]
+    query(network_file,resultsdir)
